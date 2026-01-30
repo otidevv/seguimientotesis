@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firma Perú - archivos temporales
+/tmp/
+/public/firmados/
+
+# Uploads de usuarios (avatares, etc)
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/avatars/.gitkeep
+
+/lib/generated/prisma
