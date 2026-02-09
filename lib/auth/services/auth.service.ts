@@ -18,6 +18,35 @@ import type {
 import { TipoDocumento } from '@prisma/client'
 
 /**
+ * Mapeo de nombres de facultades antiguas a las actuales
+ * Útil cuando la API externa devuelve nombres desactualizados
+ */
+const FACULTAD_ALIAS: Record<string, string> = {
+  'Facultad de Ecoturismo': 'Facultad de Ciencias Empresariales',
+  'Ecoturismo': 'Facultad de Ciencias Empresariales',
+  // Agregar más alias aquí si es necesario
+}
+
+/**
+ * Normaliza el nombre de la facultad usando el mapeo de alias
+ */
+function normalizarNombreFacultad(nombre: string): string {
+  // Buscar coincidencia exacta primero
+  if (FACULTAD_ALIAS[nombre]) {
+    return FACULTAD_ALIAS[nombre]
+  }
+
+  // Buscar coincidencia parcial (por si viene con variaciones)
+  for (const [alias, nombreReal] of Object.entries(FACULTAD_ALIAS)) {
+    if (nombre.toLowerCase().includes(alias.toLowerCase())) {
+      return nombreReal
+    }
+  }
+
+  return nombre
+}
+
+/**
  * Servicio principal de autenticación
  */
 export class AuthService {
@@ -338,17 +367,20 @@ export class AuthService {
 
   private async createStudentCareers(userId: string, carreras: ExternalStudentData['carreras']): Promise<void> {
     for (const carrera of carreras) {
+      // Normalizar nombre de facultad (mapea nombres antiguos a actuales)
+      const facultadNombre = normalizarNombreFacultad(carrera.facultadNombre)
+
       // Buscar o crear facultad
       let faculty = await prisma.faculty.findFirst({
-        where: { nombre: { contains: carrera.facultadNombre, mode: 'insensitive' } },
+        where: { nombre: { contains: facultadNombre, mode: 'insensitive' } },
       })
 
       if (!faculty) {
         // Crear facultad si no existe
-        const codigo = carrera.facultadNombre.substring(0, 3).toUpperCase()
+        const codigo = facultadNombre.substring(0, 3).toUpperCase()
         faculty = await prisma.faculty.create({
           data: {
-            nombre: carrera.facultadNombre,
+            nombre: facultadNombre,
             codigo: `${codigo}_${Date.now()}`,
           },
         })
@@ -367,16 +399,19 @@ export class AuthService {
   }
 
   private async createTeacherInfo(userId: string, data: ExternalTeacherData): Promise<void> {
+    // Normalizar nombre de facultad (mapea nombres antiguos a actuales)
+    const facultadNombre = normalizarNombreFacultad(data.facultadNombre)
+
     // Buscar o crear facultad
     let faculty = await prisma.faculty.findFirst({
-      where: { nombre: { contains: data.facultadNombre, mode: 'insensitive' } },
+      where: { nombre: { contains: facultadNombre, mode: 'insensitive' } },
     })
 
     if (!faculty) {
-      const codigo = data.facultadNombre.substring(0, 3).toUpperCase()
+      const codigo = facultadNombre.substring(0, 3).toUpperCase()
       faculty = await prisma.faculty.create({
         data: {
-          nombre: data.facultadNombre,
+          nombre: facultadNombre,
           codigo: `${codigo}_${Date.now()}`,
         },
       })

@@ -154,9 +154,14 @@ export default function UsuariosPage() {
     }
   }
 
-  const handleAssignRole = async (userId: string, roleId: string) => {
+  const handleAssignRole = async (userId: string, roleId: string, contextType?: string, contextId?: string) => {
     try {
-      const updatedUser = await assignRole(userId, { roleId })
+      const roleData: { roleId: string; contextType?: string; contextId?: string } = { roleId }
+      if (contextType && contextId) {
+        roleData.contextType = contextType
+        roleData.contextId = contextId
+      }
+      const updatedUser = await assignRole(userId, roleData)
       toast.success('Rol asignado correctamente')
       // Actualizar el usuario seleccionado para reflejar los cambios
       setSelectedUser(updatedUser)

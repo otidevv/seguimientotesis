@@ -165,22 +165,45 @@ export class UserService {
       },
     })
 
-    // Asignar roles - soporta roleId (single) o roleIds (array)
+    // Asignar roles - soporta rolesWithContext (con contexto) o roleIds (array simple)
+    const rolesWithContext = input.rolesWithContext as { roleId: string; contextType?: string; contextId?: string }[] | undefined
     const roleIdsToAssign = input.roleIds?.length ? input.roleIds : (input.roleId ? [input.roleId] : [])
 
-    for (const roleId of roleIdsToAssign) {
-      const role = await prisma.role.findUnique({
-        where: { id: roleId },
-      })
-
-      if (role) {
-        await prisma.userRole.create({
-          data: {
-            userId: user.id,
-            roleId: roleId,
-            assignedBy: adminId,
-          },
+    if (rolesWithContext && rolesWithContext.length > 0) {
+      // Usar rolesWithContext si está disponible
+      for (const roleData of rolesWithContext) {
+        const role = await prisma.role.findUnique({
+          where: { id: roleData.roleId },
         })
+
+        if (role) {
+          await prisma.userRole.create({
+            data: {
+              userId: user.id,
+              roleId: roleData.roleId,
+              contextType: roleData.contextType || null,
+              contextId: roleData.contextId || null,
+              assignedBy: adminId,
+            },
+          })
+        }
+      }
+    } else {
+      // Fallback a roleIds simples
+      for (const roleId of roleIdsToAssign) {
+        const role = await prisma.role.findUnique({
+          where: { id: roleId },
+        })
+
+        if (role) {
+          await prisma.userRole.create({
+            data: {
+              userId: user.id,
+              roleId: roleId,
+              assignedBy: adminId,
+            },
+          })
+        }
       }
     }
 
@@ -216,6 +239,48 @@ export class UserService {
   }
 
   /**
+   * Buscar facultad con múltiples estrategias
+   */
+  private async findFaculty(nombreFacultad: string) {
+    // Normalizar el nombre de búsqueda
+    const nombreNormalizado = nombreFacultad.toLowerCase().trim()
+
+    // Extraer palabra clave (ej: "INGENIERIA" -> "ingenieria", "Facultad de Ingeniería" -> "ingeniería")
+    const palabraClave = nombreNormalizado
+      .replace(/facultad\s*(de)?\s*/i, '')
+      .replace(/[áàäâ]/g, 'a')
+      .replace(/[éèëê]/g, 'e')
+      .replace(/[íìïî]/g, 'i')
+      .replace(/[óòöô]/g, 'o')
+      .replace(/[úùüû]/g, 'u')
+      .trim()
+
+    // Buscar todas las facultades y hacer match manual
+    const facultades = await prisma.faculty.findMany({ where: { isActive: true } })
+
+    for (const fac of facultades) {
+      const facNombre = fac.nombre.toLowerCase()
+        .replace(/[áàäâ]/g, 'a')
+        .replace(/[éèëê]/g, 'e')
+        .replace(/[íìïî]/g, 'i')
+        .replace(/[óòöô]/g, 'o')
+        .replace(/[úùüû]/g, 'u')
+
+      // Coincidencia exacta
+      if (facNombre === nombreNormalizado) return fac
+
+      // La facultad contiene la palabra clave
+      if (facNombre.includes(palabraClave)) return fac
+
+      // La palabra clave contiene el nombre de la facultad sin "Facultad de"
+      const facPalabraClave = facNombre.replace(/facultad\s*(de)?\s*/i, '').trim()
+      if (palabraClave.includes(facPalabraClave) || facPalabraClave.includes(palabraClave)) return fac
+    }
+
+    return null
+  }
+
+  /**
    * Crear carreras de estudiante
    */
   private async createStudentCareers(
@@ -223,10 +288,8 @@ export class UserService {
     carreras: { codigoEstudiante: string; carreraNombre: string; facultadNombre: string; creditosAprobados: number }[]
   ): Promise<void> {
     for (const carrera of carreras) {
-      // Buscar o crear facultad
-      let faculty = await prisma.faculty.findFirst({
-        where: { nombre: { contains: carrera.facultadNombre, mode: 'insensitive' } },
-      })
+      // Buscar facultad con múltiples estrategias
+      let faculty = await this.findFaculty(carrera.facultadNombre)
 
       if (!faculty) {
         const codigo = carrera.facultadNombre.substring(0, 3).toUpperCase()

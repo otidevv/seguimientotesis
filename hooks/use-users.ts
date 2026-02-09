@@ -152,7 +152,7 @@ export function useUsers(options: UseUsersOptions = {}) {
     return data.data
   }, [authFetch])
 
-  const assignRole = useCallback(async (userId: string, roleData: { roleId: string }) => {
+  const assignRole = useCallback(async (userId: string, roleData: { roleId: string; contextType?: string; contextId?: string }) => {
     const response = await authFetch(`/api/admin/usuarios/${userId}/roles`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

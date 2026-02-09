@@ -59,6 +59,12 @@ export const createUserSchema = z.object({
   // Support both single roleId and array of roleIds
   roleId: z.string().optional(),
   roleIds: z.array(z.string()).optional(),
+  // Roles with context (for MESA_PARTES with facultad)
+  rolesWithContext: z.array(z.object({
+    roleId: z.string(),
+    contextType: z.string().optional(),
+    contextId: z.string().optional(),
+  })).optional(),
   isActive: z.boolean().optional().default(true),
   isVerified: z.boolean().optional().default(true), // Admin creates verified by default
   // External data for creating student/teacher records

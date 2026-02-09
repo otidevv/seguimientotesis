@@ -272,6 +272,18 @@ async function main() {
         orden: 10,
       },
     }),
+    prisma.systemModule.upsert({
+      where: { codigo: 'mesa-partes' },
+      update: {},
+      create: {
+        nombre: 'Mesa de Partes',
+        codigo: 'mesa-partes',
+        descripcion: 'Recepción y gestión de proyectos de tesis por facultad',
+        icono: 'Inbox',
+        ruta: '/mesa-partes',
+        orden: 11,
+      },
+    }),
   ])
 
   console.log(`Módulos creados: ${modulos.length}`)
@@ -377,7 +389,19 @@ async function main() {
     },
   })
 
-  console.log('Roles creados: 8')
+  const rolMesaPartes = await prisma.role.upsert({
+    where: { codigo: 'MESA_PARTES' },
+    update: {},
+    create: {
+      nombre: 'Mesa de Partes',
+      codigo: 'MESA_PARTES',
+      descripcion: 'Personal de mesa de partes de facultad. Recibe y gestiona proyectos de tesis.',
+      color: '#0d9488',
+      isSystem: false,
+    },
+  })
+
+  console.log('Roles creados: 9')
 
   // ============================================
   // 5. ASIGNAR PERMISOS AL SUPER ADMIN (TODOS)
@@ -630,7 +654,38 @@ async function main() {
   }
 
   // ============================================
-  // 13. CREAR USUARIO SUPER ADMIN
+  // 13. ASIGNAR PERMISOS A MESA DE PARTES
+  // ============================================
+  console.log('Asignando permisos a Mesa de Partes...')
+
+  for (const modulo of modulos) {
+    const tieneAcceso = ['dashboard', 'mesa-partes', 'tesis', 'reportes'].includes(modulo.codigo)
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_moduleId: {
+          roleId: rolMesaPartes.id,
+          moduleId: modulo.id,
+        },
+      },
+      update: {
+        canView: tieneAcceso,
+        canCreate: false,
+        canEdit: modulo.codigo === 'mesa-partes' || modulo.codigo === 'tesis',
+        canDelete: false,
+      },
+      create: {
+        roleId: rolMesaPartes.id,
+        moduleId: modulo.id,
+        canView: tieneAcceso,
+        canCreate: false,
+        canEdit: modulo.codigo === 'mesa-partes' || modulo.codigo === 'tesis',
+        canDelete: false,
+      },
+    })
+  }
+
+  // ============================================
+  // 14. CREAR USUARIO SUPER ADMIN
   // ============================================
   console.log('Creando usuario Super Admin...')
 

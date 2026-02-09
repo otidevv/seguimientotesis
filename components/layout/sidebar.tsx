@@ -24,6 +24,7 @@ import {
   GraduationCap,
   Mail,
   Boxes,
+  Inbox,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -100,6 +101,15 @@ const docenteNavItems: NavItem[] = [
   },
 ]
 
+const mesaPartesNavItems: NavItem[] = [
+  {
+    title: 'Mesa de Partes',
+    href: '/mesa-partes',
+    icon: Inbox,
+    moduleCode: 'mesa-partes',
+  },
+]
+
 const adminNavItems: NavItem[] = [
   {
     title: 'Usuarios',
@@ -153,6 +163,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   // Items de docente visibles solo para usuarios con rol DOCENTE
   const visibleDocenteItems = hasRole('DOCENTE') ? docenteNavItems : []
+
+  // Items de mesa de partes visibles solo para usuarios con rol MESA_PARTES
+  const visibleMesaPartesItems = (hasRole('MESA_PARTES') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')) ? mesaPartesNavItems : []
 
   const visibleAdminItems = adminNavItems.filter((item) =>
     hasPermission(item.moduleCode, 'view')
@@ -219,6 +232,18 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               Docente
             </p>
             {visibleDocenteItems.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </>
+        )}
+
+        {visibleMesaPartesItems.length > 0 && (
+          <>
+            <Separator className="my-4" />
+            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Gestión
+            </p>
+            {visibleMesaPartesItems.map((item) => (
               <NavLink key={item.href} item={item} />
             ))}
           </>
@@ -313,6 +338,9 @@ export function DesktopSidebar() {
 
   // Items de docente visibles solo para usuarios con rol DOCENTE
   const visibleDocenteItems = hasRole('DOCENTE') ? docenteNavItems : []
+
+  // Items de mesa de partes visibles solo para usuarios con rol MESA_PARTES
+  const visibleMesaPartesItems = (hasRole('MESA_PARTES') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')) ? mesaPartesNavItems : []
 
   const visibleAdminItems = adminNavItems.filter((item) =>
     hasPermission(item.moduleCode, 'view')
@@ -449,6 +477,20 @@ export function DesktopSidebar() {
                 </p>
               )}
               {visibleDocenteItems.map((item) => (
+                <NavLink key={item.href} item={item} />
+              ))}
+            </>
+          )}
+
+          {visibleMesaPartesItems.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              {!isCollapsed && (
+                <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Gestión
+                </p>
+              )}
+              {visibleMesaPartesItems.map((item) => (
                 <NavLink key={item.href} item={item} />
               ))}
             </>

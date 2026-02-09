@@ -78,6 +78,8 @@ export async function getCurrentUser(request: NextRequest) {
               },
             },
             isActive: true,
+            contextType: true,
+            contextId: true,
           },
         },
       },

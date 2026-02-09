@@ -25,7 +25,8 @@
       "Bash(npm run lint)",
       "Bash(npx eslint:*)",
       "Bash(git checkout:*)",
-      "Bash(timeout 15 npm run dev:*)"
+      "Bash(timeout 15 npm run dev:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

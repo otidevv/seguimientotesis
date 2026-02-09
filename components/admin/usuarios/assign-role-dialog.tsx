@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -18,15 +18,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Plus, X, Shield } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Loader2, Plus, X, Shield, Building2 } from 'lucide-react'
 import type { AdminUserResponse } from '@/lib/admin/types'
+
+interface Facultad {
+  id: string
+  nombre: string
+  codigo: string
+}
 
 interface AssignRoleDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   user: AdminUserResponse | null
   roles: { id: string; nombre: string; codigo: string; color: string | null }[]
-  onAssign: (userId: string, roleId: string) => Promise<void>
+  onAssign: (userId: string, roleId: string, contextType?: string, contextId?: string) => Promise<void>
   onRemove: (userId: string, roleId: string) => Promise<void>
 }
 
@@ -39,8 +46,28 @@ export function AssignRoleDialog({
   onRemove,
 }: AssignRoleDialogProps) {
   const [selectedRole, setSelectedRole] = useState('')
+  const [selectedFacultad, setSelectedFacultad] = useState('')
+  const [facultades, setFacultades] = useState<Facultad[]>([])
   const [isAssigning, setIsAssigning] = useState(false)
   const [removingRoleId, setRemovingRoleId] = useState<string | null>(null)
+
+  // Cargar facultades al abrir el diálogo
+  useEffect(() => {
+    if (open) {
+      fetch('/api/facultades')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setFacultades(data.data)
+          }
+        })
+        .catch(console.error)
+    }
+  }, [open])
+
+  // Verificar si el rol seleccionado es MESA_PARTES
+  const selectedRoleData = roles.find(r => r.id === selectedRole)
+  const esMesaPartes = selectedRoleData?.codigo === 'MESA_PARTES'
 
   const availableRoles = roles.filter(
     (role) => !user?.roles.some((ur) => ur.roleId === role.id)
@@ -51,11 +78,22 @@ export function AssignRoleDialog({
 
     setIsAssigning(true)
     try {
-      await onAssign(user.id, selectedRole)
+      if (esMesaPartes && selectedFacultad) {
+        await onAssign(user.id, selectedRole, 'FACULTAD', selectedFacultad)
+      } else {
+        await onAssign(user.id, selectedRole)
+      }
       setSelectedRole('')
+      setSelectedFacultad('')
     } finally {
       setIsAssigning(false)
     }
+  }
+
+  // Limpiar selección de facultad cuando cambia el rol
+  const handleRoleChange = (roleId: string) => {
+    setSelectedRole(roleId)
+    setSelectedFacultad('')
   }
 
   const handleRemove = async (roleId: string) => {
@@ -115,11 +153,11 @@ export function AssignRoleDialog({
 
             {/* Asignar nuevo rol */}
             {availableRoles.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Asignar nuevo rol</label>
-                <div className="flex gap-2">
-                  <Select value={selectedRole} onValueChange={setSelectedRole}>
-                    <SelectTrigger className="flex-1">
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>Asignar nuevo rol</Label>
+                  <Select value={selectedRole} onValueChange={handleRoleChange}>
+                    <SelectTrigger>
                       <SelectValue placeholder="Seleccionar rol..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -130,17 +168,46 @@ export function AssignRoleDialog({
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    onClick={handleAssign}
-                    disabled={!selectedRole || isAssigning}
-                  >
-                    {isAssigning ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
-                  </Button>
                 </div>
+
+                {/* Selector de facultad para MESA_PARTES */}
+                {esMesaPartes && (
+                  <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <Label className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                      <Building2 className="h-4 w-4" />
+                      Facultad asignada (opcional)
+                    </Label>
+                    <Select value={selectedFacultad || 'all'} onValueChange={(v) => setSelectedFacultad(v === 'all' ? '' : v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todas las facultades" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las facultades</SelectItem>
+                        {facultades.map((fac) => (
+                          <SelectItem key={fac.id} value={fac.id}>
+                            {fac.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Si no selecciona una facultad, podrá gestionar proyectos de todas las facultades.
+                    </p>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleAssign}
+                  disabled={!selectedRole || isAssigning}
+                  className="w-full"
+                >
+                  {isAssigning ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  Asignar rol
+                </Button>
               </div>
             )}
 

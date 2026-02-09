@@ -32,6 +32,7 @@ import {
   GraduationCap,
   Briefcase,
   User,
+  Building2,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import type { AdminUserResponse } from '@/lib/admin/types'
@@ -41,6 +42,12 @@ interface Role {
   nombre: string
   codigo: string
   color: string | null
+}
+
+interface Facultad {
+  id: string
+  nombre: string
+  codigo: string
 }
 
 interface SuggestedRole {
@@ -100,6 +107,8 @@ export function UserFormDialog({
   const [searchSuccess, setSearchSuccess] = useState<string | null>(null)
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null)
   const [isValidated, setIsValidated] = useState(false)
+  const [facultades, setFacultades] = useState<Facultad[]>([])
+  const [mesaPartesFacultadId, setMesaPartesFacultadId] = useState<string>('')
 
   const [formData, setFormData] = useState({
     tipoDocumento: 'DNI',
@@ -115,6 +124,20 @@ export function UserFormDialog({
     isActive: true,
     isVerified: true, // En admin, verificar por defecto
   })
+
+  // Cargar facultades al abrir el diálogo
+  useEffect(() => {
+    if (open) {
+      fetch('/api/facultades')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setFacultades(data.data)
+          }
+        })
+        .catch(console.error)
+    }
+  }, [open])
 
   // Reset form when dialog opens/closes or user changes
   useEffect(() => {
@@ -155,6 +178,7 @@ export function UserFormDialog({
     setErrors({})
     setSearchError(null)
     setSearchSuccess(null)
+    setMesaPartesFacultadId('')
   }, [user, open])
 
   // Search user in external APIs
@@ -223,6 +247,19 @@ export function UserFormDialog({
     setErrors({})
 
     try {
+      // Preparar roles con contexto para MESA_PARTES
+      const mesaPartesRole = roles.find(r => r.codigo === 'MESA_PARTES')
+      const rolesWithContext = formData.selectedRoleIds.map(roleId => {
+        if (mesaPartesRole && roleId === mesaPartesRole.id && mesaPartesFacultadId) {
+          return {
+            roleId,
+            contextType: 'FACULTAD',
+            contextId: mesaPartesFacultadId,
+          }
+        }
+        return { roleId }
+      })
+
       const submitData = isEditing
         ? {
             email: formData.email,
@@ -245,6 +282,7 @@ export function UserFormDialog({
             apellidoMaterno: formData.apellidoMaterno,
             telefono: formData.telefono || undefined,
             roleIds: formData.selectedRoleIds,
+            rolesWithContext, // Incluir roles con contexto
             isActive: formData.isActive,
             isVerified: formData.isVerified,
             // Include detection data for creating student/teacher records
@@ -530,6 +568,32 @@ export function UserFormDialog({
                   <p className="text-xs text-muted-foreground">
                     Los roles marcados como "Detectado" se asignarán basados en la información del sistema universitario
                   </p>
+
+                  {/* Selector de facultad para MESA_PARTES */}
+                  {roles.some(r => r.codigo === 'MESA_PARTES' && formData.selectedRoleIds.includes(r.id)) && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800 space-y-2">
+                      <Label className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                        <Building2 className="h-4 w-4" />
+                        Facultad asignada para Mesa de Partes (opcional)
+                      </Label>
+                      <Select value={mesaPartesFacultadId || 'all'} onValueChange={(v) => setMesaPartesFacultadId(v === 'all' ? '' : v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Todas las facultades" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas las facultades</SelectItem>
+                          {facultades.map((fac) => (
+                            <SelectItem key={fac.id} value={fac.id}>
+                              {fac.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Si no selecciona una facultad, podrá gestionar proyectos de todas las facultades.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
