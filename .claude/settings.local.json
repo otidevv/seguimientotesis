@@ -26,7 +26,8 @@
       "Bash(npx eslint:*)",
       "Bash(git checkout:*)",
       "Bash(timeout 15 npm run dev:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(del \"C:\\\\sistemas unamad\\\\seguimientotesis\\\\query-users.ts\")"
     ]
   }
 }

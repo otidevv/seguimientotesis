@@ -37,7 +37,11 @@ interface StudentCareer {
   id: string
   codigoEstudiante: string
   carreraNombre: string
-  facultadNombre: string
+  facultadId: string
+  facultad: {
+    id: string
+    nombre: string
+  }
   creditosAprobados: number
   isActive: boolean
 }
@@ -90,7 +94,7 @@ export default function PerfilPage() {
 
         if (response.ok) {
           const data = await response.json()
-          setProfileData(data)
+          setProfileData(data.data)
           setEmailPersonal(user.emailPersonal || '')
         }
       } catch (error) {
@@ -505,123 +509,151 @@ export default function PerfilPage() {
 
         {/* Academic Info Tab */}
         <TabsContent value="academic" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Información Académica
-              </CardTitle>
-              <CardDescription>
-                {hasRole('ESTUDIANTE')
-                  ? 'Tus carreras registradas en UNAMAD'
-                  : hasRole('DOCENTE')
-                  ? 'Tu información como docente'
-                  : 'Información académica no disponible para usuarios externos'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingProfile ? (
+          {isLoadingProfile ? (
+            <Card>
+              <CardContent className="pt-6">
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
-              ) : hasRole('ESTUDIANTE') ? (
-                <div className="space-y-4">
-                  {profileData?.carreras && profileData.carreras.length > 0 ? (
-                    profileData.carreras.map((carrera, index) => (
-                      <div
-                        key={carrera.id}
-                        className="p-4 rounded-lg border bg-card space-y-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <BookOpen className="h-5 w-5 text-primary" />
-                            <span className="font-medium">Carrera {index + 1}</span>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Sección Estudiante */}
+              {hasRole('ESTUDIANTE') && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5" />
+                      Carreras Profesionales
+                    </CardTitle>
+                    <CardDescription>
+                      Tus carreras registradas en UNAMAD
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {profileData?.carreras && profileData.carreras.length > 0 ? (
+                        profileData.carreras.map((carrera, index) => (
+                          <div
+                            key={carrera.id}
+                            className="p-4 rounded-lg border bg-card space-y-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <BookOpen className="h-5 w-5 text-primary" />
+                                <span className="font-medium">Carrera {index + 1}</span>
+                              </div>
+                              {carrera.isActive ? (
+                                <Badge variant="outline" className="bg-green-500/10 text-green-600">
+                                  Activa
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-gray-500/10 text-gray-600">
+                                  Inactiva
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Escuela Profesional</p>
+                                <p className="font-medium">{carrera.carreraNombre}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Facultad</p>
+                                <p className="font-medium">{carrera.facultad.nombre}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Código de Estudiante</p>
+                                <p className="font-medium">{carrera.codigoEstudiante}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Créditos Aprobados</p>
+                                <p className="font-medium">{carrera.creditosAprobados}</p>
+                              </div>
+                            </div>
                           </div>
-                          {carrera.isActive ? (
-                            <Badge variant="outline" className="bg-green-500/10 text-green-600">
-                              Activa
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-gray-500/10 text-gray-600">
-                              Inactiva
-                            </Badge>
-                          )}
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <GraduationCap className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No hay carreras registradas</p>
                         </div>
+                      )}
+
+                      <div className="pt-4 border-t">
+                        <Button variant="outline" className="gap-2" disabled>
+                          <RefreshCw className="h-4 w-4" />
+                          Sincronizar con UNAMAD
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Actualiza tus datos académicos desde el sistema universitario
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Sección Docente */}
+              {hasRole('DOCENTE') && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      Información de Docente
+                    </CardTitle>
+                    <CardDescription>
+                      Tu información como docente de UNAMAD
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {profileData?.docenteInfo ? (
+                      <div className="p-4 rounded-lg border bg-card space-y-3">
                         <div className="grid sm:grid-cols-2 gap-4 text-sm">
                           <div>
-                            <p className="text-muted-foreground">Escuela Profesional</p>
-                            <p className="font-medium">{carrera.carreraNombre}</p>
+                            <p className="text-muted-foreground">Código de Docente</p>
+                            <p className="font-medium">{profileData.docenteInfo.codigoDocente}</p>
                           </div>
                           <div>
+                            <p className="text-muted-foreground">Departamento Académico</p>
+                            <p className="font-medium">{profileData.docenteInfo.departamentoAcademico}</p>
+                          </div>
+                          <div className="sm:col-span-2">
                             <p className="text-muted-foreground">Facultad</p>
-                            <p className="font-medium">{carrera.facultadNombre}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Código de Estudiante</p>
-                            <p className="font-medium">{carrera.codigoEstudiante}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Créditos Aprobados</p>
-                            <p className="font-medium">{carrera.creditosAprobados}</p>
+                            <p className="font-medium">{profileData.docenteInfo.facultadNombre}</p>
                           </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <GraduationCap className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No hay carreras registradas</p>
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t">
-                    <Button variant="outline" className="gap-2" disabled>
-                      <RefreshCw className="h-4 w-4" />
-                      Sincronizar con UNAMAD
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Actualiza tus datos académicos desde el sistema universitario
-                    </p>
-                  </div>
-                </div>
-              ) : hasRole('DOCENTE') ? (
-                <div className="space-y-4">
-                  {profileData?.docenteInfo ? (
-                    <div className="p-4 rounded-lg border bg-card space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-5 w-5 text-primary" />
-                        <span className="font-medium">Información de Docente</span>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No hay información de docente registrada</p>
                       </div>
-                      <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Código de Docente</p>
-                          <p className="font-medium">{profileData.docenteInfo.codigoDocente}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Departamento Académico</p>
-                          <p className="font-medium">{profileData.docenteInfo.departamentoAcademico}</p>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <p className="text-muted-foreground">Facultad</p>
-                          <p className="font-medium">{profileData.docenteInfo.facultadNombre}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No hay información de docente registrada</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Los usuarios externos no tienen información académica</p>
-                </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
+
+              {/* Mensaje para usuarios sin info académica */}
+              {!hasRole('ESTUDIANTE') && !hasRole('DOCENTE') && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5" />
+                      Información Académica
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No hay información académica disponible para este tipo de usuario</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </TabsContent>
 
         {/* Security Tab */}
