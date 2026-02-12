@@ -159,6 +159,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         archivoNombre: d.nombre,
         archivoTamano: d.tamano,
         version: d.version,
+        firmadoDigitalmente: d.firmadoDigitalmente,
         createdAt: d.createdAt,
       })),
     }

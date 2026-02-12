@@ -58,7 +58,7 @@ interface ProfileData {
 }
 
 export default function PerfilPage() {
-  const { user, isLoading: authLoading, hasRole, hasAnyRole } = useAuth()
+  const { user, isLoading: authLoading, hasRole } = useAuth()
 
   // Profile data state
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
@@ -82,33 +82,36 @@ export default function PerfilPage() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Sync state
+  const [isSyncing, setIsSyncing] = useState(false)
+
   // Load profile data
-  useEffect(() => {
-    const loadProfileData = async () => {
-      if (!user) return
+  const loadProfileData = async () => {
+    if (!user) return
 
-      try {
-        const response = await fetch('/api/auth/profile', {
-          credentials: 'include',
-        })
+    try {
+      const response = await fetch('/api/auth/profile', {
+        credentials: 'include',
+      })
 
-        if (response.ok) {
-          const data = await response.json()
-          setProfileData(data.data)
-          setEmailPersonal(user.emailPersonal || '')
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error)
-      } finally {
-        setIsLoadingProfile(false)
+      if (response.ok) {
+        const data = await response.json()
+        setProfileData(data.data)
       }
+    } catch (error) {
+      console.error('Error loading profile:', error)
+    } finally {
+      setIsLoadingProfile(false)
     }
+  }
 
+  useEffect(() => {
     if (user) {
       loadProfileData()
       setEmailPersonal(user.emailPersonal || '')
       setAvatarUrl(user.avatarUrl || null)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // Handle avatar upload
@@ -184,6 +187,33 @@ export default function PerfilPage() {
       toast.error(error instanceof Error ? error.message : 'Error al eliminar la imagen')
     } finally {
       setIsUploadingAvatar(false)
+    }
+  }
+
+  // Handle sync with UNAMAD
+  const handleSync = async () => {
+    setIsSyncing(true)
+
+    try {
+      const response = await fetch('/api/auth/sync', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al sincronizar')
+      }
+
+      toast.success(data.message)
+
+      // Recargar datos del perfil
+      await loadProfileData()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al sincronizar')
+    } finally {
+      setIsSyncing(false)
     }
   }
 
@@ -296,54 +326,52 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Mi Perfil</h1>
-          <p className="text-muted-foreground">
-            Gestiona tu información personal y configuración de cuenta
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Mi Perfil</h1>
+        <p className="text-muted-foreground">
+          Gestiona tu información personal y configuración de cuenta
+        </p>
       </div>
 
       {/* Profile Header Card */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
             {/* Avatar con opciones de cambio */}
-            <div className="relative group">
-              <Avatar className="h-28 w-28 text-2xl border-4 border-background shadow-lg">
+            <div className="relative group shrink-0">
+              <Avatar className="h-20 w-20 text-xl border-2 border-background shadow-md">
                 {avatarUrl ? (
                   <AvatarImage src={avatarUrl} alt="Foto de perfil" />
                 ) : null}
-                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+                <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
 
               {/* Overlay con botones */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                 {isUploadingAvatar ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-white" />
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
                 ) : (
                   <div className="flex gap-1">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                      className="p-1.5 bg-white/20 rounded-full hover:bg-white/30 transition-colors cursor-pointer"
                       title="Cambiar foto"
                     >
-                      <Camera className="h-4 w-4 text-white" />
+                      <Camera className="h-3.5 w-3.5 text-white" />
                     </button>
                     {avatarUrl && (
                       <button
                         type="button"
                         onClick={handleAvatarDelete}
-                        className="p-2 bg-red-500/70 rounded-full hover:bg-red-500 transition-colors"
+                        className="p-1.5 bg-red-500/70 rounded-full hover:bg-red-500 transition-colors cursor-pointer"
                         title="Eliminar foto"
                       >
-                        <Trash2 className="h-4 w-4 text-white" />
+                        <Trash2 className="h-3.5 w-3.5 text-white" />
                       </button>
                     )}
                   </div>
@@ -360,17 +388,17 @@ export default function PerfilPage() {
               />
             </div>
 
-            <div className="flex-1 text-center sm:text-left space-y-2">
+            <div className="flex-1 text-center sm:text-left space-y-1.5 min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-lg font-semibold truncate">
                   {user.nombres} {user.apellidoPaterno} {user.apellidoMaterno}
                 </h2>
                 {getUserTypeBadges()}
               </div>
-              <p className="text-muted-foreground">{user.email}</p>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-2">
+              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-1">
                 {user.roles?.map((role) => (
-                  <Badge key={role.id} variant="outline">
+                  <Badge key={role.id} variant="outline" className="text-xs">
                     <Shield className="h-3 w-3 mr-1" />
                     {role.nombre}
                   </Badge>
@@ -394,7 +422,6 @@ export default function PerfilPage() {
                   Cambiar foto
                 </Button>
               </div>
-
             </div>
           </div>
         </CardContent>
@@ -402,7 +429,7 @@ export default function PerfilPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="personal" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList>
           <TabsTrigger value="personal" className="gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Personal</span>
@@ -582,9 +609,18 @@ export default function PerfilPage() {
                       )}
 
                       <div className="pt-4 border-t">
-                        <Button variant="outline" className="gap-2" disabled>
-                          <RefreshCw className="h-4 w-4" />
-                          Sincronizar con UNAMAD
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          onClick={handleSync}
+                          disabled={isSyncing}
+                        >
+                          {isSyncing ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4" />
+                          )}
+                          {isSyncing ? 'Sincronizando...' : 'Sincronizar con UNAMAD'}
                         </Button>
                         <p className="text-xs text-muted-foreground mt-2">
                           Actualiza tus datos académicos desde el sistema universitario
@@ -629,6 +665,28 @@ export default function PerfilPage() {
                       <div className="text-center py-8 text-muted-foreground">
                         <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No hay información de docente registrada</p>
+                      </div>
+                    )}
+
+                    {/* Sync button para docentes (solo si no es también estudiante, para evitar duplicar el botón) */}
+                    {!hasRole('ESTUDIANTE') && (
+                      <div className="pt-4 border-t mt-4">
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          onClick={handleSync}
+                          disabled={isSyncing}
+                        >
+                          {isSyncing ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4" />
+                          )}
+                          {isSyncing ? 'Sincronizando...' : 'Sincronizar con UNAMAD'}
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Actualiza tus datos académicos desde el sistema universitario
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -766,12 +824,12 @@ export default function PerfilPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid sm:grid-cols-2 gap-4 text-sm">
+              <div className="flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-muted-foreground">Estado de la cuenta</p>
-                    <p className="font-medium flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">Estado</p>
+                    <p className="font-medium flex items-center gap-1.5">
                       {user.isActive ? (
                         <>
                           <span className="h-2 w-2 rounded-full bg-green-500" />
@@ -787,18 +845,18 @@ export default function PerfilPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
+                  <Mail className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-muted-foreground">Email verificado</p>
-                    <p className="font-medium flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="font-medium flex items-center gap-1.5">
                       {user.isVerified ? (
                         <>
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                           Verificado
                         </>
                       ) : (
                         <>
-                          <AlertCircle className="h-4 w-4 text-yellow-500" />
+                          <AlertCircle className="h-3.5 w-3.5 text-yellow-500" />
                           Pendiente
                         </>
                       )}

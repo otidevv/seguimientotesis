@@ -86,6 +86,7 @@ interface Documento {
   archivoNombre: string
   archivoTamano: number
   version: number
+  firmadoDigitalmente: boolean
   createdAt: string
 }
 
@@ -142,6 +143,9 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [procesandoFirma, setProcesandoFirma] = useState(false)
   const [errorFirma, setErrorFirma] = useState<string | null>(null)
+
+  // Estado para registrar carta sin firma digital
+  const [registrandoCarta, setRegistrandoCarta] = useState(false)
 
   // Estados para aceptar/rechazar
   const [showRespuestaDialog, setShowRespuestaDialog] = useState(false)
@@ -233,6 +237,35 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
       toast.error('Error de conexión')
     } finally {
       setProcesandoRespuesta(false)
+    }
+  }
+
+  // Registrar carta sin firma digital (ya viene firmada físicamente)
+  const registrarCartaSinFirma = async () => {
+    if (!cartaSubida || !data) return
+
+    setRegistrandoCarta(true)
+
+    try {
+      const response = await fetch(`/api/tesis/${data.tesis.id}/carta-aceptacion/registrar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: cartaSubida.fileName }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success('Carta de aceptación registrada correctamente')
+        setCartaSubida(null)
+        await loadData()
+      } else {
+        toast.error(result.error || 'Error al registrar carta')
+      }
+    } catch {
+      toast.error('Error de conexión')
+    } finally {
+      setRegistrandoCarta(false)
     }
   }
 
@@ -531,7 +564,7 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                 </p>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
                   Has aceptado ser {tipoAsesorTexto.toLowerCase()}. Ahora sube tu carta de
-                  aceptación y fírmala digitalmente para completar el proceso.
+                  aceptación para completar el proceso. Puedes firmarla digitalmente o subir una carta ya firmada.
                 </p>
               </div>
             </div>
@@ -551,7 +584,7 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                 <p className="font-semibold text-green-800 dark:text-green-200">Asesoría Confirmada</p>
                 <p className="text-sm text-green-700 dark:text-green-300">
                   Has aceptado ser {tipoAsesorTexto.toLowerCase()} de esta tesis. Tu carta de
-                  aceptación firmada está registrada.
+                  aceptación está registrada.
                 </p>
               </div>
             </div>
@@ -573,101 +606,134 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                   <div>
                     <CardTitle className="text-lg">Carta de Aceptación</CardTitle>
                     <CardDescription>
-                      Sube tu carta de aceptación y fírmala digitalmente
+                      Sube tu carta de aceptación en PDF. Puedes firmarla digitalmente o subir una carta ya firmada.
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Paso 1: Subir carta */}
-                <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
-                  <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-green-600">1</span>
-                  </div>
-                  <div className="flex-1">
+                {/* Subir carta */}
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Upload className="w-5 h-5 text-primary" />
                     <p className="font-medium">Subir Carta de Aceptación</p>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Sube tu carta de aceptación en formato PDF (máx. 10MB)
-                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Sube tu carta de aceptación en formato PDF (máx. 10MB)
+                  </p>
 
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                      disabled={subiendoCarta}
-                    />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    disabled={subiendoCarta}
+                  />
 
-                    {cartaSubida ? (
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                        <FileCheck className="w-5 h-5 text-green-600 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-green-700 dark:text-green-300 truncate">
-                            {cartaSubida.fileName}
-                          </p>
-                          <p className="text-xs text-green-600">Carta lista para firmar</p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={subiendoCarta || procesandoFirma}
-                        >
-                          Cambiar
-                        </Button>
+                  {cartaSubida ? (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                      <FileCheck className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-700 dark:text-green-300 truncate">
+                          {cartaSubida.fileName}
+                        </p>
+                        <p className="text-xs text-green-600">Carta subida correctamente</p>
                       </div>
-                    ) : (
                       <Button
                         variant="outline"
+                        size="sm"
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={subiendoCarta}
+                        disabled={subiendoCarta || procesandoFirma || registrandoCarta}
                       >
-                        {subiendoCarta ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Subiendo...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Seleccionar PDF
-                          </>
-                        )}
+                        Cambiar
                       </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Paso 2: Firmar */}
-                <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-purple-600">2</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Firmar Digitalmente con Firma Perú</p>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Utiliza tu certificado digital para firmar la carta de aceptación.
-                    </p>
+                    </div>
+                  ) : (
                     <Button
-                      className="bg-purple-600 hover:bg-purple-700"
-                      onClick={() => setShowConfirmDialog(true)}
-                      disabled={!cartaSubida || procesandoFirma}
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={subiendoCarta}
                     >
-                      {procesandoFirma ? (
+                      {subiendoCarta ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Procesando...
+                          Subiendo...
                         </>
                       ) : (
                         <>
-                          <PenTool className="w-4 h-4 mr-2" />
-                          Firmar con Firma Perú
+                          <Upload className="w-4 h-4 mr-2" />
+                          Seleccionar PDF
                         </>
                       )}
                     </Button>
-                  </div>
+                  )}
                 </div>
+
+                {/* Opciones después de subir: Registrar directamente o Firmar con Firma Perú */}
+                {cartaSubida && (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {/* Opción 1: Registrar directamente (ya firmada) */}
+                    <div className="p-4 rounded-lg border-2 border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FileCheck className="w-5 h-5 text-green-600" />
+                        <p className="font-medium text-green-800 dark:text-green-200">
+                          Carta ya firmada
+                        </p>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Si tu carta ya está firmada (firma manuscrita o escaneada), regístrala directamente.
+                      </p>
+                      <Button
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={registrarCartaSinFirma}
+                        disabled={registrandoCarta || procesandoFirma}
+                      >
+                        {registrandoCarta ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Registrando...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            Registrar Carta
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Opción 2: Firmar digitalmente */}
+                    <div className="p-4 rounded-lg border-2 border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <PenTool className="w-5 h-5 text-purple-600" />
+                        <p className="font-medium text-purple-800 dark:text-purple-200">
+                          Firma Digital
+                        </p>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Firma digitalmente con Firma Perú usando tu certificado digital (DNIe).
+                      </p>
+                      <Button
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        onClick={() => setShowConfirmDialog(true)}
+                        disabled={procesandoFirma || registrandoCarta}
+                      >
+                        {procesandoFirma ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Procesando...
+                          </>
+                        ) : (
+                          <>
+                            <PenTool className="w-4 h-4 mr-2" />
+                            Firmar con Firma Perú
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {errorFirma && (
                   <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
@@ -690,8 +756,8 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                     <FileCheck className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">Carta de Aceptación Firmada</CardTitle>
-                    <CardDescription>Tu carta de aceptación está registrada</CardDescription>
+                    <CardTitle className="text-lg">Carta de Aceptación Registrada</CardTitle>
+                    <CardDescription>Tu carta de aceptación está registrada en el sistema</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -701,9 +767,22 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                     <File className="w-5 h-5 text-green-600" />
                     <div>
                       <p className="font-medium text-sm">{miCartaFirmada.nombre}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(miCartaFirmada.archivoTamano)} • {new Date(miCartaFirmada.createdAt).toLocaleDateString('es-PE')}
-                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(miCartaFirmada.archivoTamano)} • {new Date(miCartaFirmada.createdAt).toLocaleDateString('es-PE')}
+                        </p>
+                        {miCartaFirmada.firmadoDigitalmente ? (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-purple-500 text-purple-600">
+                            <PenTool className="w-2.5 h-2.5 mr-1" />
+                            Firma Digital
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
+                            <FileCheck className="w-2.5 h-2.5 mr-1" />
+                            Firma Física
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Button variant="outline" size="sm" asChild>

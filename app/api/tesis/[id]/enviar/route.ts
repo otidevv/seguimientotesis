@@ -105,16 +105,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         : 'No hay asesor asignado',
     })
 
-    // 3. Carta de aceptación del asesor firmada
+    // 3. Carta de aceptación del asesor (firmada digital o físicamente)
     const cartaAsesor = tesis.documentos.find(
-      (d) => d.tipo === 'CARTA_ACEPTACION_ASESOR' && d.firmadoDigitalmente
+      (d) => d.tipo === 'CARTA_ACEPTACION_ASESOR'
     )
     requisitos.push({
-      nombre: 'Carta de Aceptación del Asesor (Firmada)',
+      nombre: 'Carta de Aceptación del Asesor',
       cumplido: !!cartaAsesor,
       detalle: cartaAsesor
-        ? 'Carta firmada digitalmente'
-        : 'El asesor debe subir y firmar su carta de aceptación',
+        ? cartaAsesor.firmadoDigitalmente ? 'Carta firmada digitalmente' : 'Carta registrada'
+        : 'El asesor debe subir su carta de aceptación',
     })
 
     // 4. Coasesor (si existe) aceptó
@@ -129,16 +129,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           : 'Esperando aceptación del coasesor',
       })
 
-      // 5. Carta de aceptación del coasesor firmada
+      // 5. Carta de aceptación del coasesor (firmada digital o físicamente)
       const cartaCoasesor = tesis.documentos.find(
-        (d) => d.tipo === 'CARTA_ACEPTACION_COASESOR' && d.firmadoDigitalmente
+        (d) => d.tipo === 'CARTA_ACEPTACION_COASESOR'
       )
       requisitos.push({
-        nombre: 'Carta de Aceptación del Coasesor (Firmada)',
+        nombre: 'Carta de Aceptación del Coasesor',
         cumplido: !!cartaCoasesor,
         detalle: cartaCoasesor
-          ? 'Carta firmada digitalmente'
-          : 'El coasesor debe subir y firmar su carta de aceptación',
+          ? cartaCoasesor.firmadoDigitalmente ? 'Carta firmada digitalmente' : 'Carta registrada'
+          : 'El coasesor debe subir su carta de aceptación',
       })
     }
 

@@ -5,7 +5,7 @@ import { writeFile, mkdir, unlink } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 
-const UPLOAD_DIR = 'public/uploads/avatars'
+const UPLOAD_DIR = 'uploads/avatars'
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
@@ -64,12 +64,18 @@ export async function POST(request: NextRequest) {
 
     // Eliminar avatar anterior si existe
     if (user?.avatarUrl) {
-      const oldPath = path.join(process.cwd(), 'public', user.avatarUrl)
-      if (existsSync(oldPath)) {
-        try {
-          await unlink(oldPath)
-        } catch {
-          console.error('[Avatar] Error al eliminar archivo anterior')
+      // Soportar ambas rutas: /api/uploads/avatars/file (nueva) y /uploads/avatars/file (antigua en public/)
+      const fileName = path.basename(user.avatarUrl)
+      const newPath = path.join(uploadPath, fileName)
+      const oldPublicPath = path.join(process.cwd(), 'public', 'uploads', 'avatars', fileName)
+
+      for (const p of [newPath, oldPublicPath]) {
+        if (existsSync(p)) {
+          try {
+            await unlink(p)
+          } catch {
+            console.error('[Avatar] Error al eliminar archivo anterior:', p)
+          }
         }
       }
     }
@@ -84,8 +90,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
     await writeFile(filePath, buffer)
 
-    // URL relativa para guardar en BD
-    const avatarUrl = `/uploads/avatars/${fileName}`
+    // URL relativa para guardar en BD (servida por API route)
+    const avatarUrl = `/api/uploads/avatars/${fileName}`
 
     // Actualizar usuario
     await prisma.user.update({
@@ -140,13 +146,18 @@ export async function DELETE(request: NextRequest) {
     })
 
     if (user?.avatarUrl) {
-      // Eliminar archivo
-      const filePath = path.join(process.cwd(), 'public', user.avatarUrl)
-      if (existsSync(filePath)) {
-        try {
-          await unlink(filePath)
-        } catch {
-          console.error('[Avatar] Error al eliminar archivo')
+      // Eliminar archivo (soportar ambas rutas: nueva y antigua)
+      const fileName = path.basename(user.avatarUrl)
+      const uploadsPath = path.join(process.cwd(), 'uploads', 'avatars', fileName)
+      const oldPublicPath = path.join(process.cwd(), 'public', 'uploads', 'avatars', fileName)
+
+      for (const p of [uploadsPath, oldPublicPath]) {
+        if (existsSync(p)) {
+          try {
+            await unlink(p)
+          } catch {
+            console.error('[Avatar] Error al eliminar archivo:', p)
+          }
         }
       }
 

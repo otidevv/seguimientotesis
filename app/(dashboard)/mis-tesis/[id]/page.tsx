@@ -178,7 +178,7 @@ const ESTADO_ASESOR_CONFIG: Record<string, { label: string; color: string; bgCol
     icon: <Clock className="w-5 h-5" />
   },
   ACEPTADO: {
-    label: 'Carta firmada',
+    label: 'Aceptado',
     color: 'text-green-600',
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     icon: <CheckCircle2 className="w-5 h-5" />
@@ -505,22 +505,25 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const coautorRechazado = coautor?.estado === 'RECHAZADO'
   const coautorPendiente = coautor?.estado === 'PENDIENTE'
 
-  // Calcular progreso - Proyecto + Asesores + Coautor (si existe)
-  // Requisitos: 1) Proyecto, 2) Asesor firma, 3) Coasesor firma (si existe), 4) Coautor acepta (si existe)
-  let requisitosRequeridos = 2 // Proyecto + Asesor
-  if (tieneCoasesor) requisitosRequeridos++
-  if (coautor) requisitosRequeridos++
+  // Calcular progreso
+  // Requisitos: 1) Proyecto, 2) Asesor acepta, 3) Carta asesor, 4) Coasesor acepta (si existe), 5) Carta coasesor (si existe), 6) Coautor acepta (si existe)
+  let requisitosRequeridos = 3 // Proyecto + Asesor acepta + Carta asesor
+  if (tieneCoasesor) requisitosRequeridos += 2 // Coasesor acepta + Carta coasesor
+  if (coautor) requisitosRequeridos++ // Coautor acepta
 
   let requisitosCompletados = 0
   if (docProyecto) requisitosCompletados++
   if (asesorAcepto) requisitosCompletados++
+  if (docCartaAsesor) requisitosCompletados++
   if (tieneCoasesor && coasesorAcepto) requisitosCompletados++
+  if (tieneCoasesor && docCartaCoasesor) requisitosCompletados++
   if (coautor && coautorAcepto) requisitosCompletados++
   const progresoPercent = Math.round((requisitosCompletados / requisitosRequeridos) * 100)
 
   // Verificar si puede enviar
-  const puedeEnviar = docProyecto && asesorAcepto &&
-    (!tieneCoasesor || coasesorAcepto) &&
+  const puedeEnviar = docProyecto &&
+    asesorAcepto && docCartaAsesor &&
+    (!tieneCoasesor || (coasesorAcepto && docCartaCoasesor)) &&
     (!coautor || coautorAcepto)
 
   return (
@@ -670,7 +673,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 {asesor && (
                   <AdvisorStatusCard
                     titulo="Carta de Aceptación del Asesor"
-                    descripcion="El asesor debe subir y firmar digitalmente su carta de aceptación"
+                    descripcion="El asesor debe subir su carta de aceptación"
                     tipoAsesor="Asesor"
                     asesor={asesor}
                     documento={docCartaAsesor}
@@ -684,7 +687,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 {coasesor && (
                   <AdvisorStatusCard
                     titulo="Carta de Aceptación del Coasesor"
-                    descripcion="El coasesor debe subir y firmar digitalmente su carta de aceptación"
+                    descripcion="El coasesor debe subir su carta de aceptación"
                     tipoAsesor="Coasesor"
                     asesor={coasesor}
                     documento={docCartaCoasesor}
@@ -710,8 +713,14 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                             : coautorPendiente
                               ? 'Esperando que el coautor acepte la invitación'
                               : !asesorAcepto
-                                ? 'Esperando que el asesor firme su carta de aceptación'
-                                : 'Esperando que el coasesor firme su carta de aceptación'}
+                                ? 'Esperando que el asesor acepte la asesoría'
+                                : !docCartaAsesor
+                                  ? 'Esperando que el asesor suba su carta de aceptación'
+                                  : tieneCoasesor && !coasesorAcepto
+                                    ? 'Esperando que el coasesor acepte la asesoría'
+                                    : tieneCoasesor && !docCartaCoasesor
+                                      ? 'Esperando que el coasesor suba su carta de aceptación'
+                                      : 'Completando requisitos pendientes'}
                     </p>
                   </div>
                   <Button
@@ -1388,7 +1397,8 @@ function AdvisorStatusCard({
     <div
       className={cn(
         'relative rounded-xl border-2 transition-all',
-        asesor.estado === 'ACEPTADO' && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
+        asesor.estado === 'ACEPTADO' && documento && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
+        asesor.estado === 'ACEPTADO' && !documento && 'border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20',
         asesor.estado === 'PENDIENTE' && 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20',
         asesor.estado === 'RECHAZADO' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
       )}
@@ -1398,11 +1408,14 @@ function AdvisorStatusCard({
           {/* Icono */}
           <div className={cn(
             'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
-            asesor.estado === 'ACEPTADO' ? 'bg-green-100 dark:bg-green-900/50' :
+            asesor.estado === 'ACEPTADO' && documento ? 'bg-green-100 dark:bg-green-900/50' :
+            asesor.estado === 'ACEPTADO' && !documento ? 'bg-blue-100 dark:bg-blue-900/50' :
             asesor.estado === 'RECHAZADO' ? 'bg-red-100 dark:bg-red-900/50' : iconBg
           )}>
-            {asesor.estado === 'ACEPTADO' ? (
+            {asesor.estado === 'ACEPTADO' && documento ? (
               <FileCheck className="w-6 h-6 text-green-600" />
+            ) : asesor.estado === 'ACEPTADO' && !documento ? (
+              <Clock className="w-6 h-6 text-blue-600" />
             ) : asesor.estado === 'RECHAZADO' ? (
               <X className="w-6 h-6 text-red-600" />
             ) : (
@@ -1414,18 +1427,27 @@ function AdvisorStatusCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <p className="font-semibold text-sm">{titulo}</p>
-              <Badge
-                variant="outline"
-                className={cn(
-                  'text-[10px] px-1.5 py-0',
-                  estadoConfig.color,
-                  asesor.estado === 'ACEPTADO' && 'border-green-500',
-                  asesor.estado === 'PENDIENTE' && 'border-yellow-500',
-                  asesor.estado === 'RECHAZADO' && 'border-red-500'
-                )}
-              >
-                {estadoConfig.label}
-              </Badge>
+              {asesor.estado === 'ACEPTADO' && documento ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
+                  Carta registrada
+                </Badge>
+              ) : asesor.estado === 'ACEPTADO' && !documento ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-500 text-blue-600">
+                  Falta carta
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-[10px] px-1.5 py-0',
+                    estadoConfig.color,
+                    asesor.estado === 'PENDIENTE' && 'border-yellow-500',
+                    asesor.estado === 'RECHAZADO' && 'border-red-500'
+                  )}
+                >
+                  {estadoConfig.label}
+                </Badge>
+              )}
             </div>
 
             <p className="text-xs text-muted-foreground mb-2">
@@ -1444,20 +1466,32 @@ function AdvisorStatusCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                  title="Ver documento firmado"
+                  title="Ver carta de aceptación"
                 >
                   <Eye className="w-4 h-4" />
                 </a>
+              </div>
+            ) : asesor.estado === 'ACEPTADO' && !documento ? (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <Clock className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    Aceptó la asesoría — falta carta
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    El {tipoAsesor.toLowerCase()} debe subir su carta de aceptación
+                  </p>
+                </div>
               </div>
             ) : asesor.estado === 'PENDIENTE' ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-100/50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
                 <Clock className="w-4 h-4 text-yellow-600 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    Esperando carta de aceptación
+                    Esperando aceptación
                   </p>
                   <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                    El {tipoAsesor.toLowerCase()} debe subir y firmar digitalmente su carta
+                    El {tipoAsesor.toLowerCase()} debe aceptar y subir su carta de aceptación
                   </p>
                 </div>
               </div>
@@ -1634,7 +1668,7 @@ function ReadOnlyAdvisorCard({
           {asesor.estado === 'ACEPTADO' && documento && (
             <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border mt-2">
               <FileCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span className="text-sm flex-1 truncate">Carta de Aceptación (Firmada)</span>
+              <span className="text-sm flex-1 truncate">Carta de Aceptación</span>
               <span className="text-xs text-muted-foreground">
                 {formatFileSize(documento.archivoTamano)}
               </span>
@@ -1643,11 +1677,16 @@ function ReadOnlyAdvisorCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                title="Ver carta firmada"
+                title="Ver carta de aceptación"
               >
                 <Eye className="w-4 h-4" />
               </a>
             </div>
+          )}
+          {asesor.estado === 'ACEPTADO' && !documento && (
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+              Aceptó la asesoría — pendiente de subir carta
+            </p>
           )}
         </div>
       </div>
