@@ -157,6 +157,36 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
     }
 
+    // 7. Voucher de pago
+    const docVoucher = tesis.documentos.find((d) => d.tipo === 'VOUCHER_PAGO')
+    requisitos.push({
+      nombre: 'Voucher de Pago',
+      cumplido: !!docVoucher,
+      detalle: docVoucher
+        ? 'Voucher subido'
+        : 'Falta subir el voucher de pago de S/. 30.00 (código 277)',
+    })
+
+    // 8. Documento sustentatorio (cada tesista debe subir el suyo)
+    const docsSustentatorios = tesis.documentos.filter((d) => d.tipo === 'DOCUMENTO_SUSTENTATORIO')
+    for (const autor of tesis.autores) {
+      const tieneDoc = docsSustentatorios.some((d) => d.uploadedById === autor.userId)
+      const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno}`
+      requisitos.push({
+        nombre: tesis.autores.length > 1
+          ? `Documento Sustentatorio - ${nombreAutor}`
+          : 'Documento Sustentatorio',
+        cumplido: tieneDoc,
+        detalle: tieneDoc
+          ? tesis.autores.length > 1
+            ? `Documento sustentatorio de ${nombreAutor} subido`
+            : 'Documento sustentatorio subido'
+          : tesis.autores.length > 1
+            ? `Falta documento sustentatorio de ${nombreAutor} (ficha de matrícula, inscripción SUNEDU o constancia de egresado)`
+            : 'Falta subir documento sustentatorio (ficha de matrícula, inscripción SUNEDU o constancia de egresado)',
+      })
+    }
+
     // Verificar si todos los requisitos están cumplidos
     const requisitosNoCumplidos = requisitos.filter((r) => !r.cumplido)
 

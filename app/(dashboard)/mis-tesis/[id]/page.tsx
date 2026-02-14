@@ -28,11 +28,13 @@ import {
   Eye,
   File,
   FileCheck,
+  FileSpreadsheet,
   FileText,
   FileUp,
   GraduationCap,
   Info,
   Loader2,
+  Receipt,
   RefreshCw,
   Search,
   Send,
@@ -54,6 +56,12 @@ interface Documento {
   archivoTamano: number
   archivoMimeType: string
   createdAt: string
+  subidoPor?: {
+    id: string
+    nombres: string
+    apellidoPaterno: string
+    apellidoMaterno: string
+  }
 }
 
 interface Tesis {
@@ -94,6 +102,7 @@ interface Tesis {
       email: string
     }
   }[]
+  voucherFisicoEntregado: boolean
   facultad: {
     id: string
     nombre: string
@@ -168,6 +177,42 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     icon: <X className="w-4 h-4" />
   },
+  ASIGNANDO_JURADOS: {
+    label: 'Asignando Jurados',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+    icon: <Clock className="w-4 h-4" />
+  },
+  EN_EVALUACION_JURADO: {
+    label: 'En Evaluacion (Jurado)',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
+    icon: <Clock className="w-4 h-4" />
+  },
+  OBSERVADA_JURADO: {
+    label: 'Observada por Jurado',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
+    icon: <AlertCircle className="w-4 h-4" />
+  },
+  INFORME_FINAL: {
+    label: 'Informe Final',
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-100 dark:bg-cyan-900/30',
+    icon: <FileText className="w-4 h-4" />
+  },
+  EN_EVALUACION_INFORME: {
+    label: 'Evaluando Informe',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
+    icon: <Clock className="w-4 h-4" />
+  },
+  OBSERVADA_INFORME: {
+    label: 'Informe Observado',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
+    icon: <AlertCircle className="w-4 h-4" />
+  },
 }
 
 const ESTADO_ASESOR_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
@@ -213,6 +258,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true)
   const [enviando, setEnviando] = useState(false)
   const [subiendo, setSubiendo] = useState<string | null>(null)
+  const [respondiendo, setRespondiendo] = useState(false)
 
   // Estado para el diálogo de reemplazo/agregar participantes
   const [dialogReemplazo, setDialogReemplazo] = useState(false)
@@ -303,6 +349,31 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       toast.error('Error de conexión')
     } finally {
       setEnviando(false)
+    }
+  }
+
+  // Responder a invitación (para coautores pendientes)
+  const responderInvitacion = async (invitacionId: string, accion: 'ACEPTAR' | 'RECHAZAR') => {
+    setRespondiendo(true)
+    try {
+      const response = await fetch(`/api/mis-invitaciones/${invitacionId}/responder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success(accion === 'ACEPTAR' ? 'Invitación aceptada' : 'Invitación rechazada')
+        loadTesis()
+      } else {
+        toast.error(data.error || 'Error al responder')
+      }
+    } catch {
+      toast.error('Error de conexión')
+    } finally {
+      setRespondiendo(false)
     }
   }
 
@@ -488,10 +559,27 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
     (a) => a.tipoParticipante === 'AUTOR_PRINCIPAL' && a.user.id === user?.id
   )
 
+  // Verificar si el usuario actual es un coautor con invitación pendiente
+  const miRegistroCoautor = tesis.autores.find(
+    (a) => a.tipoParticipante === 'COAUTOR' && a.user.id === user?.id
+  )
+  const miInvitacionPendiente = miRegistroCoautor?.estado === 'PENDIENTE'
+
   // Verificar documentos
   const docProyecto = tesis.documentos.find((d) => d.tipoDocumento === 'PROYECTO')
   const docCartaAsesor = tesis.documentos.find((d) => d.tipoDocumento === 'CARTA_ACEPTACION_ASESOR')
   const docCartaCoasesor = tesis.documentos.find((d) => d.tipoDocumento === 'CARTA_ACEPTACION_COASESOR')
+  const docVoucherPago = tesis.documentos.find((d) => d.tipoDocumento === 'VOUCHER_PAGO')
+  // Cada tesista sube su propio documento sustentatorio
+  const allSustentatorios = tesis.documentos.filter((d) => d.tipoDocumento === 'DOCUMENTO_SUSTENTATORIO')
+  const miDocSustentatorio = allSustentatorios.find((d) => d.subidoPor?.id === user?.id)
+  const otroAutor = tesis.autores.find((a) => a.user.id !== user?.id)
+  const docSustentatorioOtroAutor = otroAutor
+    ? allSustentatorios.find((d) => d.subidoPor?.id === otroAutor.user.id)
+    : null
+  const todosSustentatoriosSubidos = tesis.autores.every((a) =>
+    allSustentatorios.some((d) => d.subidoPor?.id === a.user.id)
+  )
 
   // Obtener estado de asesores
   const asesor = tesis.asesores.find((a) => a.tipoAsesor === 'ASESOR')
@@ -506,23 +594,29 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const coautorPendiente = coautor?.estado === 'PENDIENTE'
 
   // Calcular progreso
-  // Requisitos: 1) Proyecto, 2) Asesor acepta, 3) Carta asesor, 4) Coasesor acepta (si existe), 5) Carta coasesor (si existe), 6) Coautor acepta (si existe)
-  let requisitosRequeridos = 3 // Proyecto + Asesor acepta + Carta asesor
+  // Requisitos base: 1) Proyecto, 2) Asesor acepta, 3) Carta asesor, 4) Voucher pago, 5) Mi sustentatorio
+  // + Coasesor: 6) Coasesor acepta, 7) Carta coasesor
+  // + Coautor: 8) Coautor acepta, 9) Sustentatorio coautor
+  let requisitosRequeridos = 5 // Proyecto + Asesor acepta + Carta asesor + Voucher + Mi sustentatorio
   if (tieneCoasesor) requisitosRequeridos += 2 // Coasesor acepta + Carta coasesor
-  if (coautor) requisitosRequeridos++ // Coautor acepta
+  if (coautor) requisitosRequeridos += 2 // Coautor acepta + Sustentatorio coautor
 
   let requisitosCompletados = 0
   if (docProyecto) requisitosCompletados++
   if (asesorAcepto) requisitosCompletados++
   if (docCartaAsesor) requisitosCompletados++
+  if (docVoucherPago) requisitosCompletados++
+  if (miDocSustentatorio) requisitosCompletados++
   if (tieneCoasesor && coasesorAcepto) requisitosCompletados++
   if (tieneCoasesor && docCartaCoasesor) requisitosCompletados++
   if (coautor && coautorAcepto) requisitosCompletados++
+  if (coautor && docSustentatorioOtroAutor) requisitosCompletados++
   const progresoPercent = Math.round((requisitosCompletados / requisitosRequeridos) * 100)
 
   // Verificar si puede enviar
   const puedeEnviar = docProyecto &&
     asesorAcepto && docCartaAsesor &&
+    docVoucherPago && todosSustentatoriosSubidos &&
     (!tieneCoasesor || (coasesorAcepto && docCartaCoasesor)) &&
     (!coautor || coautorAcepto)
 
@@ -603,11 +697,341 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-blue-600" />
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="font-semibold text-blue-800 dark:text-blue-200">Proyecto en revisión</p>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
                   Tu proyecto está siendo revisado por el comité académico. Te notificaremos cuando haya novedades.
                 </p>
+                {tesis.voucherFisicoEntregado ? (
+                  <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Voucher físico recibido por mesa de partes
+                  </p>
+                ) : (
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-1.5">
+                    <Receipt className="w-4 h-4" />
+                    Recuerda entregar el voucher original en mesa de partes de tu facultad
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Estados de jurado */}
+      {tesis.estado === 'ASIGNANDO_JURADOS' && (
+        <Card className="border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-purple-800 dark:text-purple-200">Documentos aprobados - Asignando jurados</p>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  Tus documentos fueron aprobados por mesa de partes. Se estan asignando jurados evaluadores para tu proyecto.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tesis.estado === 'EN_EVALUACION_JURADO' && (
+        <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-indigo-800 dark:text-indigo-200">Proyecto en evaluacion por jurados</p>
+                <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                  Tu proyecto esta siendo evaluado por el jurado asignado.
+                  {(tesis as any).fechaLimiteEvaluacion && (
+                    <> Fecha limite (dias habiles): {new Date((tesis as any).fechaLimiteEvaluacion).toLocaleDateString('es-PE')}</>
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tesis.estado === 'OBSERVADA_JURADO' && (
+        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
+          <CardContent className="py-4 space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-orange-800 dark:text-orange-200">Proyecto observado por el jurado</p>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  El jurado ha observado tu proyecto. Revisa las observaciones y sube el proyecto corregido.
+                  {(tesis as any).fechaLimiteCorreccion && (
+                    <> Tienes hasta el {new Date((tesis as any).fechaLimiteCorreccion).toLocaleDateString('es-PE')} para corregir (dias habiles).</>
+                  )}
+                </p>
+              </div>
+            </div>
+            {/* Mostrar observaciones de cada jurado */}
+            {(tesis as any).jurados?.filter((j: any) => j.evaluaciones?.some((e: any) => e.ronda === (tesis as any).rondaActual))?.map((jurado: any) => {
+              const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === (tesis as any).rondaActual)
+              if (!eval_) return null
+              return (
+                <div key={jurado.id} className="p-3 rounded-lg bg-white dark:bg-background border ml-14">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">{jurado.nombre}</span>
+                    <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
+                    <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
+                      {eval_.resultado}
+                    </Badge>
+                  </div>
+                  {eval_.observaciones && (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{eval_.observaciones}</p>
+                  )}
+                  {eval_.archivoUrl && (
+                    <a href={eval_.archivoUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1 mt-1">
+                      <FileText className="w-3 h-3" /> Ver archivo adjunto
+                    </a>
+                  )}
+                </div>
+              )
+            })}
+            {/* Upload del proyecto corregido + botón reenviar */}
+            <div className="ml-14 space-y-3">
+              <p className="text-sm font-medium">Sube el proyecto corregido y reenvia:</p>
+
+              {/* Componente de upload inline */}
+              <DocumentUploadCard
+                titulo="Proyecto de Tesis Corregido"
+                descripcion="Sube el PDF del proyecto corregido con las observaciones levantadas"
+                tipoDocumento="PROYECTO"
+                documento={tesis.documentos?.find((d: any) => d.tipoDocumento === 'PROYECTO')}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'PROYECTO'}
+                accept=".pdf"
+                icon={<FileText className="w-6 h-6" />}
+                iconColor="text-blue-600"
+                iconBg="bg-blue-100 dark:bg-blue-900/50"
+              />
+
+              <Button
+                onClick={async () => {
+                  const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
+                  const data = await res.json()
+                  if (data.success) {
+                    toast.success(data.message)
+                    window.location.reload()
+                  } else {
+                    toast.error(data.error)
+                  }
+                }}
+                className="w-full bg-orange-600 hover:bg-orange-700"
+                disabled={subiendo === 'PROYECTO'}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Reenviar Proyecto Corregido
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tesis.estado === 'PROYECTO_APROBADO' && (
+        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-green-800 dark:text-green-200">Proyecto de tesis aprobado por el jurado</p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Esperando que mesa de partes suba la resolucion de aprobacion para pasar a la fase de informe final.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tesis.estado === 'INFORME_FINAL' && (
+        <Card className="border-cyan-200 bg-cyan-50 dark:border-cyan-800 dark:bg-cyan-950/30">
+          <CardContent className="py-4 space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
+                <FileUp className="w-5 h-5 text-cyan-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-cyan-800 dark:text-cyan-200">Fase de Informe Final</p>
+                <p className="text-sm text-cyan-700 dark:text-cyan-300">
+                  Sube el informe final y el reporte Turnitin, luego envía para evaluacion por el jurado.
+                </p>
+              </div>
+            </div>
+            <div className="ml-14">
+              <Button
+                onClick={async () => {
+                  const res = await fetch(`/api/tesis/${tesis.id}/enviar-informe`, { method: 'POST' })
+                  const data = await res.json()
+                  if (data.success) {
+                    toast.success(data.message)
+                    window.location.reload()
+                  } else {
+                    toast.error(data.error || 'Error al enviar')
+                    if (data.requisitos) {
+                      data.requisitos.filter((r: any) => !r.cumplido).forEach((r: any) => {
+                        toast.error(r.detalle)
+                      })
+                    }
+                  }
+                }}
+                className="bg-cyan-600 hover:bg-cyan-700"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Enviar Informe Final para Evaluacion
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tesis.estado === 'EN_EVALUACION_INFORME' && (
+        <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-indigo-800 dark:text-indigo-200">Informe final en evaluacion</p>
+                <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                  Tu informe final esta siendo evaluado por el jurado.
+                  {(tesis as any).fechaLimiteEvaluacion && (
+                    <> Fecha limite (dias habiles): {new Date((tesis as any).fechaLimiteEvaluacion).toLocaleDateString('es-PE')}</>
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tesis.estado === 'OBSERVADA_INFORME' && (
+        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
+          <CardContent className="py-4 space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-orange-800 dark:text-orange-200">Informe final observado por el jurado</p>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  El jurado ha observado tu informe final. Revisa las observaciones y sube el informe corregido.
+                  {(tesis as any).fechaLimiteCorreccion && (
+                    <> Tienes hasta el {new Date((tesis as any).fechaLimiteCorreccion).toLocaleDateString('es-PE')} para corregir (dias habiles).</>
+                  )}
+                </p>
+              </div>
+            </div>
+            {/* Mostrar observaciones */}
+            {(tesis as any).jurados?.filter((j: any) => j.evaluaciones?.some((e: any) => e.ronda === (tesis as any).rondaActual))?.map((jurado: any) => {
+              const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === (tesis as any).rondaActual)
+              if (!eval_) return null
+              return (
+                <div key={jurado.id} className="p-3 rounded-lg bg-white dark:bg-background border ml-14">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">{jurado.nombre}</span>
+                    <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
+                  </div>
+                  {eval_.observaciones && (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{eval_.observaciones}</p>
+                  )}
+                </div>
+              )
+            })}
+            {/* Upload del informe corregido + botón reenviar */}
+            <div className="ml-14 space-y-3">
+              <p className="text-sm font-medium">Sube el informe final corregido y reenvia:</p>
+
+              <DocumentUploadCard
+                titulo="Informe Final Corregido"
+                descripcion="Sube el PDF del informe final corregido con las observaciones levantadas"
+                tipoDocumento="INFORME_FINAL_DOC"
+                documento={tesis.documentos?.find((d: any) => d.tipoDocumento === 'INFORME_FINAL_DOC')}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'INFORME_FINAL_DOC'}
+                accept=".pdf"
+                icon={<FileText className="w-6 h-6" />}
+                iconColor="text-blue-600"
+                iconBg="bg-blue-100 dark:bg-blue-900/50"
+              />
+
+              <Button
+                onClick={async () => {
+                  const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
+                  const data = await res.json()
+                  if (data.success) {
+                    toast.success(data.message)
+                    window.location.reload()
+                  } else {
+                    toast.error(data.error)
+                  }
+                }}
+                className="w-full bg-orange-600 hover:bg-orange-700"
+                disabled={subiendo === 'INFORME_FINAL_DOC'}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Reenviar Informe Corregido
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Banner de invitación pendiente para coautores */}
+      {miInvitacionPendiente && miRegistroCoautor && (
+        <Card className="border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-purple-800 dark:text-purple-200">
+                  Tienes una invitación pendiente
+                </p>
+                <p className="text-sm text-purple-700 dark:text-purple-300 mb-3">
+                  Has sido invitado como Tesista 2 en este proyecto. Debes aceptar la invitación antes de poder subir documentos.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => responderInvitacion(miRegistroCoautor.id, 'ACEPTAR')}
+                    disabled={respondiendo}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {respondiendo ? (
+                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4 mr-1" />
+                    )}
+                    Aceptar invitación
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => responderInvitacion(miRegistroCoautor.id, 'RECHAZAR')}
+                    disabled={respondiendo}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Rechazar
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -618,7 +1042,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
           {/* Documentos requeridos */}
-          {puedeEditar && (
+          {puedeEditar && !miInvitacionPendiente && (
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -697,6 +1121,110 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   />
                 )}
 
+                {/* Voucher de Pago */}
+                <DocumentUploadCard
+                  titulo="Voucher de Pago"
+                  descripcion="Voucher de pago de S/. 30.00 al código 277 en formato PDF (máx. 25MB)"
+                  tipoDocumento="VOUCHER_PAGO"
+                  documento={docVoucherPago}
+                  onUpload={handleFileUpload}
+                  subiendo={subiendo === 'VOUCHER_PAGO'}
+                  accept=".pdf"
+                  icon={<Receipt className="w-5 h-5" />}
+                  iconColor="text-amber-600"
+                  iconBg="bg-amber-100 dark:bg-amber-900/50"
+                />
+                {docVoucherPago ? (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 -mt-2">
+                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 dark:text-amber-300">
+                      <span className="font-semibold">Entrega presencial requerida:</span> debe entregar el voucher original en mesa de partes de la facultad.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
+                    <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted-foreground">
+                      Realice el pago de <span className="font-semibold">S/. 30.00</span> al <span className="font-semibold">código 277</span> y suba el voucher escaneado. Además, debe entregar el voucher original en mesa de partes.
+                    </p>
+                  </div>
+                )}
+
+                {/* Mi Documento Sustentatorio */}
+                <DocumentUploadCard
+                  titulo={otroAutor ? 'Tu Documento Sustentatorio' : 'Documento Sustentatorio'}
+                  descripcion="Documento que acredite su condición académica en formato PDF (máx. 25MB)"
+                  tipoDocumento="DOCUMENTO_SUSTENTATORIO"
+                  documento={miDocSustentatorio}
+                  onUpload={handleFileUpload}
+                  subiendo={subiendo === 'DOCUMENTO_SUSTENTATORIO'}
+                  accept=".pdf"
+                  icon={<FileSpreadsheet className="w-5 h-5" />}
+                  iconColor="text-indigo-600"
+                  iconBg="bg-indigo-100 dark:bg-indigo-900/50"
+                />
+                {!miDocSustentatorio && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
+                    <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="text-xs text-muted-foreground">
+                      <p className="mb-1">Suba <span className="font-semibold">uno</span> de los siguientes documentos según su condición:</p>
+                      <ul className="list-disc list-inside space-y-0.5 ml-1">
+                        <li><span className="font-medium">Ficha de matrícula</span> — si está matriculado en el semestre actual</li>
+                        <li><span className="font-medium">Inscripción a SUNEDU</span> — si cuenta con registro en SUNEDU</li>
+                        <li><span className="font-medium">Constancia de egresado</span> — si ya egresó de la carrera</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sustentatorio del otro tesista (si existe) */}
+                {otroAutor && (
+                  <div className={cn(
+                    'rounded-xl border-2 p-4 transition-all',
+                    docSustentatorioOtroAutor
+                      ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
+                      : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
+                  )}>
+                    <div className="flex items-start gap-4">
+                      <div className={cn(
+                        'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
+                        docSustentatorioOtroAutor
+                          ? 'bg-green-100 dark:bg-green-900/50'
+                          : 'bg-yellow-100 dark:bg-yellow-900/50'
+                      )}>
+                        {docSustentatorioOtroAutor ? (
+                          <FileCheck className="w-6 h-6 text-green-600" />
+                        ) : (
+                          <Clock className="w-6 h-6 text-yellow-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <p className="font-semibold text-sm">
+                            Sustentatorio de {otroAutor.user.nombres} {otroAutor.user.apellidoPaterno}
+                          </p>
+                          {docSustentatorioOtroAutor ? (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
+                              Subido
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-yellow-500 text-yellow-600">
+                              Pendiente
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {docSustentatorioOtroAutor
+                            ? `${otroAutor.user.nombres} ya subió su documento sustentatorio`
+                            : otroAutor.estado === 'PENDIENTE'
+                              ? `${otroAutor.user.nombres} debe aceptar la invitación antes de subir su documento`
+                              : `${otroAutor.user.nombres} debe subir su propio documento sustentatorio`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Botón enviar */}
                 <Separator className="my-6" />
 
@@ -720,7 +1248,13 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                                     ? 'Esperando que el coasesor acepte la asesoría'
                                     : tieneCoasesor && !docCartaCoasesor
                                       ? 'Esperando que el coasesor suba su carta de aceptación'
-                                      : 'Completando requisitos pendientes'}
+                                      : !docVoucherPago
+                                        ? 'Falta subir el voucher de pago (S/. 30.00 - código 277)'
+                                        : !miDocSustentatorio
+                                          ? 'Falta subir tu documento sustentatorio'
+                                          : otroAutor && !docSustentatorioOtroAutor
+                                            ? `Falta el documento sustentatorio de ${otroAutor.user.nombres} ${otroAutor.user.apellidoPaterno}`
+                                            : 'Completando requisitos pendientes'}
                     </p>
                   </div>
                   <Button
@@ -748,8 +1282,8 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
             </Card>
           )}
 
-          {/* Documentos y Estado (solo lectura - cuando NO puede editar) */}
-          {!puedeEditar && (
+          {/* Documentos y Estado (solo lectura - cuando NO puede editar O coautor no aceptó) */}
+          {(!puedeEditar || miInvitacionPendiente) && (
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-3">
@@ -790,6 +1324,35 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     titulo="Coasesor"
                     asesor={coasesor}
                     documento={docCartaCoasesor}
+                  />
+                )}
+
+                {/* Voucher de Pago */}
+                <ReadOnlyDocumentCard
+                  titulo="Voucher de Pago"
+                  documento={docVoucherPago}
+                  icon={<Receipt className="w-5 h-5" />}
+                  iconColor="text-amber-600"
+                  iconBg="bg-amber-100 dark:bg-amber-900/50"
+                />
+
+                {/* Mi Documento Sustentatorio */}
+                <ReadOnlyDocumentCard
+                  titulo={otroAutor ? 'Tu Documento Sustentatorio' : 'Documento Sustentatorio'}
+                  documento={miDocSustentatorio}
+                  icon={<FileSpreadsheet className="w-5 h-5" />}
+                  iconColor="text-indigo-600"
+                  iconBg="bg-indigo-100 dark:bg-indigo-900/50"
+                />
+
+                {/* Sustentatorio del otro tesista */}
+                {otroAutor && (
+                  <ReadOnlyDocumentCard
+                    titulo={`Sustentatorio de ${otroAutor.user.nombres} ${otroAutor.user.apellidoPaterno}`}
+                    documento={docSustentatorioOtroAutor ?? undefined}
+                    icon={<FileSpreadsheet className="w-5 h-5" />}
+                    iconColor="text-indigo-600"
+                    iconBg="bg-indigo-100 dark:bg-indigo-900/50"
                   />
                 )}
 
@@ -1242,14 +1805,22 @@ function DocumentUploadCard({
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // No abrir el selector si se hizo clic en un enlace, botón o el input
+    const target = e.target as HTMLElement
+    if (target.closest('a') || target.closest('button') || target.closest('input')) return
+    if (!subiendo) inputRef.current?.click()
+  }
+
   return (
     <div
       className={cn(
-        'relative rounded-xl border-2 border-dashed transition-all',
+        'relative rounded-xl border-2 border-dashed transition-all cursor-pointer',
         isDragging && 'border-primary bg-primary/5',
         documento && !isDragging && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
         !documento && !isDragging && 'border-border hover:border-primary/50'
       )}
+      onClick={handleCardClick}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

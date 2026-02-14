@@ -22,6 +22,7 @@ import { PermissionGuard } from '@/components/auth/permission-guard'
 import {
   MoreHorizontal,
   Edit,
+  KeyRound,
   Trash2,
   Power,
   Unlock,
@@ -38,6 +39,7 @@ interface UserTableProps {
   onUnlock: (user: AdminUserResponse) => void
   onAssignRole: (user: AdminUserResponse) => void
   onView: (user: AdminUserResponse) => void
+  onChangePassword: (user: AdminUserResponse) => void
 }
 
 export function UserTable({
@@ -48,6 +50,7 @@ export function UserTable({
   onUnlock,
   onAssignRole,
   onView,
+  onChangePassword,
 }: UserTableProps) {
   const getInitials = (user: AdminUserResponse) => {
     return `${user.nombres.charAt(0)}${user.apellidoPaterno.charAt(0)}`.toUpperCase()
@@ -152,6 +155,13 @@ export function UserTable({
                       <DropdownMenuItem onClick={() => onAssignRole(user)}>
                         <Shield className="h-4 w-4 mr-2" />
                         Gestionar roles
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+
+                    <PermissionGuard moduleCode="usuarios" action="edit">
+                      <DropdownMenuItem onClick={() => onChangePassword(user)}>
+                        <KeyRound className="h-4 w-4 mr-2" />
+                        Cambiar contraseña
                       </DropdownMenuItem>
                     </PermissionGuard>
 

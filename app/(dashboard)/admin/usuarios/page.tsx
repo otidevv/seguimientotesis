@@ -19,11 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import {
   Users,
   Plus,
   AlertTriangle,
+  Eye,
+  EyeOff,
+  KeyRound,
   Loader2,
 } from 'lucide-react'
 import type { AdminUserResponse } from '@/lib/admin/types'
@@ -50,6 +55,7 @@ export default function UsuariosPage() {
     unlockUser,
     assignRole,
     removeRole,
+    updateRoleContext,
     setPage,
     setLimit,
   } = useUsers()
@@ -64,6 +70,10 @@ export default function UsuariosPage() {
   const [selectedUser, setSelectedUser] = useState<AdminUserResponse | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   // Cargar roles
   const loadRoles = async () => {
@@ -175,7 +185,37 @@ export default function UsuariosPage() {
     try {
       const updatedUser = await removeRole(userId, roleId)
       toast.success('Rol removido correctamente')
-      // Actualizar el usuario seleccionado para reflejar los cambios
+      setSelectedUser(updatedUser)
+      fetchUsers(filters)
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!selectedUser || !newPassword) return
+    if (newPassword.length < 8) {
+      toast.error('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
+    setIsChangingPassword(true)
+    try {
+      await updateUser(selectedUser.id, { password: newPassword })
+      toast.success(`Contraseña de ${selectedUser.nombres} actualizada`)
+      setPasswordDialogOpen(false)
+      setNewPassword('')
+      setShowPassword(false)
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  const handleUpdateRoleContext = async (userId: string, roleId: string, contextType?: string, contextId?: string) => {
+    try {
+      const updatedUser = await updateRoleContext(userId, roleId, contextType, contextId)
+      toast.success('Facultad actualizada correctamente')
       setSelectedUser(updatedUser)
       fetchUsers(filters)
     } catch (err: any) {
@@ -245,6 +285,12 @@ export default function UsuariosPage() {
                   setSelectedUser(user)
                   setEditDialogOpen(true)
                 }}
+                onChangePassword={(user) => {
+                  setSelectedUser(user)
+                  setNewPassword('')
+                  setShowPassword(false)
+                  setPasswordDialogOpen(true)
+                }}
               />
           )}
 
@@ -290,7 +336,63 @@ export default function UsuariosPage() {
         roles={roles}
         onAssign={handleAssignRole}
         onRemove={handleRemoveRole}
+        onUpdateContext={handleUpdateRoleContext}
       />
+
+      {/* Dialog Cambiar Contraseña */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" />
+              Cambiar Contraseña
+            </DialogTitle>
+            <DialogDescription>
+              {selectedUser && (
+                <>Nueva contraseña para <strong>{selectedUser.nombres} {selectedUser.apellidoPaterno}</strong></>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nueva contraseña</Label>
+              <div className="relative">
+                <Input
+                  id="new-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  className="pr-10"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleChangePassword() }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {newPassword.length > 0 && newPassword.length < 8 && (
+                <p className="text-xs text-destructive">Mínimo 8 caracteres</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleChangePassword}
+              disabled={isChangingPassword || newPassword.length < 8}
+            >
+              {isChangingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Cambiar Contraseña
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog Confirmar Eliminacion */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

@@ -182,6 +182,22 @@ export function useUsers(options: UseUsersOptions = {}) {
     return data.data
   }, [authFetch])
 
+  const updateRoleContext = useCallback(async (userId: string, roleId: string, contextType?: string, contextId?: string) => {
+    const response = await authFetch(`/api/admin/usuarios/${userId}/roles/${roleId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contextType, contextId }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al actualizar contexto del rol')
+    }
+
+    return data.data
+  }, [authFetch])
+
   const setPage = useCallback((page: number) => {
     setPagination(prev => ({ ...prev, page }))
   }, [])
@@ -203,6 +219,7 @@ export function useUsers(options: UseUsersOptions = {}) {
     unlockUser,
     assignRole,
     removeRole,
+    updateRoleContext,
     setPage,
     setLimit,
   }

@@ -76,6 +76,7 @@ export const createUserSchema = z.object({
 export const updateUserSchema = z.object({
   email: z.string().email('Email inválido').optional(),
   emailPersonal: z.string().email('Email personal inválido').optional().or(z.literal('')),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres').optional().or(z.literal('')),
   nombres: z.string().min(2).max(100).optional(),
   apellidoPaterno: z.string().min(2).max(100).optional(),
   apellidoMaterno: z.string().min(2).max(100).optional(),

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import {
   Loader2,
   Eye,
@@ -31,6 +32,9 @@ import {
   AlertCircle,
   GraduationCap,
   Briefcase,
+  KeyRound,
+  Shield,
+  ShieldCheck,
   User,
   Building2,
 } from 'lucide-react'
@@ -264,6 +268,7 @@ export function UserFormDialog({
         ? {
             email: formData.email,
             emailPersonal: formData.emailPersonal || undefined,
+            ...(formData.password && { password: formData.password }),
             nombres: formData.nombres,
             apellidoPaterno: formData.apellidoPaterno,
             apellidoMaterno: formData.apellidoMaterno,
@@ -531,6 +536,27 @@ export function UserFormDialog({
                 />
               </div>
 
+              {/* Roles actuales (solo al editar) */}
+              {isEditing && user?.roles && user.roles.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Roles asignados
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {user.roles.map((r) => (
+                      <Badge key={r.id} variant="secondary" className="gap-1.5 py-1">
+                        {getRoleIcon(r.roleCode || '')}
+                        {r.roleName}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Para modificar roles, usa el botón de roles en la tabla de usuarios.
+                  </p>
+                </div>
+              )}
+
               {/* Roles selection (solo al crear) */}
               {!isEditing && roles.length > 0 && (
                 <div className="space-y-3">
@@ -597,31 +623,64 @@ export function UserFormDialog({
                 </div>
               )}
 
-              {/* Password (solo para crear) */}
-              {!isEditing && (
-                <div className="space-y-2">
-                  <Label>Contraseña</Label>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder="Mínimo 8 caracteres"
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {getError('password') && (
-                    <p className="text-xs text-destructive">{getError('password')}</p>
-                  )}
+              {/* Estado y verificación */}
+              <div className="grid grid-cols-2 gap-4 p-3 rounded-lg bg-muted/30 border">
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="isActive" className="flex items-center gap-2 cursor-pointer">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Activo</p>
+                      <p className="text-xs text-muted-foreground font-normal">Puede iniciar sesión</p>
+                    </div>
+                  </Label>
+                  <Switch
+                    id="isActive"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                  />
                 </div>
-              )}
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="isVerified" className="flex items-center gap-2 cursor-pointer">
+                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Verificado</p>
+                      <p className="text-xs text-muted-foreground font-normal">Email confirmado</p>
+                    </div>
+                  </Label>
+                  <Switch
+                    id="isVerified"
+                    checked={formData.isVerified}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isVerified: checked })}
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <KeyRound className="h-4 w-4" />
+                  {isEditing ? 'Nueva Contraseña (dejar vacío para no cambiar)' : 'Contraseña'}
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder={isEditing ? 'Dejar vacío para mantener la actual' : 'Mínimo 8 caracteres'}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {getError('password') && (
+                  <p className="text-xs text-destructive">{getError('password')}</p>
+                )}
+              </div>
             </>
           )}
 

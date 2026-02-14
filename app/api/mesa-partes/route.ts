@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const estado = searchParams.get('estado')
     const facultadId = searchParams.get('facultadId') || rolMesaPartes?.contextId
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
 
     // DEBUG logs
     console.log('[MESA-PARTES] Usuario:', user.email)
@@ -66,8 +68,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Contar total para paginación
+    const totalItems = await prisma.thesis.count({ where: whereClause })
+    const totalPages = Math.ceil(totalItems / limit)
+
     const tesis = await prisma.thesis.findMany({
       where: whereClause,
+      skip: (page - 1) * limit,
+      take: limit,
       include: {
         autores: {
           include: {
@@ -183,27 +191,50 @@ export async function GET(request: NextRequest) {
       _count: true,
     })
 
-    const contadoresFormateados = {
+    const contadoresFormateados: Record<string, number> = {
       EN_REVISION: 0,
       OBSERVADA: 0,
+      ASIGNANDO_JURADOS: 0,
+      EN_EVALUACION_JURADO: 0,
+      OBSERVADA_JURADO: 0,
+      PROYECTO_APROBADO: 0,
+      INFORME_FINAL: 0,
+      EN_EVALUACION_INFORME: 0,
+      OBSERVADA_INFORME: 0,
       APROBADA: 0,
       RECHAZADA: 0,
     }
 
     contadores.forEach((c) => {
       if (c.estado in contadoresFormateados) {
-        contadoresFormateados[c.estado as keyof typeof contadoresFormateados] = c._count
+        contadoresFormateados[c.estado] = c._count
       }
     })
 
     console.log('[MESA-PARTES] Tesis encontradas:', tesis.length)
     console.log('[MESA-PARTES] Contadores:', contadoresFormateados)
 
+    // Obtener nombre de la facultad asignada (si aplica)
+    let facultadNombre: string | null = null
+    if (facultadId) {
+      const facultad = await prisma.faculty.findUnique({
+        where: { id: facultadId },
+        select: { nombre: true },
+      })
+      facultadNombre = facultad?.nombre || null
+    }
+
     return NextResponse.json({
       success: true,
       data: resultado,
       contadores: contadoresFormateados,
-      total: resultado.length,
+      facultadAsignada: facultadNombre,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+      },
     })
   } catch (error) {
     console.error('[GET /api/mesa-partes] Error:', error)

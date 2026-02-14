@@ -389,11 +389,18 @@ export class UserService {
       }
     }
 
+    // Hash password if provided
+    let hashedPassword: string | undefined
+    if (input.password) {
+      hashedPassword = await hashPassword(input.password)
+    }
+
     const user = await prisma.user.update({
       where: { id },
       data: {
         ...(input.email && { email: input.email.toLowerCase() }),
         ...(input.emailPersonal !== undefined && { emailPersonal: input.emailPersonal || null }),
+        ...(hashedPassword && { passwordHash: hashedPassword }),
         ...(input.nombres && { nombres: input.nombres }),
         ...(input.apellidoPaterno && { apellidoPaterno: input.apellidoPaterno }),
         ...(input.apellidoMaterno && { apellidoMaterno: input.apellidoMaterno }),
@@ -409,8 +416,9 @@ export class UserService {
       },
     })
 
-    // Registrar auditoría
-    await this.logAudit(adminId, 'USER_UPDATE', 'User', id, existing, input)
+    // Registrar auditoría (exclude password from audit)
+    const { password: _, ...auditInput } = input as any
+    await this.logAudit(adminId, 'USER_UPDATE', 'User', id, existing, auditInput)
 
     return this.formatUserResponse(user)
   }

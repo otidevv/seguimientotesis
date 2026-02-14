@@ -693,13 +693,22 @@ async function main() {
   const defaultPasswordHash = await bcrypt.hash(defaultPassword, 12)
 
   // Helper para asignar rol si no existe
-  async function assignRole(userId: string, roleId: string) {
+  async function assignRole(userId: string, roleId: string, context?: { contextType: string; contextId: string }) {
     const existing = await prisma.userRole.findFirst({
-      where: { userId, roleId, contextType: null, contextId: null },
+      where: {
+        userId,
+        roleId,
+        contextType: context?.contextType ?? null,
+        contextId: context?.contextId ?? null,
+      },
     })
     if (!existing) {
       await prisma.userRole.create({
-        data: { userId, roleId },
+        data: {
+          userId,
+          roleId,
+          ...(context ? { contextType: context.contextType, contextId: context.contextId } : {}),
+        },
       })
     }
   }
@@ -890,6 +899,133 @@ async function main() {
   })
   console.log(`  - Estudiante: ${jeffersonUser.email}`)
 
+  // --- MESA DE PARTES: Alberto Peña García ---
+  const garciaUser = await prisma.user.upsert({
+    where: { email: 'garcia@unamad.edu.pe' },
+    update: {},
+    create: {
+      tipoDocumento: TipoDocumento.DNI,
+      numeroDocumento: '43819949',
+      email: 'garcia@unamad.edu.pe',
+      passwordHash: defaultPasswordHash,
+      nombres: 'ALBERTO',
+      apellidoPaterno: 'PEÑA',
+      apellidoMaterno: 'GARCIA',
+      isActive: true,
+      isVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+  await assignRole(garciaUser.id, rolExterno.id)
+  await assignRole(garciaUser.id, rolMesaPartes.id, {
+    contextType: 'FACULTAD',
+    contextId: facultadIngenieria.id,
+  })
+  console.log(`  - Mesa de Partes: ${garciaUser.email}`)
+
+  // --- DOCENTE: Denys Alberto Jaramillo Peralta ---
+  const jaramrilloUser = await prisma.user.upsert({
+    where: { email: 'djaramillo@unamad.edu.pe' },
+    update: {},
+    create: {
+      tipoDocumento: TipoDocumento.DNI,
+      numeroDocumento: '41496703',
+      email: 'djaramillo@unamad.edu.pe',
+      passwordHash: defaultPasswordHash,
+      nombres: 'DENYS ALBERTO',
+      apellidoPaterno: 'JARAMILLO',
+      apellidoMaterno: 'PERALTA',
+      isActive: true,
+      isVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+  await assignRole(jaramrilloUser.id, rolDocente.id)
+  await prisma.teacherInfo.upsert({
+    where: { userId: jaramrilloUser.id },
+    update: {},
+    create: {
+      userId: jaramrilloUser.id,
+      codigoDocente: '41670',
+      departamentoAcademico: 'INGENIERIA DE SISTEMAS E INFORMATICA',
+      facultadId: facultadIngenieria.id,
+    },
+  })
+  console.log(`  - Docente: ${jaramrilloUser.email}`)
+
+  // --- DOCENTE: Dany Dorian Isuiza Perez ---
+  const isuizaUser = await prisma.user.upsert({
+    where: { email: 'disuiza@unamad.edu.pe' },
+    update: {},
+    create: {
+      tipoDocumento: TipoDocumento.DNI,
+      numeroDocumento: '41639193',
+      email: 'disuiza@unamad.edu.pe',
+      passwordHash: defaultPasswordHash,
+      nombres: 'DANY DORIAN',
+      apellidoPaterno: 'ISUIZA',
+      apellidoMaterno: 'PEREZ',
+      isActive: true,
+      isVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+  await assignRole(isuizaUser.id, rolDocente.id)
+  await prisma.teacherInfo.upsert({
+    where: { userId: isuizaUser.id },
+    update: {},
+    create: {
+      userId: isuizaUser.id,
+      codigoDocente: '41375',
+      departamentoAcademico: 'INGENIERIA DE SISTEMAS E INFORMATICA',
+      facultadId: facultadIngenieria.id,
+    },
+  })
+  console.log(`  - Docente: ${isuizaUser.email}`)
+
+  // --- ESTUDIANTE/DOCENTE: Luis Alberto Holgado Apaza ---
+  const holgadoUser = await prisma.user.upsert({
+    where: { email: 'holgado@unamad.edu.pe' },
+    update: {},
+    create: {
+      tipoDocumento: TipoDocumento.DNI,
+      numeroDocumento: '44076704',
+      email: 'holgado@unamad.edu.pe',
+      passwordHash: defaultPasswordHash,
+      nombres: 'LUIS ALBERTO',
+      apellidoPaterno: 'HOLGADO',
+      apellidoMaterno: 'APAZA',
+      isActive: true,
+      isVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+  await assignRole(holgadoUser.id, rolEstudiante.id)
+  await assignRole(holgadoUser.id, rolDocente.id)
+  // Carrera de Holgado
+  await prisma.studentCareer.upsert({
+    where: { userId_codigoEstudiante: { userId: holgadoUser.id, codigoEstudiante: '01131015' } },
+    update: {},
+    create: {
+      userId: holgadoUser.id,
+      codigoEstudiante: '01131015',
+      carreraNombre: 'EDUCACIÓN ESPECIALIDAD MATEMÁTICA Y COMPUTACIÓN',
+      facultadId: facultadEducacion.id,
+    },
+  })
+  // Info docente de Holgado
+  await prisma.teacherInfo.upsert({
+    where: { userId: holgadoUser.id },
+    update: {},
+    create: {
+      userId: holgadoUser.id,
+      codigoDocente: '41671',
+      departamentoAcademico: 'INGENIERIA DE SISTEMAS E INFORMATICA',
+      facultadId: facultadIngenieria.id,
+    },
+  })
+  console.log(`  - Estudiante/Docente: ${holgadoUser.email}`)
+
   // ============================================
   // RESUMEN FINAL
   // ============================================
@@ -900,16 +1036,20 @@ async function main() {
   console.log('Escuelas: 9')
   console.log('Módulos: 11')
   console.log('Roles: 9')
-  console.log('Usuarios: 6')
+  console.log('Usuarios: 10')
   console.log('----------------------------------------')
   console.log(`Contraseña para todos: ${defaultPassword}`)
   console.log('----------------------------------------')
-  console.log('SUPER_ADMIN: admin@unamad.edu.pe')
-  console.log('ESTUDIANTE:  apenam@unamad.edu.pe (Alberto Peña)')
-  console.log('ESTUDIANTE:  31azareza40@gmail.com (Abner Acuña)')
-  console.log('ESTUDIANTE:  jzavaleta@unamad.edu.pe (Jefferson Morales)')
-  console.log('DOCENTE:     nulloa@unamad.edu.pe (Nelly Ulloa)')
-  console.log('DOCENTE:     rmiranda@unamad.edu.pe (Ralph Miranda)')
+  console.log('SUPER_ADMIN:      admin@unamad.edu.pe')
+  console.log('ESTUDIANTE:       apenam@unamad.edu.pe (Alberto Peña)')
+  console.log('ESTUDIANTE:       31azareza40@gmail.com (Abner Acuña)')
+  console.log('ESTUDIANTE:       jzavaleta@unamad.edu.pe (Jefferson Morales)')
+  console.log('DOCENTE:          nulloa@unamad.edu.pe (Nelly Ulloa)')
+  console.log('DOCENTE:          rmiranda@unamad.edu.pe (Ralph Miranda)')
+  console.log('MESA_PARTES:      garcia@unamad.edu.pe (Alberto Peña García)')
+  console.log('DOCENTE:          djaramillo@unamad.edu.pe (Denys Jaramillo)')
+  console.log('DOCENTE:          disuiza@unamad.edu.pe (Dany Isuiza)')
+  console.log('ESTUDIANTE/DOC:   holgado@unamad.edu.pe (Luis Holgado)')
   console.log('========================================\n')
 }
 

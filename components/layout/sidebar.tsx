@@ -25,6 +25,7 @@ import {
   Mail,
   Boxes,
   Inbox,
+  ClipboardCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -98,6 +99,12 @@ const docenteNavItems: NavItem[] = [
     href: '/mis-asesorias',
     icon: GraduationCap,
     moduleCode: 'mis-asesorias',
+  },
+  {
+    title: 'Mis Evaluaciones',
+    href: '/mis-evaluaciones',
+    icon: ClipboardCheck,
+    moduleCode: 'mis-evaluaciones',
   },
 ]
 

@@ -28,6 +28,12 @@ const TIPO_DOCUMENTO_MAP: Record<string, string> = {
   'ANEXO': 'ANEXO',
   'CARTA_ACEPTACION_ASESOR': 'CARTA_ACEPTACION_ASESOR',
   'CARTA_ACEPTACION_COASESOR': 'CARTA_ACEPTACION_COASESOR',
+  'VOUCHER_PAGO': 'VOUCHER_PAGO',
+  'DOCUMENTO_SUSTENTATORIO': 'DOCUMENTO_SUSTENTATORIO',
+  'DICTAMEN_JURADO': 'DICTAMEN_JURADO',
+  'RESOLUCION_APROBACION': 'RESOLUCION_APROBACION',
+  'REPORTE_TURNITIN': 'REPORTE_TURNITIN',
+  'INFORME_FINAL_DOC': 'INFORME_FINAL_DOC',
   'OTRO': 'OTRO',
 }
 
@@ -36,11 +42,17 @@ const TIPO_DOCUMENTO_NOMBRES: Record<string, string> = {
   'PROYECTO': 'Proyecto de Tesis',
   'BORRADOR': 'Borrador',
   'DOCUMENTO_FINAL': 'Documento Final',
-  'ACTA_SUSTENTACION': 'Acta de Sustentación',
+  'ACTA_SUSTENTACION': 'Acta de Sustentacion',
   'CERTIFICADO': 'Certificado',
   'ANEXO': 'Anexo',
-  'CARTA_ACEPTACION_ASESOR': 'Carta de Aceptación del Asesor',
-  'CARTA_ACEPTACION_COASESOR': 'Carta de Aceptación del Coasesor',
+  'CARTA_ACEPTACION_ASESOR': 'Carta de Aceptacion del Asesor',
+  'CARTA_ACEPTACION_COASESOR': 'Carta de Aceptacion del Coasesor',
+  'VOUCHER_PAGO': 'Voucher de Pago',
+  'DOCUMENTO_SUSTENTATORIO': 'Documento Sustentatorio',
+  'DICTAMEN_JURADO': 'Dictamen del Jurado',
+  'RESOLUCION_APROBACION': 'Resolucion de Aprobacion',
+  'REPORTE_TURNITIN': 'Reporte de Turnitin',
+  'INFORME_FINAL_DOC': 'Informe Final',
   'OTRO': 'Otro Documento',
 }
 
@@ -79,6 +91,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { error: 'No tienes permiso para subir documentos a esta tesis' },
         { status: 403 }
       )
+    }
+
+    // Verificar que el participante ha aceptado su invitación antes de permitir subir documentos
+    if (esAutor) {
+      const registroAutor = tesis.autores[0]
+      if (registroAutor.estado !== 'ACEPTADO') {
+        return NextResponse.json(
+          { error: 'Debes aceptar la invitación antes de subir documentos' },
+          { status: 400 }
+        )
+      }
+    }
+    if (esAsesor) {
+      const registroAsesor = tesis.asesores[0]
+      if (registroAsesor.estado !== 'ACEPTADO') {
+        return NextResponse.json(
+          { error: 'Debes aceptar la asesoría antes de subir documentos' },
+          { status: 400 }
+        )
+      }
     }
 
     // Obtener el archivo del FormData
@@ -151,11 +183,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     fs.writeFileSync(filePath, buffer)
 
     // Desactivar versiones anteriores del mismo tipo
+    // Para DOCUMENTO_SUSTENTATORIO, solo desactivar las versiones del mismo usuario
+    // ya que cada tesista sube su propio documento sustentatorio
     await prisma.thesisDocument.updateMany({
       where: {
         thesisId: tesisId,
         tipo: tipoDocumento as any,
         esVersionActual: true,
+        ...(tipoDocumento === 'DOCUMENTO_SUSTENTATORIO' && { uploadedById: user.id }),
       },
       data: {
         esVersionActual: false,

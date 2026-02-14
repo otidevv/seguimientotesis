@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Loader2, Plus, X, Shield, Building2 } from 'lucide-react'
+import { Loader2, Plus, X, Shield, Building2, Pencil, Check } from 'lucide-react'
 import type { AdminUserResponse } from '@/lib/admin/types'
 
 interface Facultad {
@@ -35,6 +35,7 @@ interface AssignRoleDialogProps {
   roles: { id: string; nombre: string; codigo: string; color: string | null }[]
   onAssign: (userId: string, roleId: string, contextType?: string, contextId?: string) => Promise<void>
   onRemove: (userId: string, roleId: string) => Promise<void>
+  onUpdateContext?: (userId: string, roleId: string, contextType?: string, contextId?: string) => Promise<void>
 }
 
 export function AssignRoleDialog({
@@ -44,12 +45,16 @@ export function AssignRoleDialog({
   roles,
   onAssign,
   onRemove,
+  onUpdateContext,
 }: AssignRoleDialogProps) {
   const [selectedRole, setSelectedRole] = useState('')
   const [selectedFacultad, setSelectedFacultad] = useState('')
   const [facultades, setFacultades] = useState<Facultad[]>([])
   const [isAssigning, setIsAssigning] = useState(false)
   const [removingRoleId, setRemovingRoleId] = useState<string | null>(null)
+  const [editingContextRoleId, setEditingContextRoleId] = useState<string | null>(null)
+  const [editFacultadId, setEditFacultadId] = useState<string>('')
+  const [isSavingContext, setIsSavingContext] = useState(false)
 
   // Cargar facultades al abrir el diálogo
   useEffect(() => {
@@ -65,6 +70,14 @@ export function AssignRoleDialog({
     }
   }, [open])
 
+  // Reset edit state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setEditingContextRoleId(null)
+      setEditFacultadId('')
+    }
+  }, [open])
+
   // Verificar si el rol seleccionado es MESA_PARTES
   const selectedRoleData = roles.find(r => r.id === selectedRole)
   const esMesaPartes = selectedRoleData?.codigo === 'MESA_PARTES'
@@ -72,6 +85,12 @@ export function AssignRoleDialog({
   const availableRoles = roles.filter(
     (role) => !user?.roles.some((ur) => ur.roleId === role.id)
   )
+
+  const getFacultadNombre = (contextId: string | null) => {
+    if (!contextId) return null
+    const fac = facultades.find(f => f.id === contextId)
+    return fac ? fac.nombre : null
+  }
 
   const handleAssign = async () => {
     if (!user || !selectedRole) return
@@ -107,6 +126,29 @@ export function AssignRoleDialog({
     }
   }
 
+  const startEditContext = (role: AdminUserResponse['roles'][0]) => {
+    setEditingContextRoleId(role.roleId)
+    setEditFacultadId(role.contextId || '')
+  }
+
+  const handleSaveContext = async () => {
+    if (!user || !editingContextRoleId || !onUpdateContext) return
+
+    setIsSavingContext(true)
+    try {
+      await onUpdateContext(
+        user.id,
+        editingContextRoleId,
+        editFacultadId ? 'FACULTAD' : undefined,
+        editFacultadId || undefined,
+      )
+      setEditingContextRoleId(null)
+      setEditFacultadId('')
+    } finally {
+      setIsSavingContext(false)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -127,26 +169,105 @@ export function AssignRoleDialog({
             {/* Roles actuales */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Roles actuales</label>
-              <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border rounded-lg bg-muted/50">
+              <div className="space-y-2 min-h-[40px] p-3 border rounded-lg bg-muted/50">
                 {user.roles.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Sin roles asignados</p>
                 ) : (
-                  user.roles.map((role) => (
-                    <Badge key={role.id} variant="secondary" className="gap-1 pr-1">
-                      {role.roleName}
-                      <button
-                        onClick={() => handleRemove(role.roleId)}
-                        disabled={removingRoleId === role.roleId}
-                        className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                      >
-                        {removingRoleId === role.roleId ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <X className="h-3 w-3" />
+                  user.roles.map((role) => {
+                    const roleInfo = roles.find(r => r.id === role.roleId)
+                    const isMesaPartes = roleInfo?.codigo === 'MESA_PARTES'
+                    const isEditingThis = editingContextRoleId === role.roleId
+                    const facultadNombre = getFacultadNombre(role.contextId)
+
+                    return (
+                      <div key={role.id} className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Badge variant="secondary" className="gap-1 shrink-0">
+                              {role.roleName}
+                            </Badge>
+                            {isMesaPartes && (
+                              <span className="text-xs text-muted-foreground truncate">
+                                {facultadNombre ? (
+                                  <>
+                                    <Building2 className="w-3 h-3 inline mr-1" />
+                                    {facultadNombre}
+                                  </>
+                                ) : (
+                                  'Todas las facultades'
+                                )}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {isMesaPartes && onUpdateContext && !isEditingThis && (
+                              <button
+                                onClick={() => startEditContext(role)}
+                                className="hover:bg-muted rounded p-1 text-muted-foreground hover:text-foreground"
+                                title="Cambiar facultad"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleRemove(role.roleId)}
+                              disabled={removingRoleId === role.roleId}
+                              className="hover:bg-destructive/20 rounded p-1 text-muted-foreground hover:text-destructive"
+                              title="Quitar rol"
+                            >
+                              {removingRoleId === role.roleId ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <X className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Editor de facultad inline */}
+                        {isEditingThis && (
+                          <div className="flex items-center gap-2 pl-2">
+                            <Select
+                              value={editFacultadId || 'all'}
+                              onValueChange={(v) => setEditFacultadId(v === 'all' ? '' : v)}
+                            >
+                              <SelectTrigger className="h-8 text-xs flex-1">
+                                <SelectValue placeholder="Seleccionar facultad" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">Todas las facultades</SelectItem>
+                                {facultades.map((fac) => (
+                                  <SelectItem key={fac.id} value={fac.id}>
+                                    {fac.nombre}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              size="sm"
+                              className="h-8 px-2"
+                              onClick={handleSaveContext}
+                              disabled={isSavingContext}
+                            >
+                              {isSavingContext ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Check className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 px-2"
+                              onClick={() => { setEditingContextRoleId(null); setEditFacultadId('') }}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         )}
-                      </button>
-                    </Badge>
-                  ))
+                      </div>
+                    )
+                  })
                 )}
               </div>
             </div>

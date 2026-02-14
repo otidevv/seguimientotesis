@@ -95,6 +95,23 @@ export async function GET(
           },
           orderBy: { createdAt: 'desc' },
         },
+        jurados: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+              },
+            },
+            evaluaciones: {
+              orderBy: { ronda: 'desc' },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
         historialEstados: {
           include: {
             changedBy: {
@@ -137,6 +154,7 @@ export async function GET(
       estado: tesis.estado,
       lineaInvestigacion: tesis.lineaInvestigacion,
       areaConocimiento: tesis.areaConocimiento,
+      voucherFisicoEntregado: tesis.voucherFisicoEntregado,
       fechaInicio: tesis.fechaInicio,
       fechaAprobacion: tesis.fechaAprobacion,
       fechaSustentacion: tesis.fechaSustentacion,
@@ -204,6 +222,26 @@ export async function GET(
         createdAt: d.createdAt,
         subidoPor: d.uploadedBy,
       })),
+      // Jurados
+      jurados: tesis.jurados.map((j) => ({
+        id: j.id,
+        tipo: j.tipo,
+        fase: j.fase,
+        nombre: `${j.user.nombres} ${j.user.apellidoPaterno} ${j.user.apellidoMaterno}`,
+        evaluaciones: j.evaluaciones.map((e) => ({
+          id: e.id,
+          ronda: e.ronda,
+          resultado: e.resultado,
+          observaciones: e.observaciones,
+          archivoUrl: e.archivoUrl,
+          fecha: e.createdAt,
+        })),
+      })),
+      // Evaluacion
+      rondaActual: tesis.rondaActual,
+      faseActual: tesis.faseActual,
+      fechaLimiteEvaluacion: tesis.fechaLimiteEvaluacion,
+      fechaLimiteCorreccion: tesis.fechaLimiteCorreccion,
       // Historial
       historial: tesis.historialEstados.map((h) => ({
         id: h.id,

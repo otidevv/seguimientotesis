@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -37,6 +37,7 @@ import {
   UserPlus,
   Users,
   X,
+  Pencil,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -80,12 +81,35 @@ const STEPS = [
   { id: 4, title: 'Confirmar', icon: CheckCircle2, description: 'Revisa y envía' },
 ]
 
+const STEP_TIPS: Record<number, { titulo: string; descripcion: string }> = {
+  1: {
+    titulo: 'Selección de carrera',
+    descripcion: 'Solo puedes tener un proyecto activo por carrera. Si ya tienes uno, deberás finalizarlo o archivarlo antes de crear otro.',
+  },
+  2: {
+    titulo: 'Redacción del título',
+    descripcion: 'Redacta un título claro y específico que refleje el alcance de tu investigación. Podrás modificarlo más adelante si es necesario.',
+  },
+  3: {
+    titulo: 'Conformación del equipo',
+    descripcion: 'El asesor es obligatorio y será notificado por correo. El coasesor y tesista 2 son opcionales.',
+  },
+  4: {
+    titulo: 'Revisión final',
+    descripcion: 'Asegúrate de tener listo tu proyecto de tesis en PDF y la carta de aceptación del asesor para completar el registro.',
+  },
+}
+
 export default function NuevoProyectoPage() {
   const router = useRouter()
   const { user, isLoading: authLoading, hasRole } = useAuth()
 
   // Estado del wizard
   const [currentStep, setCurrentStep] = useState(1)
+  const [slideDirection, setSlideDirection] = useState<'right' | 'left'>('right')
+  const [autoAdvancing, setAutoAdvancing] = useState(false)
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasAutoAdvanced = useRef(false)
 
   // Estados del formulario
   const [carreras, setCarreras] = useState<Carrera[]>([])
@@ -282,6 +306,48 @@ export default function NuevoProyectoPage() {
     return () => clearTimeout(timer)
   }, [busquedaCoasesor, buscarDocente])
 
+  // Auto-avance si hay una sola carrera disponible
+  useEffect(() => {
+    if (currentStep === 1 && !loading && !hasAutoAdvanced.current) {
+      const carrerasDisponibles = carreras.filter((c) => !c.tesisActiva)
+      if (carrerasDisponibles.length === 1 && carreraSeleccionada) {
+        hasAutoAdvanced.current = true
+        setAutoAdvancing(true)
+        autoAdvanceRef.current = setTimeout(() => {
+          setSlideDirection('right')
+          setCurrentStep(2)
+          setAutoAdvancing(false)
+        }, 1200)
+      }
+    }
+    return () => {
+      if (autoAdvanceRef.current) {
+        clearTimeout(autoAdvanceRef.current)
+        autoAdvanceRef.current = null
+      }
+    }
+  }, [currentStep, loading, carreras, carreraSeleccionada])
+
+  // Navegación por teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+      if (e.key === 'Enter' && currentStep < 4 && canProceed) {
+        e.preventDefault()
+        setSlideDirection('right')
+        setCurrentStep((s) => s + 1)
+      } else if (e.key === 'Escape' && currentStep > 1) {
+        e.preventDefault()
+        setSlideDirection('left')
+        setCurrentStep((s) => s - 1)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentStep, canProceed])
+
   // Agregar palabra clave
   const agregarPalabraClave = () => {
     const palabra = nuevaPalabra.trim().toLowerCase()
@@ -344,13 +410,22 @@ export default function NuevoProyectoPage() {
   // Navegación del wizard
   const nextStep = () => {
     if (canProceed && currentStep < 4) {
+      setSlideDirection('right')
       setCurrentStep(currentStep + 1)
     }
   }
 
   const prevStep = () => {
     if (currentStep > 1) {
+      setSlideDirection('left')
       setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const goToStep = (step: number) => {
+    if (step >= 1 && step <= 4 && step !== currentStep) {
+      setSlideDirection(step > currentStep ? 'right' : 'left')
+      setCurrentStep(step)
     }
   }
 
@@ -458,7 +533,7 @@ export default function NuevoProyectoPage() {
                       <div className={cn(
                         'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors',
                         isCompleted && 'bg-primary text-primary-foreground',
-                        isCurrent && 'bg-primary text-primary-foreground',
+                        isCurrent && 'bg-primary text-primary-foreground animate-in zoom-in-75 duration-300',
                         !isCompleted && !isCurrent && 'bg-muted text-muted-foreground'
                       )}>
                         {isCompleted ? (
@@ -491,6 +566,28 @@ export default function NuevoProyectoPage() {
                   <span className="text-sm text-muted-foreground">{progress}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
+                <div className="flex items-center justify-between mt-3">
+                  {STEPS.map((step) => {
+                    const isActive = currentStep === step.id
+                    const isDone = currentStep > step.id
+                    return (
+                      <div key={step.id} className="flex flex-col items-center gap-1">
+                        <div className={cn(
+                          'w-2.5 h-2.5 rounded-full transition-all',
+                          isDone && 'bg-primary',
+                          isActive && 'bg-primary ring-2 ring-primary/30',
+                          !isDone && !isActive && 'bg-muted-foreground/30'
+                        )} />
+                        <span className={cn(
+                          'text-[10px]',
+                          isActive ? 'font-medium text-foreground' : 'text-muted-foreground'
+                        )}>
+                          {step.title}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -498,7 +595,14 @@ export default function NuevoProyectoPage() {
           {/* Main Content */}
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Form Section */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2">
+              <div
+                key={currentStep}
+                className={cn(
+                  'space-y-6 animate-in fade-in duration-300',
+                  slideDirection === 'right' ? 'slide-in-from-right-4' : 'slide-in-from-left-4'
+                )}
+              >
               {/* Step 1: Carrera */}
               {currentStep === 1 && (
                 <Card>
@@ -641,6 +745,13 @@ export default function NuevoProyectoPage() {
                       </div>
                     )}
 
+                    {autoAdvancing && (
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-primary animate-in fade-in duration-300">
+                        <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+                        <p className="text-sm font-medium">Avanzando al siguiente paso...</p>
+                      </div>
+                    )}
+
                     <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300">
                       <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                       <p className="text-sm">
@@ -682,17 +793,30 @@ export default function NuevoProyectoPage() {
                       />
                       <div className="flex items-center justify-between text-xs">
                         <span className={cn(
-                          titulo.length < 10 ? 'text-muted-foreground' : 'text-green-600'
+                          titulo.length < 10 ? 'text-muted-foreground' : titulo.length > 450 ? 'text-amber-600' : 'text-green-600'
                         )}>
                           {titulo.length >= 10 ? (
                             <span className="flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Mínimo alcanzado
+                              <Check className="w-3 h-3" /> Título válido
                             </span>
                           ) : (
-                            `Mínimo 10 caracteres`
+                            `${10 - titulo.length} caracteres más`
                           )}
                         </span>
-                        <span className="text-muted-foreground">{titulo.length}/500</span>
+                        <div className="flex items-center gap-1.5">
+                          <svg width="20" height="20" viewBox="0 0 20 20" className="rotate-[-90deg]">
+                            <circle cx="10" cy="10" r="8" fill="none" strokeWidth="2" className="stroke-muted" />
+                            <circle
+                              cx="10" cy="10" r="8" fill="none" strokeWidth="2"
+                              strokeDasharray={`${Math.min((titulo.length / 500) * 50.26, 50.26)} 50.26`}
+                              strokeLinecap="round"
+                              className={cn(
+                                titulo.length < 10 ? 'stroke-muted-foreground' : titulo.length > 450 ? 'stroke-amber-500' : 'stroke-green-500'
+                              )}
+                            />
+                          </svg>
+                          <span className="text-muted-foreground">{titulo.length}/500</span>
+                        </div>
                       </div>
                     </div>
 
@@ -770,7 +894,7 @@ export default function NuevoProyectoPage() {
               {currentStep === 3 && (
                 <div className="space-y-6">
                   {/* Tesista 2 */}
-                  <Card>
+                  <Card className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-backwards">
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -849,11 +973,20 @@ export default function NuevoProyectoPage() {
                           )}
                         </div>
                       )}
+                          {busquedaCoautor.length >= 2 && !buscandoCoautor && resultadosCoautor.length === 0 && (
+                            <div className="flex flex-col items-center gap-2 py-6 text-center">
+                              <Search className="w-8 h-8 text-muted-foreground/40" />
+                              <p className="text-sm text-muted-foreground">
+                                No se encontraron estudiantes para &ldquo;{busquedaCoautor}&rdquo;
+                              </p>
+                              <p className="text-xs text-muted-foreground/70">Verifica el nombre o documento</p>
+                            </div>
+                          )}
                     </CardContent>
                   </Card>
 
                   {/* Asesor */}
-                  <Card>
+                  <Card className="animate-in fade-in slide-in-from-bottom-2 duration-300 delay-100 fill-mode-backwards">
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -934,11 +1067,20 @@ export default function NuevoProyectoPage() {
                           )}
                         </div>
                       )}
+                          {busquedaAsesor.length >= 2 && !buscandoAsesor && resultadosAsesor.length === 0 && (
+                            <div className="flex flex-col items-center gap-2 py-6 text-center">
+                              <Search className="w-8 h-8 text-muted-foreground/40" />
+                              <p className="text-sm text-muted-foreground">
+                                No se encontraron docentes para &ldquo;{busquedaAsesor}&rdquo;
+                              </p>
+                              <p className="text-xs text-muted-foreground/70">Verifica el nombre del docente</p>
+                            </div>
+                          )}
                     </CardContent>
                   </Card>
 
                   {/* Coasesor */}
-                  <Card>
+                  <Card className="animate-in fade-in slide-in-from-bottom-2 duration-300 delay-200 fill-mode-backwards">
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
@@ -1019,6 +1161,15 @@ export default function NuevoProyectoPage() {
                           )}
                         </div>
                       )}
+                          {busquedaCoasesor.length >= 2 && !buscandoCoasesor && resultadosCoasesor.length === 0 && (
+                            <div className="flex flex-col items-center gap-2 py-6 text-center">
+                              <Search className="w-8 h-8 text-muted-foreground/40" />
+                              <p className="text-sm text-muted-foreground">
+                                No se encontraron docentes para &ldquo;{busquedaCoasesor}&rdquo;
+                              </p>
+                              <p className="text-xs text-muted-foreground/70">Verifica el nombre del docente</p>
+                            </div>
+                          )}
                     </CardContent>
                   </Card>
                 </div>
@@ -1044,14 +1195,27 @@ export default function NuevoProyectoPage() {
                     {/* Resumen */}
                     <div className="space-y-4">
                       <div className="p-4 rounded-xl bg-muted/50 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Carrera</p>
+                          <button type="button" onClick={() => goToStep(1)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
+                            <Pencil className="w-3 h-3" />
+                            Editar
+                          </button>
+                        </div>
                         <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Carrera</p>
                           <p className="font-medium">{carreraActual?.carreraNombre}</p>
                           <p className="text-sm text-muted-foreground">{carreraActual?.facultad.nombre}</p>
                         </div>
                       </div>
 
                       <div className="p-4 rounded-xl bg-muted/50 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Proyecto</p>
+                          <button type="button" onClick={() => goToStep(2)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
+                            <Pencil className="w-3 h-3" />
+                            Editar
+                          </button>
+                        </div>
                         <div>
                           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Título</p>
                           <p className="font-medium">{titulo}</p>
@@ -1081,7 +1245,13 @@ export default function NuevoProyectoPage() {
                       </div>
 
                       <div className="p-4 rounded-xl bg-muted/50 space-y-3">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Equipo de Investigación</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide">Equipo de Investigación</p>
+                          <button type="button" onClick={() => goToStep(3)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
+                            <Pencil className="w-3 h-3" />
+                            Editar
+                          </button>
+                        </div>
 
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
@@ -1177,6 +1347,13 @@ export default function NuevoProyectoPage() {
                     )}
                   </Button>
                 )}
+              </div>
+
+              <div className="hidden md:flex items-center justify-center gap-3 text-xs text-muted-foreground pt-2">
+                <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted border text-[10px] font-mono">Enter</kbd> Siguiente</span>
+                <span>·</span>
+                <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 rounded bg-muted border text-[10px] font-mono">Esc</kbd> Anterior</span>
+              </div>
               </div>
             </div>
 
@@ -1290,16 +1467,16 @@ export default function NuevoProyectoPage() {
                 </Card>
 
                 {/* Tips */}
-                <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <Card key={currentStep} className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 animate-in fade-in duration-300">
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
                       <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
                         <Info className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium mb-1">Consejo</p>
+                        <p className="text-sm font-medium mb-1">{STEP_TIPS[currentStep].titulo}</p>
                         <p className="text-xs text-muted-foreground">
-                          Asegúrate de tener listo tu proyecto de tesis en PDF y la carta de aceptación del asesor para completar el registro.
+                          {STEP_TIPS[currentStep].descripcion}
                         </p>
                       </div>
                     </div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
+import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
 
 // GET /api/mesa-partes/[id] - Obtener detalle de un proyecto
 export async function GET(
@@ -96,6 +97,24 @@ export async function GET(
           },
           orderBy: { createdAt: 'desc' },
         },
+        jurados: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
+              },
+            },
+            evaluaciones: {
+              orderBy: { ronda: 'desc' },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
         historialEstados: {
           include: {
             changedBy: {
@@ -129,6 +148,8 @@ export async function GET(
       palabrasClave: tesis.palabrasClave,
       estado: tesis.estado,
       lineaInvestigacion: tesis.lineaInvestigacion,
+      voucherFisicoEntregado: tesis.voucherFisicoEntregado,
+      voucherFisicoFecha: tesis.voucherFisicoFecha,
       createdAt: tesis.createdAt,
       updatedAt: tesis.updatedAt,
       // Carrera y facultad
@@ -168,6 +189,28 @@ export async function GET(
           ? `${d.uploadedBy.nombres} ${d.uploadedBy.apellidoPaterno}`
           : null,
       })),
+      // Jurados
+      jurados: tesis.jurados.map((j) => ({
+        id: j.id,
+        tipo: j.tipo,
+        fase: j.fase,
+        nombre: `${j.user.nombres} ${j.user.apellidoPaterno} ${j.user.apellidoMaterno}`,
+        email: j.user.email,
+        userId: j.user.id,
+        evaluaciones: j.evaluaciones.map((e) => ({
+          id: e.id,
+          ronda: e.ronda,
+          resultado: e.resultado,
+          observaciones: e.observaciones,
+          archivoUrl: e.archivoUrl,
+          fecha: e.createdAt,
+        })),
+      })),
+      // Evaluación
+      rondaActual: tesis.rondaActual,
+      faseActual: tesis.faseActual,
+      fechaLimiteEvaluacion: tesis.fechaLimiteEvaluacion,
+      fechaLimiteCorreccion: tesis.fechaLimiteCorreccion,
       // Historial
       historial: tesis.historialEstados.map((h) => ({
         id: h.id,
@@ -226,10 +269,10 @@ export async function PUT(
     const { accion, comentario } = body
 
     // Validar acción
-    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR']
+    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR', 'CONFIRMAR_VOUCHER', 'CONFIRMAR_JURADOS', 'SUBIR_RESOLUCION']
     if (!accion || !accionesValidas.includes(accion)) {
       return NextResponse.json(
-        { error: 'Acción inválida. Debe ser APROBAR, OBSERVAR o RECHAZAR' },
+        { error: 'Acción inválida' },
         { status: 400 }
       )
     }
@@ -265,11 +308,153 @@ export async function PUT(
       )
     }
 
-    // Solo se pueden gestionar proyectos en ciertos estados
+    // Acción especial: confirmar voucher físico (permitido en EN_REVISION u OBSERVADA)
+    if (accion === 'CONFIRMAR_VOUCHER') {
+      if (!['EN_REVISION', 'OBSERVADA'].includes(tesis.estado)) {
+        return NextResponse.json(
+          { error: 'No se puede confirmar el voucher en el estado actual' },
+          { status: 400 }
+        )
+      }
+
+      await prisma.thesis.update({
+        where: { id },
+        data: {
+          voucherFisicoEntregado: true,
+          voucherFisicoFecha: new Date(),
+        },
+      })
+
+      await prisma.thesisStatusHistory.create({
+        data: {
+          thesisId: id,
+          estadoAnterior: tesis.estado,
+          estadoNuevo: tesis.estado,
+          comentario: 'Voucher físico recibido — confirmado por Mesa de Partes',
+          changedById: user.id,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Voucher físico confirmado exitosamente',
+        data: {
+          id: tesis.id,
+          voucherFisicoEntregado: true,
+          voucherFisicoFecha: new Date(),
+        },
+      })
+    }
+
+    // Acción: CONFIRMAR_JURADOS (solo en ASIGNANDO_JURADOS)
+    if (accion === 'CONFIRMAR_JURADOS') {
+      if (tesis.estado !== 'ASIGNANDO_JURADOS') {
+        return NextResponse.json(
+          { error: 'Solo se pueden confirmar jurados en estado ASIGNANDO_JURADOS' },
+          { status: 400 }
+        )
+      }
+
+      // Verificar que hay al menos presidente, vocal y secretario
+      const jurados = await prisma.thesisJury.findMany({
+        where: { thesisId: id, isActive: true, fase: 'PROYECTO' },
+      })
+
+      const tiposAsignados = jurados.map((j) => j.tipo)
+      const faltantes: string[] = []
+      if (!tiposAsignados.includes('PRESIDENTE')) faltantes.push('Presidente')
+      if (!tiposAsignados.includes('VOCAL')) faltantes.push('Vocal')
+      if (!tiposAsignados.includes('SECRETARIO')) faltantes.push('Secretario')
+
+      if (faltantes.length > 0) {
+        return NextResponse.json(
+          { error: `Faltan jurados por asignar: ${faltantes.join(', ')}` },
+          { status: 400 }
+        )
+      }
+
+      const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
+
+      await prisma.$transaction([
+        prisma.thesis.update({
+          where: { id },
+          data: {
+            estado: 'EN_EVALUACION_JURADO',
+            rondaActual: 1,
+            faseActual: 'PROYECTO',
+            fechaLimiteEvaluacion: fechaLimite,
+            fechaLimiteCorreccion: null,
+          },
+        }),
+        prisma.thesisStatusHistory.create({
+          data: {
+            thesisId: id,
+            estadoAnterior: 'ASIGNANDO_JURADOS',
+            estadoNuevo: 'EN_EVALUACION_JURADO',
+            comentario: `Jurados confirmados. Evaluación iniciada (${jurados.length} jurados). Fecha límite (${DIAS_HABILES_EVALUACION} días hábiles): ${fechaLimite.toLocaleDateString('es-PE')}`,
+            changedById: user.id,
+          },
+        }),
+      ])
+
+      return NextResponse.json({
+        success: true,
+        message: 'Jurados confirmados. Evaluación iniciada.',
+        data: { id: tesis.id, estadoNuevo: 'EN_EVALUACION_JURADO' },
+      })
+    }
+
+    // Acción: SUBIR_RESOLUCION (solo en PROYECTO_APROBADO)
+    if (accion === 'SUBIR_RESOLUCION') {
+      if (tesis.estado !== 'PROYECTO_APROBADO') {
+        return NextResponse.json(
+          { error: 'Solo se puede subir resolución cuando el proyecto está aprobado por jurados' },
+          { status: 400 }
+        )
+      }
+
+      await prisma.$transaction([
+        prisma.thesis.update({
+          where: { id },
+          data: {
+            estado: 'INFORME_FINAL',
+            faseActual: 'INFORME_FINAL',
+            rondaActual: 0,
+            fechaLimiteEvaluacion: null,
+            fechaLimiteCorreccion: null,
+          },
+        }),
+        prisma.thesisStatusHistory.create({
+          data: {
+            thesisId: id,
+            estadoAnterior: 'PROYECTO_APROBADO',
+            estadoNuevo: 'INFORME_FINAL',
+            comentario: comentario?.trim() || 'Resolución de aprobación subida. Esperando informe final del estudiante.',
+            changedById: user.id,
+          },
+        }),
+      ])
+
+      return NextResponse.json({
+        success: true,
+        message: 'Resolución subida. Tesis pasa a fase de Informe Final.',
+        data: { id: tesis.id, estadoNuevo: 'INFORME_FINAL' },
+      })
+    }
+
+    // Acciones estándar: APROBAR, OBSERVAR, RECHAZAR (solo en EN_REVISION u OBSERVADA)
     const estadosPermitidos: EstadoTesis[] = ['EN_REVISION', 'OBSERVADA']
     if (!estadosPermitidos.includes(tesis.estado)) {
       return NextResponse.json(
         { error: `No se puede ${accion.toLowerCase()} un proyecto en estado ${tesis.estado}` },
+        { status: 400 }
+      )
+    }
+
+    // Bloquear aprobación si no se ha confirmado el voucher físico
+    if (accion === 'APROBAR' && !tesis.voucherFisicoEntregado) {
+      return NextResponse.json(
+        { error: 'Debe confirmar la entrega del voucher físico antes de aprobar' },
         { status: 400 }
       )
     }
@@ -280,8 +465,8 @@ export async function PUT(
 
     switch (accion) {
       case 'APROBAR':
-        nuevoEstado = 'APROBADA'
-        mensajeExito = 'Proyecto aprobado exitosamente'
+        nuevoEstado = 'ASIGNANDO_JURADOS'
+        mensajeExito = 'Documentos aprobados. Ahora asigne los jurados evaluadores.'
         break
       case 'OBSERVAR':
         nuevoEstado = 'OBSERVADA'
@@ -300,7 +485,6 @@ export async function PUT(
       where: { id },
       data: {
         estado: nuevoEstado,
-        ...(nuevoEstado === 'APROBADA' && { fechaAprobacion: new Date() }),
       },
     })
 
@@ -310,7 +494,9 @@ export async function PUT(
         thesisId: id,
         estadoAnterior: tesis.estado,
         estadoNuevo: nuevoEstado,
-        comentario: comentario?.trim() || `Proyecto ${accion.toLowerCase()}do por Mesa de Partes`,
+        comentario: comentario?.trim() || (accion === 'APROBAR'
+          ? 'Documentos verificados por Mesa de Partes. Pendiente asignación de jurados.'
+          : `Proyecto ${accion.toLowerCase()}do por Mesa de Partes`),
         changedById: user.id,
       },
     })

@@ -85,6 +85,7 @@ model User {
   // Relaciones con tesis
   tesisComoAutor        ThesisAuthor[]
   tesisComoAsesor       ThesisAdvisor[]
+  tesisComoJurado       ThesisJury[]
   documentosSubidos     ThesisDocument[]
   cambiosEstadoTesis    ThesisStatusHistory[]
 
@@ -435,16 +436,46 @@ model RateLimit {
 // ============================================
 
 enum EstadoTesis {
-  BORRADOR           // Recién creada, sin enviar
-  EN_REVISION        // Enviada para revisión
-  OBSERVADA          // Tiene observaciones pendientes
-  APROBADA           // Aprobada por el comité
-  EN_SUSTENTACION    // En proceso de sustentación
-  SUSTENTADA         // Ya sustentada
-  ARCHIVADA          // Archivada (histórico)
-  RECHAZADA          // Rechazada definitivamente
+  BORRADOR                // Recién creada, sin enviar
+  EN_REVISION             // Enviada para revisión
+  OBSERVADA               // Tiene observaciones pendientes
+  ASIGNANDO_JURADOS       // Mesa de partes asigna jurados evaluadores
+  EN_EVALUACION_JURADO    // Jurados evaluando el proyecto (15 días)
+  OBSERVADA_JURADO        // Jurado observó, estudiante corrige (30 días)
+  PROYECTO_APROBADO       // Jurado aprobó el proyecto
+  INFORME_FINAL           // Estudiante sube informe final
+  EN_EVALUACION_INFORME   // Jurados evaluando el informe final
+  OBSERVADA_INFORME       // Jurado observó informe, estudiante corrige
+  APROBADA                // Aprobada por el comité
+  EN_SUSTENTACION         // En proceso de sustentación
+  SUSTENTADA              // Ya sustentada
+  ARCHIVADA               // Archivada (histórico)
+  RECHAZADA               // Rechazada definitivamente
 
   @@map("estado_tesis")
+}
+
+enum TipoJurado {
+  PRESIDENTE
+  VOCAL
+  SECRETARIO
+  ACCESITARIO
+
+  @@map("tipo_jurado")
+}
+
+enum ResultadoEvaluacion {
+  APROBADO
+  OBSERVADO
+
+  @@map("resultado_evaluacion")
+}
+
+enum FaseEvaluacion {
+  PROYECTO
+  INFORME_FINAL
+
+  @@map("fase_evaluacion")
 }
 
 enum TipoAsesor {
@@ -479,6 +510,12 @@ enum TipoDocumentoTesis {
   ANEXO                       // Documentos anexos
   CARTA_ACEPTACION_ASESOR     // Carta de aceptación del asesor
   CARTA_ACEPTACION_COASESOR   // Carta de aceptación del coasesor
+  VOUCHER_PAGO                // Voucher de pago (S/. 30 - código 277)
+  DOCUMENTO_SUSTENTATORIO     // Documento sustentatorio (matrícula, SUNEDU o egresado)
+  DICTAMEN_JURADO             // Dictamen firmado por el jurado
+  RESOLUCION_APROBACION       // Resolución de aprobación subida por mesa de partes
+  REPORTE_TURNITIN            // Reporte de similitud Turnitin
+  INFORME_FINAL_DOC           // Documento de informe final
   OTRO
 
   @@map("tipo_documento_tesis")
@@ -503,16 +540,28 @@ model Thesis {
   lineaInvestigacion String?  @map("linea_investigacion") @db.VarChar(200)
   areaConocimiento   String?  @map("area_conocimiento") @db.VarChar(200)
 
+  // Confirmación de voucher físico por mesa de partes
+  voucherFisicoEntregado    Boolean   @default(false) @map("voucher_fisico_entregado")
+  voucherFisicoFecha        DateTime? @map("voucher_fisico_fecha")
+
+  // Evaluación por jurados
+  rondaActual              Int       @default(0) @map("ronda_actual")
+  faseActual               String?   @map("fase_actual") @db.VarChar(20)
+  fechaLimiteEvaluacion    DateTime? @map("fecha_limite_evaluacion")
+  fechaLimiteCorreccion    DateTime? @map("fecha_limite_correccion")
+
   // Timestamps
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
   deletedAt       DateTime?   @map("deleted_at")
 
   // Relaciones
-  autores         ThesisAuthor[]
-  asesores        ThesisAdvisor[]
-  documentos      ThesisDocument[]
-  historialEstados ThesisStatusHistory[]
+  autores              ThesisAuthor[]
+  asesores             ThesisAdvisor[]
+  documentos           ThesisDocument[]
+  historialEstados     ThesisStatusHistory[]
+  jurados              ThesisJury[]
+  evaluacionesJurado   JuryEvaluation[]
 
   @@index([estado])
   @@index([createdAt])
@@ -625,4 +674,49 @@ model ThesisStatusHistory {
   @@index([thesisId])
   @@index([createdAt])
   @@map("thesis_status_history")
+}
+
+// ============================================
+// JURADOS Y EVALUACIONES
+// ============================================
+
+/// Jurados asignados a una tesis
+model ThesisJury {
+  id          String         @id @default(cuid())
+  thesisId    String         @map("thesis_id")
+  userId      String         @map("user_id")
+  tipo        TipoJurado
+  fase        FaseEvaluacion @default(PROYECTO)
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  thesis       Thesis          @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id])
+  evaluaciones JuryEvaluation[]
+
+  @@unique([thesisId, userId, fase])
+  @@index([thesisId])
+  @@index([userId])
+  @@map("thesis_jury")
+}
+
+/// Evaluaciones individuales de jurados
+model JuryEvaluation {
+  id             String              @id @default(cuid())
+  thesisId       String              @map("thesis_id")
+  juryMemberId   String              @map("jury_member_id")
+  ronda          Int                 @default(1)
+  resultado      ResultadoEvaluacion
+  observaciones  String?             @db.Text
+  archivoUrl     String?             @map("archivo_url") @db.VarChar(500)
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  thesis     Thesis     @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  juryMember ThesisJury @relation(fields: [juryMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([juryMemberId, ronda])
+  @@index([thesisId])
+  @@index([juryMemberId])
+  @@map("jury_evaluations")
 }
