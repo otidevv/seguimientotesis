@@ -478,6 +478,14 @@ enum FaseEvaluacion {
   @@map("fase_evaluacion")
 }
 
+enum ModalidadSustentacion {
+  PRESENCIAL
+  VIRTUAL
+  MIXTA
+
+  @@map("modalidad_sustentacion")
+}
+
 enum TipoAsesor {
   PRINCIPAL
   CO_ASESOR
@@ -537,6 +545,8 @@ model Thesis {
   fechaInicio     DateTime?   @map("fecha_inicio")
   fechaAprobacion DateTime?   @map("fecha_aprobacion")
   fechaSustentacion DateTime? @map("fecha_sustentacion")
+  lugarSustentacion     String?   @map("lugar_sustentacion") @db.VarChar(300)
+  modalidadSustentacion ModalidadSustentacion? @map("modalidad_sustentacion")
 
   // Metadata
   lineaInvestigacion String?  @map("linea_investigacion") @db.VarChar(200)

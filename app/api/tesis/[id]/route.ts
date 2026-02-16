@@ -182,6 +182,8 @@ export async function GET(
       fechaInicio: tesis.fechaInicio,
       fechaAprobacion: tesis.fechaAprobacion,
       fechaSustentacion: tesis.fechaSustentacion,
+      lugarSustentacion: tesis.lugarSustentacion,
+      modalidadSustentacion: tesis.modalidadSustentacion,
       fechaRegistro: tesis.createdAt,
       createdAt: tesis.createdAt,
       updatedAt: tesis.updatedAt,

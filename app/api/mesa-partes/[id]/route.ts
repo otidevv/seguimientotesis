@@ -175,6 +175,9 @@ export async function GET(
       voucherFisicoFecha: tesis.voucherFisicoFecha,
       voucherInformeFisicoEntregado: tesis.voucherInformeFisicoEntregado,
       voucherInformeFisicoFecha: tesis.voucherInformeFisicoFecha,
+      fechaSustentacion: tesis.fechaSustentacion,
+      lugarSustentacion: tesis.lugarSustentacion,
+      modalidadSustentacion: tesis.modalidadSustentacion,
       createdAt: tesis.createdAt,
       updatedAt: tesis.updatedAt,
       // Carrera y facultad

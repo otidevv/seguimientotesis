@@ -87,6 +87,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const observaciones = formData.get('observaciones') as string | null
     const archivoDictamen = formData.get('dictamen') as File | null
 
+    // Campos de sustentación (solo para aprobación de informe final)
+    const fechaSustentacion = formData.get('fechaSustentacion') as string | null
+    const horaSustentacion = formData.get('horaSustentacion') as string | null
+    const lugarSustentacion = formData.get('lugarSustentacion') as string | null
+    const modalidadSustentacion = formData.get('modalidadSustentacion') as string | null
+
+    // Validar campos de sustentación cuando es aprobación de informe final
+    const esAprobacionInformeFinal = resultadoMayoria === 'APROBADO' && faseEvaluacion === 'INFORME_FINAL'
+    if (esAprobacionInformeFinal) {
+      if (!fechaSustentacion || !horaSustentacion || !lugarSustentacion || !modalidadSustentacion) {
+        return NextResponse.json(
+          { error: 'Debe completar todos los datos de la sustentación (fecha, hora, lugar y modalidad)' },
+          { status: 400 }
+        )
+      }
+      if (!['PRESENCIAL', 'VIRTUAL', 'MIXTA'].includes(modalidadSustentacion)) {
+        return NextResponse.json(
+          { error: 'Modalidad de sustentación inválida' },
+          { status: 400 }
+        )
+      }
+    }
+
     // El resultado del dictamen es determinado por mayoría, no por el presidente
     const resultado = resultadoMayoria
     const detalleVotacion = `Votacion: ${aprobados} aprobado(s), ${observados} observado(s)`
@@ -170,8 +193,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (resultado === 'APROBADO') {
       if (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') {
-        nuevoEstado = 'APROBADA'
-        mensajeHistorial = 'Informe final aprobado por el jurado. Tesis aprobada.'
+        nuevoEstado = 'EN_SUSTENTACION'
+        mensajeHistorial = 'Informe final aprobado por el jurado. Sustentación programada.'
       } else {
         nuevoEstado = 'PROYECTO_APROBADO'
         mensajeHistorial = 'Proyecto de tesis aprobado por el jurado.'
@@ -198,7 +221,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         where: { id: thesisId },
         data: {
           estado: nuevoEstado,
-          ...(resultado === 'APROBADO' && nuevoEstado === 'APROBADA' && { fechaAprobacion: new Date() }),
+          ...(resultado === 'APROBADO' && nuevoEstado === 'EN_SUSTENTACION' && {
+            fechaAprobacion: new Date(),
+            fechaSustentacion: new Date(`${fechaSustentacion}T${horaSustentacion}:00`),
+            lugarSustentacion: lugarSustentacion!,
+            modalidadSustentacion: modalidadSustentacion as 'PRESENCIAL' | 'VIRTUAL' | 'MIXTA',
+          }),
         },
       }),
       prisma.thesisStatusHistory.create({

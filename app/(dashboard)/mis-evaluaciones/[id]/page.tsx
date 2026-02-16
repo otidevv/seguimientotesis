@@ -20,6 +20,7 @@ import {
 import {
   AlertCircle,
   ArrowLeft,
+  Calendar,
   CheckCircle,
   ChevronRight,
   Clock,
@@ -31,6 +32,7 @@ import {
   GraduationCap,
   History,
   Loader2,
+  MapPin,
   Send,
   Upload,
   User,
@@ -116,6 +118,12 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   const [observacionesDictamen, setObservacionesDictamen] = useState('')
   const [archivoDictamen, setArchivoDictamen] = useState<File | null>(null)
 
+  // Sustentación (presidente, aprobación informe final)
+  const [fechaSustentacion, setFechaSustentacion] = useState('')
+  const [horaSustentacion, setHoraSustentacion] = useState('')
+  const [lugarSustentacion, setLugarSustentacion] = useState('')
+  const [modalidadSustentacion, setModalidadSustentacion] = useState('')
+
   useEffect(() => {
     if (!authLoading && user) {
       loadTesis()
@@ -193,6 +201,12 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
       const formData = new FormData()
       formData.append('observaciones', observacionesDictamen)
       formData.append('dictamen', archivoDictamen)
+
+      // Agregar datos de sustentación si aplica
+      if (fechaSustentacion) formData.append('fechaSustentacion', fechaSustentacion)
+      if (horaSustentacion) formData.append('horaSustentacion', horaSustentacion)
+      if (lugarSustentacion) formData.append('lugarSustentacion', lugarSustentacion)
+      if (modalidadSustentacion) formData.append('modalidadSustentacion', modalidadSustentacion)
 
       const response = await fetch(`/api/mis-evaluaciones/${id}/dictamen`, {
         method: 'POST',
@@ -495,6 +509,67 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                     />
                   </div>
 
+                  {/* Programar Sustentación - solo cuando es aprobación de informe final */}
+                  {tesis.progresoEvaluacion.resultadoMayoria === 'APROBADO' &&
+                    (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') && (
+                    <Card className="border-2 border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-purple-600" />
+                          Programar Sustentación
+                        </CardTitle>
+                        <CardDescription>
+                          Ingrese los datos de la sustentación que se programará al aprobar el informe final.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label>Fecha de sustentación</Label>
+                            <Input
+                              type="date"
+                              value={fechaSustentacion}
+                              onChange={(e) => setFechaSustentacion(e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label>Hora</Label>
+                            <Input
+                              type="time"
+                              value={horaSustentacion}
+                              onChange={(e) => setHoraSustentacion(e.target.value)}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Lugar</Label>
+                          <Input
+                            placeholder="Ej: Auditorio Principal, Sala de Conferencias..."
+                            value={lugarSustentacion}
+                            onChange={(e) => setLugarSustentacion(e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label>Modalidad</Label>
+                          <Select value={modalidadSustentacion} onValueChange={setModalidadSustentacion}>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Seleccionar modalidad..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PRESENCIAL">Presencial</SelectItem>
+                              <SelectItem value="VIRTUAL">Virtual</SelectItem>
+                              <SelectItem value="MIXTA">Mixta</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   <div>
                     <Label>Dictamen firmado (PDF, requerido)</Label>
                     <Input
@@ -508,7 +583,11 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                   <Button
                     className="w-full bg-amber-600 hover:bg-amber-700"
                     onClick={enviarDictamen}
-                    disabled={enviando || !archivoDictamen}
+                    disabled={enviando || !archivoDictamen ||
+                      (tesis.progresoEvaluacion.resultadoMayoria === 'APROBADO' &&
+                        (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') &&
+                        (!fechaSustentacion || !horaSustentacion || !lugarSustentacion || !modalidadSustentacion))
+                    }
                   >
                     {enviando ? (
                       <>

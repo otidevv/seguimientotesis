@@ -1731,6 +1731,54 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         </Card>
       )}
 
+      {tesis.estado === 'EN_SUSTENTACION' && (
+        <Card className="border-2 border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
+          <CardContent className="py-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-lg font-bold text-purple-800 dark:text-purple-200">Sustentación Programada</p>
+                <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
+                  El informe final ha sido aprobado. La sustentación ha sido programada.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 ml-16 grid gap-3 sm:grid-cols-3">
+              {(tesis as any).fechaSustentacion && (
+                <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Fecha y Hora</p>
+                  <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                    {new Date((tesis as any).fechaSustentacion).toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                  <p className="text-sm text-purple-700 dark:text-purple-300">
+                    {new Date((tesis as any).fechaSustentacion).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              )}
+              {(tesis as any).lugarSustentacion && (
+                <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Lugar</p>
+                  <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                    {(tesis as any).lugarSustentacion}
+                  </p>
+                </div>
+              )}
+              {(tesis as any).modalidadSustentacion && (
+                <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Modalidad</p>
+                  <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                    {(tesis as any).modalidadSustentacion === 'PRESENCIAL' ? 'Presencial' :
+                     (tesis as any).modalidadSustentacion === 'VIRTUAL' ? 'Virtual' : 'Mixta'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Banner de invitación pendiente para coautores */}
       {miInvitacionPendiente && miRegistroCoautor && (
         <Card className="border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/30">
@@ -2096,7 +2144,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               </Card>
 
               {/* Documentos de Informe Final (solo si la tesis ya pasó a esa fase) */}
-              {['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA'].includes(tesis.estado) && (
+              {['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION'].includes(tesis.estado) && (
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">

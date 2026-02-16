@@ -127,6 +127,9 @@ interface Proyecto {
   voucherFisicoFecha: string | null
   voucherInformeFisicoEntregado: boolean
   voucherInformeFisicoFecha: string | null
+  fechaSustentacion: string | null
+  lugarSustentacion: string | null
+  modalidadSustentacion: string | null
   createdAt: string
   carrera: string
   facultad: {
@@ -217,6 +220,12 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
     color: 'text-green-600',
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     icon: <CheckCircle className="w-4 h-4" />,
+  },
+  EN_SUSTENTACION: {
+    label: 'En Sustentación',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+    icon: <GraduationCap className="w-4 h-4" />,
   },
   RECHAZADA: {
     label: 'Rechazada',
@@ -585,8 +594,9 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const docDictamen = proyecto.documentos.find((d) => d.tipo === 'DICTAMEN_JURADO')
 
   // Estados que muestran documentos de informe final
-  const mostrarDocsInforme = ['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'PROYECTO_APROBADO'].includes(proyecto.estado)
+  const mostrarDocsInforme = ['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION', 'PROYECTO_APROBADO'].includes(proyecto.estado)
   const esAprobada = proyecto.estado === 'APROBADA'
+  const esEnSustentacion = proyecto.estado === 'EN_SUSTENTACION'
 
   // Verificar jurados completos (fase PROYECTO)
   const juradosProyecto = (proyecto.jurados || []).filter((j: any) => j.fase === 'PROYECTO')
@@ -1412,6 +1422,57 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                         El informe final de tesis ha sido aprobado por el jurado evaluador.
                       </p>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Banner EN_SUSTENTACION */}
+            {esEnSustentacion && (
+              <Card className="border-2 border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
+                <CardContent className="py-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-7 h-7 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-purple-800 dark:text-purple-200">
+                        Sustentación Programada
+                      </h3>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">
+                        El informe final ha sido aprobado. La sustentación ha sido programada.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 ml-[4.5rem] grid gap-3 sm:grid-cols-3">
+                    {proyecto.fechaSustentacion && (
+                      <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Fecha y Hora</p>
+                        <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                          {new Date(proyecto.fechaSustentacion).toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                        <p className="text-sm text-purple-700 dark:text-purple-300">
+                          {new Date(proyecto.fechaSustentacion).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    )}
+                    {proyecto.lugarSustentacion && (
+                      <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Lugar</p>
+                        <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                          {proyecto.lugarSustentacion}
+                        </p>
+                      </div>
+                    )}
+                    {proyecto.modalidadSustentacion && (
+                      <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Modalidad</p>
+                        <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                          {proyecto.modalidadSustentacion === 'PRESENCIAL' ? 'Presencial' :
+                           proyecto.modalidadSustentacion === 'VIRTUAL' ? 'Virtual' : 'Mixta'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
