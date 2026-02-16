@@ -34,6 +34,8 @@ const TIPO_DOCUMENTO_MAP: Record<string, string> = {
   'RESOLUCION_APROBACION': 'RESOLUCION_APROBACION',
   'REPORTE_TURNITIN': 'REPORTE_TURNITIN',
   'INFORME_FINAL_DOC': 'INFORME_FINAL_DOC',
+  'VOUCHER_PAGO_INFORME': 'VOUCHER_PAGO_INFORME',
+  'ACTA_VERIFICACION_ASESOR': 'ACTA_VERIFICACION_ASESOR',
   'OTRO': 'OTRO',
 }
 
@@ -53,6 +55,8 @@ const TIPO_DOCUMENTO_NOMBRES: Record<string, string> = {
   'RESOLUCION_APROBACION': 'Resolucion de Aprobacion',
   'REPORTE_TURNITIN': 'Reporte de Turnitin',
   'INFORME_FINAL_DOC': 'Informe Final',
+  'VOUCHER_PAGO_INFORME': 'Voucher de Pago - Informe Final',
+  'ACTA_VERIFICACION_ASESOR': 'Acta de Verificación de Similitud del Asesor',
   'OTRO': 'Otro Documento',
 }
 
@@ -82,11 +86,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    // Verificar que el usuario es autor o asesor de la tesis
+    // Verificar que el usuario es autor, asesor, o tiene rol administrativo
     const esAutor = tesis.autores.length > 0
     const esAsesor = tesis.asesores.length > 0
+    const esAdminOMesaPartes = user.roles?.some(
+      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
 
-    if (!esAutor && !esAsesor) {
+    if (!esAutor && !esAsesor && !esAdminOMesaPartes) {
       return NextResponse.json(
         { error: 'No tienes permiso para subir documentos a esta tesis' },
         { status: 403 }
@@ -94,7 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Verificar que el participante ha aceptado su invitación antes de permitir subir documentos
-    if (esAutor) {
+    if (esAutor && !esAdminOMesaPartes) {
       const registroAutor = tesis.autores[0]
       if (registroAutor.estado !== 'ACEPTADO') {
         return NextResponse.json(
@@ -103,7 +110,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         )
       }
     }
-    if (esAsesor) {
+    if (esAsesor && !esAdminOMesaPartes) {
       const registroAsesor = tesis.asesores[0]
       if (registroAsesor.estado !== 'ACEPTADO') {
         return NextResponse.json(
@@ -182,20 +189,70 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const buffer = Buffer.from(bytes)
     fs.writeFileSync(filePath, buffer)
 
-    // Desactivar versiones anteriores del mismo tipo
-    // Para DOCUMENTO_SUSTENTATORIO, solo desactivar las versiones del mismo usuario
-    // ya que cada tesista sube su propio documento sustentatorio
-    await prisma.thesisDocument.updateMany({
-      where: {
-        thesisId: tesisId,
-        tipo: tipoDocumento as any,
-        esVersionActual: true,
-        ...(tipoDocumento === 'DOCUMENTO_SUSTENTATORIO' && { uploadedById: user.id }),
-      },
-      data: {
-        esVersionActual: false,
-      },
-    })
+    // Para PROYECTO e INFORME_FINAL_DOC en estados OBSERVADA:
+    // Si ya se subio un documento corregido en esta ronda (despues de la observacion),
+    // reemplazarlo en vez de crear una nueva version
+    const esDocCorreccion = ['PROYECTO', 'INFORME_FINAL_DOC'].includes(tipoDocumento)
+      && ['OBSERVADA_JURADO', 'OBSERVADA_INFORME'].includes(tesis.estado)
+
+    let reemplazandoBorradorCorreccion = false
+    let versionReemplazo: number | null = null
+
+    if (esDocCorreccion) {
+      // Buscar la fecha de la ultima observacion
+      const ultimaObservacion = await prisma.thesisStatusHistory.findFirst({
+        where: {
+          thesisId: tesisId,
+          estadoNuevo: tesis.estado as any,
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      if (ultimaObservacion) {
+        // Buscar si ya hay un documento corregido subido despues de la observacion
+        const docCorreccionExistente = await prisma.thesisDocument.findFirst({
+          where: {
+            thesisId: tesisId,
+            tipo: tipoDocumento as any,
+            esVersionActual: true,
+            createdAt: { gt: ultimaObservacion.createdAt },
+          },
+        })
+
+        if (docCorreccionExistente) {
+          reemplazandoBorradorCorreccion = true
+          versionReemplazo = docCorreccionExistente.version
+
+          // Eliminar el archivo fisico anterior
+          const archivoAnterior = path.join(process.cwd(), 'public', docCorreccionExistente.rutaArchivo)
+          if (fs.existsSync(archivoAnterior)) {
+            fs.unlinkSync(archivoAnterior)
+          }
+
+          // Eliminar el registro anterior
+          await prisma.thesisDocument.delete({
+            where: { id: docCorreccionExistente.id },
+          })
+        }
+      }
+    }
+
+    if (!reemplazandoBorradorCorreccion) {
+      // Desactivar versiones anteriores del mismo tipo
+      // Para DOCUMENTO_SUSTENTATORIO, solo desactivar las versiones del mismo usuario
+      // ya que cada tesista sube su propio documento sustentatorio
+      await prisma.thesisDocument.updateMany({
+        where: {
+          thesisId: tesisId,
+          tipo: tipoDocumento as any,
+          esVersionActual: true,
+          ...(tipoDocumento === 'DOCUMENTO_SUSTENTATORIO' && { uploadedById: user.id }),
+        },
+        data: {
+          esVersionActual: false,
+        },
+      })
+    }
 
     // Obtener la versión más alta existente
     const ultimaVersion = await prisma.thesisDocument.findFirst({
@@ -211,7 +268,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     })
 
-    const nuevaVersion = (ultimaVersion?.version || 0) + 1
+    // Si estamos reemplazando, usar la misma version; si no, incrementar
+    const nuevaVersion = reemplazandoBorradorCorreccion && versionReemplazo
+      ? versionReemplazo
+      : (ultimaVersion?.version || 0) + 1
 
     // Crear registro del documento en la base de datos
     const documento = await prisma.thesisDocument.create({

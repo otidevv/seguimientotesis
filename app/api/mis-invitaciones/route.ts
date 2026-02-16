@@ -14,19 +14,28 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const { searchParams } = new URL(request.url)
+    const estado = searchParams.get('estado')
+    const busqueda = searchParams.get('busqueda')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+
     const invitaciones: any[] = []
+
+    // Filtros base para coautor
+    const coautorWhere: any = {
+      userId: user.id,
+      orden: { gt: 1 },
+      thesis: { deletedAt: null },
+    }
+    if (estado) coautorWhere.estado = estado
+    if (busqueda) coautorWhere.thesis.titulo = { contains: busqueda, mode: 'insensitive' }
 
     // ==========================================
     // 1. Buscar invitaciones como COAUTOR
     // ==========================================
     const invitacionesCoautor = await prisma.thesisAuthor.findMany({
-      where: {
-        userId: user.id,
-        orden: { gt: 1 }, // Solo coautores, no el autor principal
-        thesis: {
-          deletedAt: null,
-        },
-      },
+      where: coautorWhere,
       include: {
         thesis: {
           select: {
@@ -140,13 +149,16 @@ export async function GET(request: NextRequest) {
     // ==========================================
     // 2. Buscar invitaciones como ASESOR/COASESOR
     // ==========================================
+    // Filtros base para asesor
+    const asesorWhere: any = {
+      userId: user.id,
+      thesis: { deletedAt: null },
+    }
+    if (estado) asesorWhere.estado = estado
+    if (busqueda) asesorWhere.thesis.titulo = { contains: busqueda, mode: 'insensitive' }
+
     const invitacionesAsesor = await prisma.thesisAdvisor.findMany({
-      where: {
-        userId: user.id,
-        thesis: {
-          deletedAt: null,
-        },
-      },
+      where: asesorWhere,
       include: {
         thesis: {
           select: {
@@ -269,18 +281,40 @@ export async function GET(request: NextRequest) {
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
 
-    // Calcular conteos
+    // Conteos globales (sin filtros de estado/busqueda) para las cards de resumen
+    const [totalCoautor, totalAsesor] = await Promise.all([
+      prisma.thesisAuthor.findMany({
+        where: { userId: user.id, orden: { gt: 1 }, thesis: { deletedAt: null } },
+        select: { estado: true },
+      }),
+      prisma.thesisAdvisor.findMany({
+        where: { userId: user.id, thesis: { deletedAt: null } },
+        select: { estado: true },
+      }),
+    ])
+    const todosEstados = [...totalCoautor, ...totalAsesor]
     const conteo = {
-      total: invitaciones.length,
-      pendientes: invitaciones.filter((i) => i.estado === 'PENDIENTE').length,
-      aceptadas: invitaciones.filter((i) => i.estado === 'ACEPTADO').length,
-      rechazadas: invitaciones.filter((i) => i.estado === 'RECHAZADO').length,
+      total: todosEstados.length,
+      pendientes: todosEstados.filter((i) => i.estado === 'PENDIENTE').length,
+      aceptadas: todosEstados.filter((i) => i.estado === 'ACEPTADO').length,
+      rechazadas: todosEstados.filter((i) => i.estado === 'RECHAZADO').length,
     }
+
+    // Paginacion
+    const totalItems = invitaciones.length
+    const totalPages = Math.ceil(totalItems / limit)
+    const paginadas = invitaciones.slice((page - 1) * limit, page * limit)
 
     return NextResponse.json({
       success: true,
-      data: invitaciones,
+      data: paginadas,
       conteo,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+      },
     })
   } catch (error) {
     console.error('[GET /api/mis-invitaciones] Error:', error)

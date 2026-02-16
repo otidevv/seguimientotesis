@@ -13,8 +13,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const fase = searchParams.get('fase')
+    const estado = searchParams.get('estado')
+    const busqueda = searchParams.get('busqueda')
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const limit = parseInt(searchParams.get('limit') || '10')
 
     const where: any = {
       userId: user.id,
@@ -25,6 +27,39 @@ export async function GET(request: NextRequest) {
     if (fase) {
       where.fase = fase
     }
+
+    if (estado) {
+      where.thesis.estado = estado
+    }
+
+    if (busqueda) {
+      where.thesis.titulo = { contains: busqueda, mode: 'insensitive' }
+    }
+
+    // Contadores globales (sin filtros de estado/busqueda)
+    const baseWhere: any = {
+      userId: user.id,
+      isActive: true,
+      thesis: { deletedAt: null },
+    }
+    const [totalAsignadas, pendientesCount, evaluadasCount] = await Promise.all([
+      prisma.thesisJury.count({ where: baseWhere }),
+      prisma.thesisJury.count({
+        where: {
+          ...baseWhere,
+          thesis: {
+            deletedAt: null,
+            estado: { in: ['EN_EVALUACION_JURADO', 'EN_EVALUACION_INFORME'] },
+          },
+        },
+      }),
+      prisma.thesisJury.count({
+        where: {
+          ...baseWhere,
+          evaluaciones: { some: {} },
+        },
+      }),
+    ])
 
     const [total, jurados] = await Promise.all([
       prisma.thesisJury.count({ where }),
@@ -66,22 +101,44 @@ export async function GET(request: NextRequest) {
     ])
 
     const resultado = jurados.map((j) => {
-      const evalActual = j.evaluaciones.find((e) => e.ronda === j.thesis.rondaActual)
+      const estadoTesis = j.thesis.estado
+      const faseActualTesis = j.thesis.faseActual
+
+      // Determinar si la fase del jurado ya terminó
+      const faseTerminada = j.fase === 'PROYECTO' && (
+        faseActualTesis === 'INFORME_FINAL' ||
+        ['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA'].includes(estadoTesis)
+      )
+
+      // Para fases terminadas, mostrar el resultado de esa fase, no el estado actual
+      let estadoFase = estadoTesis
+      let evalMostrar = j.evaluaciones.find((e) => e.ronda === j.thesis.rondaActual)
+      let yaEvaluo = !!evalMostrar
+
+      if (faseTerminada) {
+        // El proyecto fue aprobado si la tesis pasó a informe final
+        estadoFase = 'PROYECTO_APROBADO'
+        // Mostrar la última evaluación del jurado en esta fase (la más reciente)
+        evalMostrar = j.evaluaciones.length > 0 ? j.evaluaciones[0] : undefined
+        yaEvaluo = !!evalMostrar
+      }
+
       return {
         id: j.id,
         thesisId: j.thesis.id,
         tipo: j.tipo,
         fase: j.fase,
         titulo: j.thesis.titulo,
-        estado: j.thesis.estado,
+        estado: estadoFase,
+        faseTerminada,
         rondaActual: j.thesis.rondaActual,
         faseActual: j.thesis.faseActual,
-        fechaLimiteEvaluacion: j.thesis.fechaLimiteEvaluacion,
+        fechaLimiteEvaluacion: faseTerminada ? null : j.thesis.fechaLimiteEvaluacion,
         autores: j.thesis.autores.map((a) =>
           `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno}`
         ).join(', '),
-        yaEvaluo: !!evalActual,
-        miResultado: evalActual?.resultado || null,
+        yaEvaluo,
+        miResultado: evalMostrar?.resultado || null,
       }
     })
 
@@ -93,6 +150,11 @@ export async function GET(request: NextRequest) {
         limit,
         totalItems: total,
         totalPages: Math.ceil(total / limit),
+      },
+      contadores: {
+        total: totalAsignadas,
+        pendientes: pendientesCount,
+        evaluadas: evaluadasCount,
       },
     })
   } catch (error) {

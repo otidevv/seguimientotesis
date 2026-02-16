@@ -77,7 +77,12 @@ export async function GET(
           },
         },
         documentos: {
-          where: { esVersionActual: true },
+          where: {
+            OR: [
+              { esVersionActual: true },
+              { tipo: 'DICTAMEN_JURADO' },
+            ],
+          },
           select: {
             id: true,
             tipo: true,
@@ -137,6 +142,24 @@ export async function GET(
       )
     }
 
+    // Deduplicar dictamenes: el query OR puede traer versiones viejas,
+    // mantener solo el mas reciente por fase (Proyecto / Informe Final)
+    const dictamenes = tesis.documentos.filter((d) => d.tipo === 'DICTAMEN_JURADO')
+    const otrosDocs = tesis.documentos.filter((d) => d.tipo !== 'DICTAMEN_JURADO')
+
+    const dictamenPorFase = new Map<string, typeof dictamenes[0]>()
+    for (const doc of dictamenes) {
+      const nombre = doc.nombre?.toLowerCase() || ''
+      const fase = nombre.includes('informe') ? 'informe' : nombre.includes('proyecto') ? 'proyecto' : 'otro'
+      const existente = dictamenPorFase.get(fase)
+      if (!existente || doc.createdAt > existente.createdAt) {
+        dictamenPorFase.set(fase, doc)
+      }
+    }
+
+    const documentosDeduplicados = [...otrosDocs, ...dictamenPorFase.values()]
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+
     // Formatear respuesta
     const primerAutor = tesis.autores[0]
 
@@ -150,6 +173,8 @@ export async function GET(
       lineaInvestigacion: tesis.lineaInvestigacion,
       voucherFisicoEntregado: tesis.voucherFisicoEntregado,
       voucherFisicoFecha: tesis.voucherFisicoFecha,
+      voucherInformeFisicoEntregado: tesis.voucherInformeFisicoEntregado,
+      voucherInformeFisicoFecha: tesis.voucherInformeFisicoFecha,
       createdAt: tesis.createdAt,
       updatedAt: tesis.updatedAt,
       // Carrera y facultad
@@ -174,8 +199,8 @@ export async function GET(
         nombre: `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno}`,
         email: a.user.email,
       })),
-      // Documentos
-      documentos: tesis.documentos.map((d) => ({
+      // Documentos (deduplicados - un dictamen por fase)
+      documentos: documentosDeduplicados.map((d) => ({
         id: d.id,
         tipo: d.tipo,
         nombre: d.nombre,
@@ -269,7 +294,7 @@ export async function PUT(
     const { accion, comentario } = body
 
     // Validar acción
-    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR', 'CONFIRMAR_VOUCHER', 'CONFIRMAR_JURADOS', 'SUBIR_RESOLUCION']
+    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR', 'CONFIRMAR_VOUCHER', 'CONFIRMAR_VOUCHER_INFORME', 'CONFIRMAR_JURADOS', 'SUBIR_RESOLUCION']
     if (!accion || !accionesValidas.includes(accion)) {
       return NextResponse.json(
         { error: 'Acción inválida' },
@@ -346,6 +371,44 @@ export async function PUT(
       })
     }
 
+    // Acción especial: confirmar voucher físico informe final
+    if (accion === 'CONFIRMAR_VOUCHER_INFORME') {
+      if (!['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(tesis.estado)) {
+        return NextResponse.json(
+          { error: 'No se puede confirmar el voucher de informe final en el estado actual' },
+          { status: 400 }
+        )
+      }
+
+      await prisma.thesis.update({
+        where: { id },
+        data: {
+          voucherInformeFisicoEntregado: true,
+          voucherInformeFisicoFecha: new Date(),
+        },
+      })
+
+      await prisma.thesisStatusHistory.create({
+        data: {
+          thesisId: id,
+          estadoAnterior: tesis.estado,
+          estadoNuevo: tesis.estado,
+          comentario: 'Voucher físico del informe final recibido — confirmado por Mesa de Partes',
+          changedById: user.id,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Voucher físico del informe final confirmado exitosamente',
+        data: {
+          id: tesis.id,
+          voucherInformeFisicoEntregado: true,
+          voucherInformeFisicoFecha: new Date(),
+        },
+      })
+    }
+
     // Acción: CONFIRMAR_JURADOS (solo en ASIGNANDO_JURADOS)
     if (accion === 'CONFIRMAR_JURADOS') {
       if (tesis.estado !== 'ASIGNANDO_JURADOS') {
@@ -413,6 +476,11 @@ export async function PUT(
         )
       }
 
+      // Copiar jurados del PROYECTO a INFORME_FINAL
+      const juradosProyecto = await prisma.thesisJury.findMany({
+        where: { thesisId: id, isActive: true, fase: 'PROYECTO' },
+      })
+
       await prisma.$transaction([
         prisma.thesis.update({
           where: { id },
@@ -433,11 +501,30 @@ export async function PUT(
             changedById: user.id,
           },
         }),
+        // Crear jurados para la fase INFORME_FINAL copiando los del PROYECTO
+        ...juradosProyecto.map((j) =>
+          prisma.thesisJury.upsert({
+            where: {
+              thesisId_userId_fase: {
+                thesisId: id,
+                userId: j.userId,
+                fase: 'INFORME_FINAL',
+              },
+            },
+            update: { tipo: j.tipo, isActive: true },
+            create: {
+              thesisId: id,
+              userId: j.userId,
+              tipo: j.tipo,
+              fase: 'INFORME_FINAL',
+            },
+          })
+        ),
       ])
 
       return NextResponse.json({
         success: true,
-        message: 'Resolución subida. Tesis pasa a fase de Informe Final.',
+        message: 'Resolución subida. Tesis pasa a fase de Informe Final. Jurados copiados del proyecto.',
         data: { id: tesis.id, estadoNuevo: 'INFORME_FINAL' },
       })
     }

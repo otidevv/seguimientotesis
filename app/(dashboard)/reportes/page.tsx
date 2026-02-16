@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/select'
 import {
   AlertCircle,
+  BarChart3,
+  BookOpen,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
@@ -37,18 +39,21 @@ import {
   Inbox,
   Loader2,
   Search,
+  TrendingUp,
   UserPlus,
   X,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
-interface Proyecto {
+interface TesisReporte {
   id: string
   codigo: string
   titulo: string
   estado: string
-  fechaEnvio: string
+  fase: string
+  fechaCreacion: string
+  fechaActualizacion: string
   autorPrincipal: {
     nombre: string
     codigo: string
@@ -57,7 +62,6 @@ interface Proyecto {
   cantidadAutores: number
   asesor: {
     nombre: string
-    estado: string
   } | null
   carrera: string
   facultad: {
@@ -65,14 +69,30 @@ interface Proyecto {
     nombre: string
     codigo: string
   } | null
-  tieneProyecto: boolean
-  tieneCartaAsesor: boolean
-  documentosCount: number
+}
+
+interface Facultad {
+  id: string
+  nombre: string
+  codigo: string
+}
+
+interface Resumen {
+  total: number
+  proyectosAprobados: number
+  informesAprobados: number
+  enProceso: number
 }
 
 type Contadores = Record<string, number>
 
 const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
+  BORRADOR: {
+    label: 'Borrador',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100 dark:bg-gray-900/30',
+    icon: <FileText className="w-3.5 h-3.5" />,
+  },
   EN_REVISION: {
     label: 'En Revision',
     color: 'text-blue-600',
@@ -133,6 +153,24 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     icon: <CheckCircle className="w-3.5 h-3.5" />,
   },
+  EN_SUSTENTACION: {
+    label: 'En Sustentacion',
+    color: 'text-violet-600',
+    bgColor: 'bg-violet-100 dark:bg-violet-900/30',
+    icon: <Gavel className="w-3.5 h-3.5" />,
+  },
+  SUSTENTADA: {
+    label: 'Sustentada',
+    color: 'text-teal-600',
+    bgColor: 'bg-teal-100 dark:bg-teal-900/30',
+    icon: <FileCheck className="w-3.5 h-3.5" />,
+  },
+  ARCHIVADA: {
+    label: 'Archivada',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100 dark:bg-gray-900/30',
+    icon: <Inbox className="w-3.5 h-3.5" />,
+  },
   RECHAZADA: {
     label: 'Rechazada',
     color: 'text-red-600',
@@ -141,77 +179,84 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
   },
 }
 
-// Estados principales para contadores
 const ESTADOS_PRINCIPALES = [
   'EN_REVISION', 'OBSERVADA', 'ASIGNANDO_JURADOS', 'EN_EVALUACION_JURADO',
   'OBSERVADA_JURADO', 'PROYECTO_APROBADO', 'INFORME_FINAL', 'EN_EVALUACION_INFORME',
-  'OBSERVADA_INFORME', 'APROBADA', 'RECHAZADA',
+  'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION', 'SUSTENTADA', 'ARCHIVADA', 'RECHAZADA',
 ]
 
-export default function MesaPartesPage() {
+export default function ReportesPage() {
   const router = useRouter()
-  const { user, isLoading: authLoading, hasRole } = useAuth()
+  const { user, isLoading: authLoading, hasRole, hasPermission } = useAuth()
 
-  const [proyectos, setProyectos] = useState<Proyecto[]>([])
+  const [tesis, setTesis] = useState<TesisReporte[]>([])
   const [contadores, setContadores] = useState<Contadores>({})
+  const [resumen, setResumen] = useState<Resumen>({ total: 0, proyectosAprobados: 0, informesAprobados: 0, enProceso: 0 })
+  const [facultades, setFacultades] = useState<Facultad[]>([])
   const [initialLoading, setInitialLoading] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [filtroEstado, setFiltroEstado] = useState('EN_REVISION')
+  const [filtroEstado, setFiltroEstado] = useState('TODOS')
+  const [filtroFacultad, setFiltroFacultad] = useState('TODAS')
   const [busqueda, setBusqueda] = useState('')
+  const [busquedaDebounced, setBusquedaDebounced] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
-  const [facultadAsignada, setFacultadAsignada] = useState<string | null>(null)
   const ITEMS_PER_PAGE = 10
+
+  // Debounce de búsqueda
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setBusquedaDebounced(busqueda)
+      setPage(1)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [busqueda])
+
+  const loadReportes = useCallback(async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+      params.set('page', String(page))
+      params.set('limit', String(ITEMS_PER_PAGE))
+      if (filtroEstado !== 'TODOS') params.set('estado', filtroEstado)
+      if (filtroFacultad !== 'TODAS') params.set('facultadId', filtroFacultad)
+      if (busquedaDebounced) params.set('busqueda', busquedaDebounced)
+
+      const response = await fetch(`/api/reportes?${params.toString()}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setTesis(data.data)
+        setContadores(data.contadores)
+        setResumen(data.resumen)
+        setFacultades(data.facultades)
+        setTotalPages(data.pagination.totalPages)
+        setTotalItems(data.pagination.totalItems)
+      }
+    } catch (error) {
+      console.error('Error cargando reportes:', error)
+    } finally {
+      setLoading(false)
+      setInitialLoading(false)
+    }
+  }, [page, filtroEstado, filtroFacultad, busquedaDebounced])
 
   useEffect(() => {
     if (!authLoading && user) {
-      loadProyectos()
+      loadReportes()
     }
-  }, [authLoading, user, filtroEstado, page])
+  }, [authLoading, user, loadReportes])
 
   const handleFiltroEstado = (estado: string) => {
     setPage(1)
     setFiltroEstado(estado)
   }
 
-  const loadProyectos = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/mesa-partes?estado=${filtroEstado}&page=${page}&limit=${ITEMS_PER_PAGE}`)
-      const data = await response.json()
-
-      if (data.success) {
-        setProyectos(data.data)
-        setContadores(data.contadores)
-        if (data.facultadAsignada !== undefined) {
-          setFacultadAsignada(data.facultadAsignada)
-        }
-        if (data.pagination) {
-          setTotalPages(data.pagination.totalPages)
-          setTotalItems(data.pagination.totalItems)
-        }
-      }
-    } catch (error) {
-      console.error('Error cargando proyectos:', error)
-    } finally {
-      setLoading(false)
-      setInitialLoading(false)
-    }
+  const handleFiltroFacultad = (facultadId: string) => {
+    setPage(1)
+    setFiltroFacultad(facultadId)
   }
-
-  // Filtrar por búsqueda local
-  const proyectosFiltrados = proyectos.filter((p) => {
-    if (!busqueda) return true
-    const termino = busqueda.toLowerCase()
-    return (
-      p.titulo.toLowerCase().includes(termino) ||
-      p.codigo.toLowerCase().includes(termino) ||
-      p.autorPrincipal?.nombre.toLowerCase().includes(termino) ||
-      p.autorPrincipal?.codigo?.toLowerCase().includes(termino) ||
-      p.carrera.toLowerCase().includes(termino)
-    )
-  })
 
   if (authLoading || initialLoading) {
     return (
@@ -221,7 +266,7 @@ export default function MesaPartesPage() {
     )
   }
 
-  if (!hasRole('MESA_PARTES') && !hasRole('ADMIN') && !hasRole('SUPER_ADMIN')) {
+  if (!hasRole('MESA_PARTES') && !hasRole('ADMIN') && !hasRole('SUPER_ADMIN') && !hasPermission('reportes', 'view')) {
     return (
       <div className="container mx-auto py-8 px-4">
         <Card className="max-w-lg mx-auto">
@@ -229,7 +274,7 @@ export default function MesaPartesPage() {
             <AlertCircle className="w-12 h-12 mx-auto text-yellow-500 mb-4" />
             <h2 className="text-lg font-semibold mb-2">Acceso Restringido</h2>
             <p className="text-muted-foreground">
-              Esta sección es solo para personal de Mesa de Partes.
+              No tienes permisos para acceder al módulo de Reportes.
             </p>
           </CardContent>
         </Card>
@@ -243,50 +288,105 @@ export default function MesaPartesPage() {
         {/* Header */}
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-            <Inbox className="w-7 h-7 text-primary" />
-            Mesa de Partes
-            {facultadAsignada && (
-              <span className="text-primary/80 font-semibold">
-                — {facultadAsignada}
-              </span>
-            )}
+            <BarChart3 className="w-7 h-7 text-primary" />
+            Reportes
           </h1>
           <p className="text-muted-foreground mt-1">
-            {facultadAsignada
-              ? `Gestión de proyectos de tesis de la ${facultadAsignada}`
-              : 'Gestión de proyectos de tesis recibidos'}
+            Estado general de las tesis en el sistema
           </p>
         </div>
 
-        {/* Contadores */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
-          {ESTADOS_PRINCIPALES.map((estado) => {
-            const config = ESTADO_CONFIG[estado]
-            if (!config) return null
-            const count = contadores[estado] || 0
-            return (
-              <Card
-                key={estado}
-                className={cn(
-                  'cursor-pointer transition-all hover:shadow-md',
-                  filtroEstado === estado && 'ring-2 ring-primary'
-                )}
-                onClick={() => handleFiltroEstado(estado)}
-              >
-                <CardContent className="pt-3 pb-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xl font-bold">{count}</p>
-                      <p className="text-xs text-muted-foreground">{config.label}</p>
+        {/* KPI Cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <Card className="border-l-4 border-l-blue-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Tesis
+              </CardTitle>
+              <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <BookOpen className="h-4 w-4 text-blue-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{resumen.total}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-emerald-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Proyectos Aprobados
+              </CardTitle>
+              <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{resumen.proyectosAprobados}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Informes Aprobados
+              </CardTitle>
+              <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                <FileCheck className="h-4 w-4 text-green-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{resumen.informesAprobados}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-amber-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                En Proceso
+              </CardTitle>
+              <div className="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-amber-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{resumen.enProceso}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Distribución por Estado */}
+        <div>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">Distribucion por Estado</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+            {ESTADOS_PRINCIPALES.map((estado) => {
+              const config = ESTADO_CONFIG[estado]
+              if (!config) return null
+              const count = contadores[estado] || 0
+              return (
+                <Card
+                  key={estado}
+                  className={cn(
+                    'cursor-pointer transition-all hover:shadow-md',
+                    filtroEstado === estado && 'ring-2 ring-primary'
+                  )}
+                  onClick={() => handleFiltroEstado(filtroEstado === estado ? 'TODOS' : estado)}
+                >
+                  <CardContent className="pt-3 pb-3 px-3">
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="min-w-0">
+                        <p className="text-lg font-bold">{count}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{config.label}</p>
+                      </div>
+                      <div className={cn('p-1 rounded-lg flex-shrink-0', config.bgColor, config.color)}>
+                        {config.icon}
+                      </div>
                     </div>
-                    <div className={cn('p-1.5 rounded-lg', config.bgColor, config.color)}>
-                      {config.icon}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
         </div>
 
         {/* Tabla */}
@@ -296,20 +396,35 @@ export default function MesaPartesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por título, código, autor o carrera..."
+                placeholder="Buscar por titulo o tesista..."
                 className="pl-9"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
             </div>
             <Select value={filtroEstado} onValueChange={handleFiltroEstado}>
-              <SelectTrigger className="w-full sm:w-56">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" className="max-h-72">
+                <SelectItem value="TODOS">Todos los estados</SelectItem>
+                <SelectItem value="INFORMES_APROBADOS">Informes Aprobados</SelectItem>
                 {Object.entries(ESTADO_CONFIG).map(([estado, config]) => (
                   <SelectItem key={estado} value={estado}>
                     {config.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filtroFacultad} onValueChange={handleFiltroFacultad}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Facultad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="TODAS">Todas las facultades</SelectItem>
+                {facultades.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -324,111 +439,85 @@ export default function MesaPartesPage() {
               </div>
             )}
 
-            {proyectosFiltrados.length === 0 ? (
+            {tesis.length === 0 ? (
               <div className="py-16 text-center">
                 <Inbox className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
-                <h3 className="text-base font-semibold mb-1">No hay proyectos</h3>
+                <h3 className="text-base font-semibold mb-1">No hay tesis</h3>
                 <p className="text-sm text-muted-foreground">
-                  {busqueda
-                    ? 'No se encontraron resultados para la búsqueda'
-                    : `No hay proyectos en estado "${ESTADO_CONFIG[filtroEstado]?.label}"`}
+                  No se encontraron tesis con los filtros aplicados
                 </p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead className="w-[100px]">Código</TableHead>
-                    <TableHead>Título / Tesista</TableHead>
-                    <TableHead className="hidden md:table-cell">Carrera</TableHead>
-                    <TableHead className="hidden lg:table-cell text-center">Docs</TableHead>
+                    <TableHead className="w-[100px]">Codigo</TableHead>
+                    <TableHead>Titulo / Tesista</TableHead>
+                    <TableHead className="hidden md:table-cell">Estado</TableHead>
+                    <TableHead className="hidden lg:table-cell">Fase</TableHead>
+                    <TableHead className="hidden md:table-cell">Carrera / Facultad</TableHead>
                     <TableHead className="hidden sm:table-cell">Fecha</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right w-[90px]">Acción</TableHead>
+                    <TableHead className="text-right w-[80px]">Accion</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {proyectosFiltrados.map((proyecto) => {
-                    const estadoConfig = ESTADO_CONFIG[proyecto.estado] || ESTADO_CONFIG.EN_REVISION
+                  {tesis.map((t) => {
+                    const estadoConfig = ESTADO_CONFIG[t.estado] || ESTADO_CONFIG.EN_REVISION
                     return (
-                      <TableRow key={proyecto.id} className="group">
+                      <TableRow key={t.id} className="group cursor-pointer" onClick={() => router.push(`/mesa-partes/${t.id}`)}>
                         <TableCell>
                           <span className="font-mono text-xs font-medium text-muted-foreground">
-                            {proyecto.codigo}
+                            {t.codigo}
                           </span>
                         </TableCell>
                         <TableCell>
                           <div className="min-w-0 max-w-[320px]">
                             <p className="font-medium text-sm leading-snug line-clamp-1 group-hover:text-primary transition-colors">
-                              {proyecto.titulo}
+                              {t.titulo}
                             </p>
                             <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                              {proyecto.autorPrincipal?.nombre || 'Sin autor'}
-                              {proyecto.cantidadAutores > 1 && (
-                                <span className="text-muted-foreground/70"> (+{proyecto.cantidadAutores - 1})</span>
+                              {t.autorPrincipal?.nombre || 'Sin autor'}
+                              {t.cantidadAutores > 1 && (
+                                <span className="text-muted-foreground/70"> (+{t.cantidadAutores - 1})</span>
                               )}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
+                          <Badge
+                            variant="outline"
+                            className={cn('gap-1 text-[11px] font-medium', estadoConfig.color, estadoConfig.bgColor, 'border-transparent')}
+                          >
+                            {estadoConfig.icon}
+                            <span>{estadoConfig.label}</span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <span className="text-xs text-muted-foreground">{t.fase}</span>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
                           <div className="max-w-[180px]">
-                            <p className="text-xs text-muted-foreground truncate">{proyecto.carrera}</p>
-                            {proyecto.facultad && (
+                            <p className="text-xs text-muted-foreground truncate">{t.carrera}</p>
+                            {t.facultad && (
                               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mt-0.5">
-                                {proyecto.facultad.codigo}
+                                {t.facultad.codigo}
                               </Badge>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <div
-                              className={cn(
-                                'w-6 h-6 rounded-full flex items-center justify-center',
-                                proyecto.tieneProyecto
-                                  ? 'bg-green-100 dark:bg-green-900/30'
-                                  : 'bg-gray-100 dark:bg-gray-800'
-                              )}
-                              title={proyecto.tieneProyecto ? 'Proyecto subido' : 'Sin proyecto'}
-                            >
-                              <FileText className={cn('w-3 h-3', proyecto.tieneProyecto ? 'text-green-600' : 'text-gray-400')} />
-                            </div>
-                            <div
-                              className={cn(
-                                'w-6 h-6 rounded-full flex items-center justify-center',
-                                proyecto.tieneCartaAsesor
-                                  ? 'bg-green-100 dark:bg-green-900/30'
-                                  : 'bg-gray-100 dark:bg-gray-800'
-                              )}
-                              title={proyecto.tieneCartaAsesor ? 'Carta firmada' : 'Sin carta'}
-                            >
-                              <FileCheck className={cn('w-3 h-3', proyecto.tieneCartaAsesor ? 'text-green-600' : 'text-gray-400')} />
-                            </div>
-                          </div>
-                        </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           <span className="text-xs text-muted-foreground">
-                            {new Date(proyecto.fechaEnvio).toLocaleDateString('es-PE', {
+                            {new Date(t.fechaActualizacion).toLocaleDateString('es-PE', {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric',
                             })}
                           </span>
                         </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={cn('gap-1 text-[11px] font-medium', estadoConfig.color, estadoConfig.bgColor, 'border-transparent')}
-                          >
-                            {estadoConfig.icon}
-                            <span className="hidden sm:inline">{estadoConfig.label}</span>
-                          </Badge>
-                        </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" asChild className="h-8 px-2.5">
-                            <Link href={`/mesa-partes/${proyecto.id}`}>
-                              <Eye className="w-4 h-4 mr-1" />
-                              Revisar
+                          <Button variant="ghost" size="sm" asChild className="h-8 px-2.5" onClick={(e) => e.stopPropagation()}>
+                            <Link href={`/mesa-partes/${t.id}`}>
+                              <Eye className="w-4 h-4" />
                             </Link>
                           </Button>
                         </TableCell>
@@ -440,7 +529,7 @@ export default function MesaPartesPage() {
             )}
           </div>
 
-          {/* Footer: paginación */}
+          {/* Paginación */}
           {totalItems > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t bg-muted/20">
               <p className="text-xs text-muted-foreground">
@@ -454,7 +543,7 @@ export default function MesaPartesPage() {
                 </span>
                 {' '}de{' '}
                 <span className="font-medium text-foreground">{totalItems}</span>
-                {' '}proyectos
+                {' '}tesis
               </p>
               {totalPages > 1 && (
                 <div className="flex items-center gap-1">

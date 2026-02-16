@@ -23,13 +23,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Verificar que el usuario es docente (tiene rol DOCENTE)
-    const isDocente = user.roles?.some(
-      (r) => r.role.codigo === 'DOCENTE' && r.isActive
+    // Verificar que el usuario es docente o externo
+    const isDocenteOExterno = user.roles?.some(
+      (r) => ['DOCENTE', 'EXTERNO'].includes(r.role.codigo) && r.isActive
     )
-    if (!isDocente) {
+    if (!isDocenteOExterno) {
       return NextResponse.json(
-        { error: 'Solo los docentes pueden ver sus asesorías' },
+        { error: 'No tienes permisos para ver asesorías' },
         { status: 403 }
       )
     }

@@ -136,6 +136,29 @@ export async function GET(
       )
     }
 
+    // Historial de versiones de documentos PROYECTO e INFORME_FINAL_DOC
+    const historialDocumentos = await prisma.thesisDocument.findMany({
+      where: {
+        thesisId: id,
+        tipo: { in: ['PROYECTO', 'INFORME_FINAL_DOC'] },
+      },
+      select: {
+        id: true, tipo: true, nombre: true, rutaArchivo: true,
+        version: true, esVersionActual: true, tamano: true, createdAt: true,
+      },
+      orderBy: [{ tipo: 'asc' }, { version: 'desc' }],
+    })
+
+    // Historial completo de dictámenes (todas las rondas)
+    const dictamenes = await prisma.thesisDocument.findMany({
+      where: { thesisId: id, tipo: 'DICTAMEN_JURADO' },
+      select: {
+        id: true, nombre: true, descripcion: true, rutaArchivo: true,
+        version: true, esVersionActual: true, tamano: true, createdAt: true,
+      },
+      orderBy: { version: 'desc' },
+    })
+
     // Determinar el rol del usuario actual
     const esAutor = tesis.autores.some((a) => a.userId === user.id)
     const esAsesor = tesis.asesores.some((a) => a.userId === user.id)
@@ -155,6 +178,7 @@ export async function GET(
       lineaInvestigacion: tesis.lineaInvestigacion,
       areaConocimiento: tesis.areaConocimiento,
       voucherFisicoEntregado: tesis.voucherFisicoEntregado,
+      voucherInformeFisicoEntregado: tesis.voucherInformeFisicoEntregado,
       fechaInicio: tesis.fechaInicio,
       fechaAprobacion: tesis.fechaAprobacion,
       fechaSustentacion: tesis.fechaSustentacion,
@@ -258,6 +282,28 @@ export async function GET(
         tipoAsesor: miRegistroAsesor?.tipo || null,
         estadoAsesor: miRegistroAsesor?.estado || null,
       },
+      // Historial de versiones de documentos
+      historialDocumentos: historialDocumentos.map((d) => ({
+        id: d.id,
+        tipo: d.tipo,
+        nombre: d.nombre,
+        rutaArchivo: d.rutaArchivo,
+        version: d.version,
+        esVersionActual: d.esVersionActual,
+        tamano: d.tamano,
+        createdAt: d.createdAt,
+      })),
+      // Dictámenes de todas las rondas
+      dictamenes: dictamenes.map((d) => ({
+        id: d.id,
+        nombre: d.nombre,
+        descripcion: d.descripcion,
+        rutaArchivo: d.rutaArchivo,
+        version: d.version,
+        esVersionActual: d.esVersionActual,
+        tamano: d.tamano,
+        createdAt: d.createdAt,
+      })),
     }
 
     return NextResponse.json({

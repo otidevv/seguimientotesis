@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -84,6 +84,7 @@ interface TesisEvaluacion {
     total: number
     todosEvaluaron: boolean
     dictamenSubido: boolean
+    resultadoMayoria: string | null
   }
   rondasAnteriores: any[]
 }
@@ -98,6 +99,8 @@ const TIPO_JURADO_LABELS: Record<string, string> = {
 export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const juradoIdParam = searchParams.get('juradoId')
   const { user, isLoading: authLoading } = useAuth()
 
   const [tesis, setTesis] = useState<TesisEvaluacion | null>(null)
@@ -110,7 +113,6 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   const [archivoEval, setArchivoEval] = useState<File | null>(null)
 
   // Dictamen (solo presidente)
-  const [resultadoDictamen, setResultadoDictamen] = useState<string>('')
   const [observacionesDictamen, setObservacionesDictamen] = useState('')
   const [archivoDictamen, setArchivoDictamen] = useState<File | null>(null)
 
@@ -123,7 +125,8 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   const loadTesis = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/mis-evaluaciones/${id}`)
+      const queryParams = juradoIdParam ? `?juradoId=${juradoIdParam}` : ''
+      const response = await fetch(`/api/mis-evaluaciones/${id}${queryParams}`)
       const data = await response.json()
 
       if (data.success) {
@@ -180,11 +183,6 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   }
 
   const enviarDictamen = async () => {
-    if (!resultadoDictamen) {
-      toast.error('Seleccione un resultado para el dictamen')
-      return
-    }
-
     if (!archivoDictamen) {
       toast.error('Debe subir el dictamen firmado en PDF')
       return
@@ -193,7 +191,6 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
     setEnviando(true)
     try {
       const formData = new FormData()
-      formData.append('resultado', resultadoDictamen)
       formData.append('observaciones', observacionesDictamen)
       formData.append('dictamen', archivoDictamen)
 
@@ -237,7 +234,7 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   const esPresidente = tesis.miJurado.tipo === 'PRESIDENTE'
   const enEvaluacion = ['EN_EVALUACION_JURADO', 'EN_EVALUACION_INFORME'].includes(tesis.estado)
   const puedeEvaluar = enEvaluacion && !tesis.miJurado.yaEvaluo
-  const puedeSubirDictamen = esPresidente && tesis.miJurado.yaEvaluo && enEvaluacion && !tesis.progresoEvaluacion.dictamenSubido
+  const puedeSubirDictamen = esPresidente && tesis.miJurado.yaEvaluo && enEvaluacion && tesis.progresoEvaluacion.todosEvaluaron && !tesis.progresoEvaluacion.dictamenSubido
   const docProyecto = tesis.documentos.find((d) => d.tipo === 'PROYECTO')
   const docInforme = tesis.documentos.find((d) => d.tipo === 'INFORME_FINAL_DOC')
 
@@ -460,22 +457,31 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                     Dictamen del Presidente
                   </CardTitle>
                   <CardDescription>
-                    Como presidente, suba el dictamen firmado con el resultado global de la evaluacion.
-                    Esto determinará si el proyecto es aprobado u observado.
+                    Como presidente, suba el dictamen firmado. El resultado se determina por mayoría de votos del jurado.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label>Resultado del Dictamen</Label>
-                    <Select value={resultadoDictamen} onValueChange={setResultadoDictamen}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Seleccionar resultado..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="APROBADO">Aprobado</SelectItem>
-                        <SelectItem value="OBSERVADO">Observado</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  {/* Resultado por mayoría - solo lectura */}
+                  <div className={cn(
+                    'p-4 rounded-lg border-2',
+                    tesis.progresoEvaluacion.resultadoMayoria === 'APROBADO'
+                      ? 'border-green-300 bg-green-50 dark:bg-green-950/30'
+                      : 'border-orange-300 bg-orange-50 dark:bg-orange-950/30'
+                  )}>
+                    <p className="text-sm font-medium mb-1">Resultado por mayoría de votos:</p>
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn(
+                        'text-sm px-3 py-1',
+                        tesis.progresoEvaluacion.resultadoMayoria === 'APROBADO'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                      )}>
+                        {tesis.progresoEvaluacion.resultadoMayoria === 'APROBADO' ? 'APROBADO' : 'OBSERVADO'}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        ({tesis.progresoEvaluacion.evaluados} de {tesis.progresoEvaluacion.total} jurados votaron)
+                      </span>
+                    </div>
                   </div>
 
                   <div>
@@ -495,14 +501,14 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                       type="file"
                       accept=".pdf"
                       onChange={(e) => setArchivoDictamen(e.target.files?.[0] || null)}
-                      className="mt-1"
+                      className="mt-1 cursor-pointer file:cursor-pointer"
                     />
                   </div>
 
                   <Button
                     className="w-full bg-amber-600 hover:bg-amber-700"
                     onClick={enviarDictamen}
-                    disabled={enviando || !resultadoDictamen || !archivoDictamen}
+                    disabled={enviando || !archivoDictamen}
                   >
                     {enviando ? (
                       <>

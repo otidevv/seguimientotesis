@@ -516,6 +516,8 @@ enum TipoDocumentoTesis {
   RESOLUCION_APROBACION       // Resolución de aprobación subida por mesa de partes
   REPORTE_TURNITIN            // Reporte de similitud Turnitin
   INFORME_FINAL_DOC           // Documento de informe final
+  VOUCHER_PAGO_INFORME        // Voucher de pago informe final (S/. 20 - código 465)
+  ACTA_VERIFICACION_ASESOR    // Acta de verificación de similitud del asesor
   OTRO
 
   @@map("tipo_documento_tesis")
@@ -543,6 +545,10 @@ model Thesis {
   // Confirmación de voucher físico por mesa de partes
   voucherFisicoEntregado    Boolean   @default(false) @map("voucher_fisico_entregado")
   voucherFisicoFecha        DateTime? @map("voucher_fisico_fecha")
+
+  // Confirmación de voucher físico informe final por mesa de partes
+  voucherInformeFisicoEntregado Boolean   @default(false) @map("voucher_informe_fisico_entregado")
+  voucherInformeFisicoFecha     DateTime? @map("voucher_informe_fisico_fecha")
 
   // Evaluación por jurados
   rondaActual              Int       @default(0) @map("ronda_actual")

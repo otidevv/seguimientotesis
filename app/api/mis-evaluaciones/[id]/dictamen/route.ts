@@ -20,18 +20,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Verificar que el usuario es PRESIDENTE del jurado
-    const miJurado = await prisma.thesisJury.findFirst({
-      where: { thesisId, userId: user.id, isActive: true, tipo: 'PRESIDENTE' },
-    })
-
-    if (!miJurado) {
-      return NextResponse.json(
-        { error: 'Solo el presidente del jurado puede subir el dictamen' },
-        { status: 403 }
-      )
-    }
-
     const tesis = await prisma.thesis.findUnique({
       where: { id: thesisId, deletedAt: null },
     })
@@ -48,17 +36,60 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const formData = await request.formData()
-    const resultado = formData.get('resultado') as string
-    const observaciones = formData.get('observaciones') as string | null
-    const archivoDictamen = formData.get('dictamen') as File | null
+    // Determinar la fase de evaluación según el estado actual
+    const faseEvaluacion = tesis.estado === 'EN_EVALUACION_INFORME' ? 'INFORME_FINAL' : 'PROYECTO'
 
-    if (!resultado || !['APROBADO', 'OBSERVADO'].includes(resultado)) {
+    // Verificar que el usuario es PRESIDENTE del jurado en la fase correcta
+    const miJurado = await prisma.thesisJury.findFirst({
+      where: { thesisId, userId: user.id, isActive: true, tipo: 'PRESIDENTE', fase: faseEvaluacion },
+    })
+
+    if (!miJurado) {
       return NextResponse.json(
-        { error: 'Resultado invalido' },
+        { error: 'Solo el presidente del jurado puede subir el dictamen' },
+        { status: 403 }
+      )
+    }
+
+    // Verificar que TODOS los jurados requeridos ya evaluaron
+    const juradosRequeridos = await prisma.thesisJury.findMany({
+      where: {
+        thesisId,
+        isActive: true,
+        fase: faseEvaluacion,
+        tipo: { in: ['PRESIDENTE', 'VOCAL', 'SECRETARIO'] },
+      },
+      include: {
+        evaluaciones: {
+          where: { ronda: tesis.rondaActual },
+        },
+      },
+    })
+
+    const juradosSinEvaluar = juradosRequeridos.filter((j) => j.evaluaciones.length === 0)
+    if (juradosSinEvaluar.length > 0) {
+      return NextResponse.json(
+        { error: `Faltan ${juradosSinEvaluar.length} jurado(s) por evaluar. Todos deben votar antes de subir el dictamen.` },
         { status: 400 }
       )
     }
+
+    // Calcular resultado por unanimidad: todos deben aprobar para que sea APROBADO
+    const aprobados = juradosRequeridos.filter((j) =>
+      j.evaluaciones.some((e) => e.resultado === 'APROBADO')
+    ).length
+    const observados = juradosRequeridos.filter((j) =>
+      j.evaluaciones.some((e) => e.resultado === 'OBSERVADO')
+    ).length
+    const resultadoMayoria = observados === 0 ? 'APROBADO' : 'OBSERVADO'
+
+    const formData = await request.formData()
+    const observaciones = formData.get('observaciones') as string | null
+    const archivoDictamen = formData.get('dictamen') as File | null
+
+    // El resultado del dictamen es determinado por mayoría, no por el presidente
+    const resultado = resultadoMayoria
+    const detalleVotacion = `Votacion: ${aprobados} aprobado(s), ${observados} observado(s)`
 
     if (!archivoDictamen || archivoDictamen.size === 0) {
       return NextResponse.json(
@@ -90,7 +121,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const timestamp = Date.now()
     const safeFileName = archivoDictamen.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const fileName = `dictamen_ronda${tesis.rondaActual}_${timestamp}_${safeFileName}`
+    const fileName = `dictamen_${faseEvaluacion.toLowerCase()}_ronda${tesis.rondaActual}_${timestamp}_${safeFileName}`
     const filePath = path.join(docDir, fileName)
 
     const bytes = await archivoDictamen.arrayBuffer()
@@ -99,30 +130,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const dictamenUrl = `/documentos/tesis/${thesisId}/${fileName}`
 
-    // Guardar evaluacion del presidente si no existe
-    const evalExistente = await prisma.juryEvaluation.findFirst({
-      where: { juryMemberId: miJurado.id, ronda: tesis.rondaActual },
-    })
-
-    if (!evalExistente) {
-      await prisma.juryEvaluation.create({
-        data: {
-          thesisId,
-          juryMemberId: miJurado.id,
-          ronda: tesis.rondaActual,
-          resultado: resultado as any,
-          observaciones: observaciones?.trim() || null,
-          archivoUrl: dictamenUrl,
-        },
-      })
-    }
-
-    // Desactivar versiones anteriores de dictamen
+    // Desactivar versiones anteriores de dictamen (solo de la misma fase)
+    const faseLabelBuscar = faseEvaluacion === 'INFORME_FINAL' ? 'Informe Final' : 'Proyecto'
     await prisma.thesisDocument.updateMany({
       where: {
         thesisId,
         tipo: 'DICTAMEN_JURADO',
         esVersionActual: true,
+        nombre: { contains: faseLabelBuscar },
       },
       data: { esVersionActual: false },
     })
@@ -138,8 +153,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       data: {
         thesisId,
         tipo: 'DICTAMEN_JURADO',
-        nombre: `Dictamen del Jurado - Ronda ${tesis.rondaActual}`,
-        descripcion: `Dictamen ${resultado.toLowerCase()} - Ronda ${tesis.rondaActual}`,
+        nombre: `Dictamen del Jurado - ${faseEvaluacion === 'INFORME_FINAL' ? 'Informe Final' : 'Proyecto'} - Ronda ${tesis.rondaActual}`,
+        descripcion: `Dictamen ${resultado.toLowerCase()} - ${faseEvaluacion} - Ronda ${tesis.rondaActual}. ${detalleVotacion}`,
         rutaArchivo: dictamenUrl,
         mimeType: 'application/pdf',
         tamano: archivoDictamen.size,
@@ -200,8 +215,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       success: true,
       message: resultado === 'APROBADO'
-        ? 'Dictamen de aprobacion subido exitosamente'
-        : 'Dictamen con observaciones subido exitosamente',
+        ? `Dictamen de aprobacion subido exitosamente. ${detalleVotacion}`
+        : `Dictamen con observaciones subido exitosamente. ${detalleVotacion}`,
       data: { nuevoEstado },
     })
   } catch (error) {

@@ -100,12 +100,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    if (tesis.estado !== 'ASIGNANDO_JURADOS') {
+    const estadosPermitidos = ['ASIGNANDO_JURADOS', 'INFORME_FINAL']
+    if (!estadosPermitidos.includes(tesis.estado)) {
       return NextResponse.json(
-        { error: 'Solo se pueden asignar jurados en estado ASIGNANDO_JURADOS' },
+        { error: 'Solo se pueden asignar jurados en estado ASIGNANDO_JURADOS o INFORME_FINAL' },
         { status: 400 }
       )
     }
+
+    // Determinar la fase según el estado
+    const fase = tesis.estado === 'INFORME_FINAL' ? 'INFORME_FINAL' : 'PROYECTO'
 
     const body = await request.json()
     const { userId, tipo } = body
@@ -139,7 +143,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Verificar que no haya otro jurado con el mismo tipo (excepto ACCESITARIO)
     if (tipo !== 'ACCESITARIO') {
       const existeTipo = await prisma.thesisJury.findFirst({
-        where: { thesisId: id, tipo, isActive: true, fase: 'PROYECTO' },
+        where: { thesisId: id, tipo, isActive: true, fase },
       })
 
       if (existeTipo) {
@@ -152,7 +156,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Verificar que el usuario no esté ya asignado como jurado
     const yaAsignado = await prisma.thesisJury.findFirst({
-      where: { thesisId: id, userId, isActive: true, fase: 'PROYECTO' },
+      where: { thesisId: id, userId, isActive: true, fase },
     })
 
     if (yaAsignado) {
@@ -172,12 +176,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
     }
 
-    const jurado = await prisma.thesisJury.create({
-      data: {
+    const jurado = await prisma.thesisJury.upsert({
+      where: {
+        thesisId_userId_fase: {
+          thesisId: id,
+          userId,
+          fase,
+        },
+      },
+      update: {
+        tipo: tipo as any,
+        isActive: true,
+      },
+      create: {
         thesisId: id,
         userId,
         tipo: tipo as any,
-        fase: 'PROYECTO',
+        fase,
       },
       include: {
         user: {
@@ -235,9 +250,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    if (tesis.estado !== 'ASIGNANDO_JURADOS') {
+    const estadosPermitidosRemover = ['ASIGNANDO_JURADOS', 'INFORME_FINAL']
+    if (!estadosPermitidosRemover.includes(tesis.estado)) {
       return NextResponse.json(
-        { error: 'Solo se pueden remover jurados en estado ASIGNANDO_JURADOS' },
+        { error: 'Solo se pueden remover jurados en estado ASIGNANDO_JURADOS o INFORME_FINAL' },
         { status: 400 }
       )
     }

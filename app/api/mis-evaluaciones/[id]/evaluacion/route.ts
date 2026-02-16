@@ -18,18 +18,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Verificar que el usuario es jurado de esta tesis
-    const miJurado = await prisma.thesisJury.findFirst({
-      where: { thesisId, userId: user.id, isActive: true },
-    })
-
-    if (!miJurado) {
-      return NextResponse.json(
-        { error: 'No eres jurado de esta tesis' },
-        { status: 403 }
-      )
-    }
-
     const tesis = await prisma.thesis.findUnique({
       where: { id: thesisId, deletedAt: null },
     })
@@ -44,6 +32,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         { error: 'La tesis no está en estado de evaluacion' },
         { status: 400 }
+      )
+    }
+
+    // Determinar la fase de evaluación según el estado actual
+    const faseEvaluacion = tesis.estado === 'EN_EVALUACION_INFORME' ? 'INFORME_FINAL' : 'PROYECTO'
+
+    // Verificar que el usuario es jurado de esta tesis en la fase correcta
+    const miJurado = await prisma.thesisJury.findFirst({
+      where: { thesisId, userId: user.id, isActive: true, fase: faseEvaluacion },
+    })
+
+    if (!miJurado) {
+      return NextResponse.json(
+        { error: 'No eres jurado de esta tesis en la fase actual' },
+        { status: 403 }
       )
     }
 
@@ -138,9 +141,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     })
 
-    // Verificar si todos los jurados requeridos ya evaluaron
+    // Verificar si todos los jurados requeridos ya evaluaron (solo de la fase actual)
     const juradosActivos = await prisma.thesisJury.findMany({
-      where: { thesisId, isActive: true },
+      where: { thesisId, isActive: true, fase: faseEvaluacion },
       include: {
         evaluaciones: {
           where: { ronda: tesis.rondaActual },

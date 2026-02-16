@@ -58,15 +58,22 @@ export async function GET(request: NextRequest) {
       take: 15,
     })
 
-    // Si se especifica tesisId, excluir autores y asesores
+    // Si se especifica tesisId, excluir autores, asesores y jurados ya activos en la fase actual
     let excluirIds: string[] = []
+    const fase = searchParams.get('fase') || undefined
     if (tesisId) {
       const tesis = await prisma.thesis.findUnique({
         where: { id: tesisId },
         select: {
           autores: { select: { userId: true } },
           asesores: { select: { userId: true } },
-          jurados: { where: { isActive: true }, select: { userId: true } },
+          jurados: {
+            where: {
+              isActive: true,
+              ...(fase && { fase: fase as any }),
+            },
+            select: { userId: true },
+          },
         },
       })
 

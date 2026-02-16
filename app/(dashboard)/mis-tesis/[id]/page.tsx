@@ -19,10 +19,13 @@ import {
 } from '@/components/ui/dialog'
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   Clock,
   Download,
   Eye,
@@ -32,12 +35,14 @@ import {
   FileText,
   FileUp,
   GraduationCap,
+  History,
   Info,
   Loader2,
   Receipt,
   RefreshCw,
   Search,
   Send,
+  ShieldCheck,
   Trash2,
   Upload,
   User,
@@ -103,6 +108,7 @@ interface Tesis {
     }
   }[]
   voucherFisicoEntregado: boolean
+  voucherInformeFisicoEntregado: boolean
   facultad: {
     id: string
     nombre: string
@@ -259,6 +265,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [enviando, setEnviando] = useState(false)
   const [subiendo, setSubiendo] = useState<string | null>(null)
   const [respondiendo, setRespondiendo] = useState(false)
+  const [mostrarObsAnteriores, setMostrarObsAnteriores] = useState(false)
 
   // Estado para el diálogo de reemplazo/agregar participantes
   const [dialogReemplazo, setDialogReemplazo] = useState(false)
@@ -570,6 +577,28 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const docCartaAsesor = tesis.documentos.find((d) => d.tipoDocumento === 'CARTA_ACEPTACION_ASESOR')
   const docCartaCoasesor = tesis.documentos.find((d) => d.tipoDocumento === 'CARTA_ACEPTACION_COASESOR')
   const docVoucherPago = tesis.documentos.find((d) => d.tipoDocumento === 'VOUCHER_PAGO')
+  const docInformeFinal = tesis.documentos.find((d) => d.tipoDocumento === 'INFORME_FINAL_DOC')
+  const docVoucherInforme = tesis.documentos.find((d) => d.tipoDocumento === 'VOUCHER_PAGO_INFORME')
+  const docReporteTurnitin = tesis.documentos.find((d) => d.tipoDocumento === 'REPORTE_TURNITIN')
+  const docActaVerificacion = tesis.documentos.find((d) => d.tipoDocumento === 'ACTA_VERIFICACION_ASESOR')
+  const docResolucionAprobacion = tesis.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_APROBACION')
+
+  // Verificar si se subió documento corregido después de la observación (para estados observados por jurado)
+  const fechaObservacionActual = (tesis as any).historial?.findLast(
+    (h: any) => h.estadoNuevo === tesis.estado
+  )?.fecha
+
+  const docCorregidoProyectoSubido = tesis.estado === 'OBSERVADA_JURADO'
+    ? docProyecto && fechaObservacionActual
+      ? new Date(docProyecto.createdAt) > new Date(fechaObservacionActual)
+      : false
+    : false
+
+  const docCorregidoInformeSubido = tesis.estado === 'OBSERVADA_INFORME'
+    ? docInformeFinal && fechaObservacionActual
+      ? new Date(docInformeFinal.createdAt) > new Date(fechaObservacionActual)
+      : false
+    : false
   // Cada tesista sube su propio documento sustentatorio
   const allSustentatorios = tesis.documentos.filter((d) => d.tipoDocumento === 'DOCUMENTO_SUSTENTATORIO')
   const miDocSustentatorio = allSustentatorios.find((d) => d.subidoPor?.id === user?.id)
@@ -708,10 +737,19 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     Voucher físico recibido por mesa de partes
                   </p>
                 ) : (
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-1.5">
-                    <Receipt className="w-4 h-4" />
-                    Recuerda entregar el voucher original en mesa de partes de tu facultad
-                  </p>
+                  <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
+                      <div>
+                        <p className="text-sm font-bold text-red-800 dark:text-red-200">
+                          Entrega de voucher original pendiente
+                        </p>
+                        <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                          Si no entrega el voucher original de pago, <span className="font-semibold underline">no se dará inicio a su proyecto de investigación</span>. Diríjase a mesa de partes de su facultad lo antes posible.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -740,13 +778,16 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
       {tesis.estado === 'EN_EVALUACION_JURADO' && (
         <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
-          <CardContent className="py-4">
+          <CardContent className="py-4 space-y-4">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <p className="font-semibold text-indigo-800 dark:text-indigo-200">Proyecto en evaluacion por jurados</p>
+                <p className="font-semibold text-indigo-800 dark:text-indigo-200">
+                  Proyecto en evaluacion por jurados
+                  {(tesis as any).rondaActual > 1 && <Badge variant="outline" className="ml-2 text-[10px]">Ronda {(tesis as any).rondaActual}</Badge>}
+                </p>
                 <p className="text-sm text-indigo-700 dark:text-indigo-300">
                   Tu proyecto esta siendo evaluado por el jurado asignado.
                   {(tesis as any).fechaLimiteEvaluacion && (
@@ -755,6 +796,69 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </p>
               </div>
             </div>
+            {/* Observaciones de rondas anteriores */}
+            {(tesis as any).rondaActual > 1 && (tesis as any).jurados?.some((j: any) => j.evaluaciones?.length > 0) && (
+              <div className="ml-14">
+                <button
+                  onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
+                  className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors"
+                >
+                  <History className="w-4 h-4" />
+                  Observaciones de rondas anteriores
+                  {mostrarObsAnteriores ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                {mostrarObsAnteriores && (
+                  <div className="mt-3 space-y-3">
+                    {Array.from({ length: (tesis as any).rondaActual - 1 }, (_, i) => i + 1).reverse().map((ronda) => {
+                      const juradosConEval = (tesis as any).jurados?.filter((j: any) =>
+                        j.evaluaciones?.some((e: any) => e.ronda === ronda)
+                      )
+                      if (!juradosConEval?.length) return null
+                      return (
+                        <div key={ronda} className="space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ronda {ronda}</p>
+                          {juradosConEval.map((jurado: any) => {
+                            const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === ronda)
+                            if (!eval_) return null
+                            return (
+                              <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-sm">{jurado.nombre}</span>
+                                  <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
+                                  <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
+                                    {eval_.resultado}
+                                  </Badge>
+                                </div>
+                                {eval_.observaciones && (
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{eval_.observaciones}</p>
+                                )}
+                                {eval_.archivoUrl && (
+                                  <a href={eval_.archivoUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1 mt-1">
+                                    <FileText className="w-3 h-3" /> Ver archivo adjunto
+                                  </a>
+                                )}
+                              </div>
+                            )
+                          })}
+                          {/* Dictamen de esa ronda */}
+                          {(() => {
+                            const dictamenRonda = ((tesis as any).dictamenes || []).find((d: any) => d.version === ronda)
+                            if (!dictamenRonda) return null
+                            return (
+                              <div className="p-2 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50">
+                                <a href={dictamenRonda.rutaArchivo} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
+                                  <FileCheck className="w-3 h-3" /> Dictamen - Ronda {ronda}
+                                </a>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -776,6 +880,46 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </p>
               </div>
             </div>
+            {/* Dictamen del jurado */}
+            {(() => {
+              const dictamenesData = (tesis as any).dictamenes || []
+              const dictamenActual = dictamenesData.find((d: any) => d.esVersionActual) || dictamenesData[0]
+              if (!dictamenActual) return null
+              return (
+                <div className="ml-14 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileCheck className="w-5 h-5 text-indigo-600" />
+                    <span className="font-semibold text-sm text-indigo-800 dark:text-indigo-200">Dictamen del Jurado</span>
+                    <Badge variant="outline" className="text-[10px]">Ronda {dictamenActual.version}</Badge>
+                  </div>
+                  {dictamenActual.descripcion && (
+                    <p className="text-sm text-muted-foreground mb-2">{dictamenActual.descripcion}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <a href={dictamenActual.rutaArchivo} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="outline" className="text-indigo-600 border-indigo-300">
+                        <Eye className="w-3 h-3 mr-1" /> Ver Dictamen
+                      </Button>
+                    </a>
+                    <a href={dictamenActual.rutaArchivo} download>
+                      <Button size="sm" variant="outline" className="text-indigo-600 border-indigo-300">
+                        <Download className="w-3 h-3 mr-1" /> Descargar
+                      </Button>
+                    </a>
+                  </div>
+                  {dictamenesData.length > 1 && (
+                    <div className="mt-3 pt-3 border-t border-indigo-200 dark:border-indigo-700">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Dictamenes anteriores:</p>
+                      {dictamenesData.filter((d: any) => d.id !== dictamenActual.id).map((d: any) => (
+                        <a key={d.id} href={d.rutaArchivo} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
+                          <FileText className="w-3 h-3" /> Ronda {d.version} - {new Date(d.createdAt).toLocaleDateString('es-PE')}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
             {/* Mostrar observaciones de cada jurado */}
             {(tesis as any).jurados?.filter((j: any) => j.evaluaciones?.some((e: any) => e.ronda === (tesis as any).rondaActual))?.map((jurado: any) => {
               const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === (tesis as any).rondaActual)
@@ -800,6 +944,107 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </div>
               )
             })}
+            {/* Observaciones de rondas anteriores */}
+            {(tesis as any).rondaActual > 1 && (
+              <div className="ml-14">
+                <button
+                  onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
+                  className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors"
+                >
+                  <History className="w-4 h-4" />
+                  Ver observaciones de rondas anteriores
+                  {mostrarObsAnteriores ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                {mostrarObsAnteriores && (
+                  <div className="mt-3 space-y-3">
+                    {Array.from({ length: (tesis as any).rondaActual - 1 }, (_, i) => i + 1).reverse().map((ronda) => {
+                      const juradosConEval = (tesis as any).jurados?.filter((j: any) =>
+                        j.evaluaciones?.some((e: any) => e.ronda === ronda)
+                      )
+                      if (!juradosConEval?.length) return null
+                      return (
+                        <div key={ronda} className="space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ronda {ronda}</p>
+                          {juradosConEval.map((jurado: any) => {
+                            const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === ronda)
+                            if (!eval_) return null
+                            return (
+                              <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-sm">{jurado.nombre}</span>
+                                  <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
+                                  <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
+                                    {eval_.resultado}
+                                  </Badge>
+                                </div>
+                                {eval_.observaciones && (
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{eval_.observaciones}</p>
+                                )}
+                                {eval_.archivoUrl && (
+                                  <a href={eval_.archivoUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1 mt-1">
+                                    <FileText className="w-3 h-3" /> Ver archivo adjunto
+                                  </a>
+                                )}
+                              </div>
+                            )
+                          })}
+                          {(() => {
+                            const dictamenRonda = ((tesis as any).dictamenes || []).find((d: any) => d.version === ronda)
+                            if (!dictamenRonda) return null
+                            return (
+                              <div className="p-2 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50">
+                                <a href={dictamenRonda.rutaArchivo} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
+                                  <FileCheck className="w-3 h-3" /> Dictamen - Ronda {ronda}
+                                </a>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Historial de versiones del proyecto */}
+            {(() => {
+              const historial = ((tesis as any).historialDocumentos || []).filter((d: any) => d.tipo === 'PROYECTO')
+              if (historial.length <= 1) return null
+              return (
+                <div className="ml-14 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <History className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Historial de Versiones - Proyecto</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {historial.map((doc: any) => (
+                      <div key={doc.id} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={doc.esVersionActual ? 'default' : 'outline'} className="text-[10px]">
+                            v{doc.version}{doc.esVersionActual ? ' (actual)' : ''}
+                          </Badge>
+                          <span className="text-muted-foreground">
+                            {new Date(doc.createdAt).toLocaleDateString('es-PE')} - {doc.tamano ? (doc.tamano / (1024 * 1024)).toFixed(1) + ' MB' : ''}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          <a href={doc.rutaArchivo} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                          </a>
+                          <a href={doc.rutaArchivo} download>
+                            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                              <Download className="w-3 h-3" />
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
             {/* Upload del proyecto corregido + botón reenviar */}
             <div className="ml-14 space-y-3">
               <p className="text-sm font-medium">Sube el proyecto corregido y reenvia:</p>
@@ -830,49 +1075,276 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   }
                 }}
                 className="w-full bg-orange-600 hover:bg-orange-700"
-                disabled={subiendo === 'PROYECTO'}
+                disabled={subiendo === 'PROYECTO' || !docCorregidoProyectoSubido}
               >
                 <Send className="w-4 h-4 mr-2" />
                 Reenviar Proyecto Corregido
               </Button>
+              {!docCorregidoProyectoSubido && (
+                <p className="text-xs text-orange-600 text-center">
+                  Debes subir el proyecto corregido antes de poder reenviar
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
       {tesis.estado === 'PROYECTO_APROBADO' && (
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
-          <CardContent className="py-4">
+        <Card className="border-2 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/30 shadow-lg">
+          <CardContent className="py-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
-              <div>
-                <p className="font-semibold text-green-800 dark:text-green-200">Proyecto de tesis aprobado por el jurado</p>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Esperando que mesa de partes suba la resolucion de aprobacion para pasar a la fase de informe final.
+              <div className="flex-1">
+                <p className="text-lg font-bold text-green-800 dark:text-green-200">
+                  Proyecto de tesis aprobado por el jurado
                 </p>
+                <div className="mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700">
+                  <div className="flex items-start gap-2">
+                    <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5 animate-pulse" />
+                    <div>
+                      <p className="font-semibold text-amber-800 dark:text-amber-200">
+                        Pendiente: Resolucion de aprobacion
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                        Mesa de partes debe subir la resolucion de aprobacion para que pueda pasar a la <span className="font-semibold">fase de informe final</span>. Si tiene consultas, acerquese a mesa de partes de su facultad.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {tesis.estado === 'INFORME_FINAL' && (
-        <Card className="border-cyan-200 bg-cyan-50 dark:border-cyan-800 dark:bg-cyan-950/30">
-          <CardContent className="py-4 space-y-4">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
-                <FileUp className="w-5 h-5 text-cyan-600" />
+      {tesis.estado === 'INFORME_FINAL' && (() => {
+        const juradosInformeFinal = ((tesis as any).jurados || []).filter((j: any) => j.fase === 'INFORME_FINAL')
+        const tiposJurado = juradosInformeFinal.map((j: any) => j.tipo)
+        const juradosCompletos = tiposJurado.includes('PRESIDENTE') && tiposJurado.includes('VOCAL') && tiposJurado.includes('SECRETARIO') && tiposJurado.includes('ACCESITARIO')
+
+        const requisitosInforme = [
+          { label: 'Informe Final de Tesis', cumplido: !!docInformeFinal },
+          { label: 'Voucher de Pago (S/. 20 - Código 465)', cumplido: !!docVoucherInforme },
+          { label: 'Reporte Turnitin firmado por asesor', cumplido: !!docReporteTurnitin },
+          { label: 'Acta de verificación de similitud del asesor', cumplido: !!docActaVerificacion },
+          { label: 'Resolución de aprobación del proyecto', cumplido: !!docResolucionAprobacion },
+          { label: 'Jurados asignados para informe final', cumplido: juradosCompletos },
+          { label: 'Voucher físico confirmado por mesa de partes', cumplido: tesis.voucherInformeFisicoEntregado },
+        ]
+        const cumplidos = requisitosInforme.filter((r) => r.cumplido).length
+        const totalRequisitos = requisitosInforme.length
+        const todosCompletos = cumplidos === totalRequisitos
+        const progreso = Math.round((cumplidos / totalRequisitos) * 100)
+
+        return (
+          <Card>
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
+                  <FileUp className="w-5 h-5 text-cyan-600" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-lg">Fase de Informe Final</CardTitle>
+                  <CardDescription className="mt-1">
+                    Sube los documentos requeridos para enviar tu informe final a evaluación por el jurado.
+                  </CardDescription>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-cyan-800 dark:text-cyan-200">Fase de Informe Final</p>
-                <p className="text-sm text-cyan-700 dark:text-cyan-300">
-                  Sube el informe final y el reporte Turnitin, luego envía para evaluacion por el jurado.
-                </p>
+              {/* Barra de progreso */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">
+                    {cumplidos} de {totalRequisitos} requisitos completados
+                  </span>
+                  <span className="text-sm text-muted-foreground">{progreso}%</span>
+                </div>
+                <Progress value={progreso} className="h-2" />
+                {todosCompletos && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Todos los requisitos están listos
+                  </p>
+                )}
               </div>
-            </div>
-            <div className="ml-14">
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {/* 1. Informe Final de Tesis */}
+              <DocumentUploadCard
+                titulo="Informe Final de Tesis"
+                descripcion="Documento del informe final en formato PDF (máx. 25MB)"
+                tipoDocumento="INFORME_FINAL_DOC"
+                documento={docInformeFinal}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'INFORME_FINAL_DOC'}
+                accept=".pdf"
+                icon={<FileText className="w-5 h-5" />}
+                iconColor="text-cyan-600"
+                iconBg="bg-cyan-100 dark:bg-cyan-900/50"
+              />
+
+              {/* 2. Voucher de Pago S/ 20.00 - Código 465 */}
+              <DocumentUploadCard
+                titulo="Voucher de Pago - Informe Final"
+                descripcion="Voucher de pago de S/. 20.00 al código 465 en formato PDF (máx. 25MB)"
+                tipoDocumento="VOUCHER_PAGO_INFORME"
+                documento={docVoucherInforme}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'VOUCHER_PAGO_INFORME'}
+                accept=".pdf"
+                icon={<Receipt className="w-5 h-5" />}
+                iconColor="text-amber-600"
+                iconBg="bg-amber-100 dark:bg-amber-900/50"
+              />
+              {!docVoucherInforme && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
+                  <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">
+                    Realice el pago de <span className="font-semibold">S/. 20.00</span> al <span className="font-semibold">código 465</span> y suba el voucher escaneado.
+                  </p>
+                </div>
+              )}
+
+              {/* 3. Reporte Turnitin firmado por asesor */}
+              <DocumentUploadCard
+                titulo="Reporte Turnitin"
+                descripcion="Reporte de similitud Turnitin firmado por el asesor en formato PDF (máx. 25MB)"
+                tipoDocumento="REPORTE_TURNITIN"
+                documento={docReporteTurnitin}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'REPORTE_TURNITIN'}
+                accept=".pdf"
+                icon={<FileCheck className="w-5 h-5" />}
+                iconColor="text-teal-600"
+                iconBg="bg-teal-100 dark:bg-teal-900/50"
+              />
+
+              {/* 4. Acta de verificación de similitud del asesor */}
+              <DocumentUploadCard
+                titulo="Acta de Verificación de Similitud del Asesor"
+                descripcion="Acta firmada por el asesor verificando el porcentaje de similitud en formato PDF (máx. 25MB)"
+                tipoDocumento="ACTA_VERIFICACION_ASESOR"
+                documento={docActaVerificacion}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'ACTA_VERIFICACION_ASESOR'}
+                accept=".pdf"
+                icon={<ShieldCheck className="w-5 h-5" />}
+                iconColor="text-violet-600"
+                iconBg="bg-violet-100 dark:bg-violet-900/50"
+              />
+
+              {/* 5. Resolución de Aprobación (solo lectura - subida por mesa de partes) */}
+              {docResolucionAprobacion ? (
+                <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">Resolución de Aprobación del Proyecto</p>
+                      <p className="text-xs text-muted-foreground">Subida por mesa de partes</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <a href={docResolucionAprobacion.archivoUrl} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline" className="h-7 text-xs">
+                            <Eye className="w-3 h-3 mr-1" />
+                            Ver
+                          </Button>
+                        </a>
+                        <a href={docResolucionAprobacion.archivoUrl} download>
+                          <Button size="sm" variant="outline" className="h-7 text-xs">
+                            <Download className="w-3 h-3 mr-1" />
+                            Descargar
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Resolución de Aprobación del Proyecto</p>
+                      <p className="text-xs text-orange-600 dark:text-orange-400">
+                        Pendiente: este documento será subido por mesa de partes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 6. Estado de jurados para informe final */}
+              {juradosCompletos ? (
+                <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">Jurados Asignados para Informe Final</p>
+                      <div className="mt-1 space-y-1">
+                        {juradosInformeFinal.map((j: any) => (
+                          <p key={j.id} className="text-xs text-muted-foreground">
+                            {j.tipo === 'PRESIDENTE' ? 'Presidente' : j.tipo === 'VOCAL' ? 'Vocal' : j.tipo === 'SECRETARIO' ? 'Secretario' : 'Accesitario'}: {j.nombre}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Jurados para Informe Final</p>
+                      <p className="text-xs text-orange-600 dark:text-orange-400 mb-1">
+                        Pendiente: mesa de partes debe asignar los jurados evaluadores.
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {['PRESIDENTE', 'VOCAL', 'SECRETARIO', 'ACCESITARIO'].map((tipo) => (
+                          <span key={tipo} className={`text-xs px-2 py-0.5 rounded-full ${tiposJurado.includes(tipo) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {tipo === 'PRESIDENTE' ? 'Presidente' : tipo === 'VOCAL' ? 'Vocal' : tipo === 'SECRETARIO' ? 'Secretario' : 'Accesitario'}
+                            {tiposJurado.includes(tipo) ? ' ✓' : ' (falta)'}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Nota sobre entrega física del voucher del informe final */}
+              {tesis.voucherInformeFisicoEntregado ? (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border-2 border-green-300 dark:border-green-700">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-green-800 dark:text-green-200">Voucher fisico del informe final recibido por mesa de partes</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700">
+                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
+                  <div>
+                    <p className="text-xs font-bold text-red-800 dark:text-red-200">Entrega presencial obligatoria</p>
+                    <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
+                      Si no entrega el voucher original del informe final, <span className="font-semibold underline">no se completara el tramite</span>. Dirijase a mesa de partes de su facultad.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Botón Enviar */}
               <Button
                 onClick={async () => {
                   const res = await fetch(`/api/tesis/${tesis.id}/enviar-informe`, { method: 'POST' })
@@ -889,25 +1361,34 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     }
                   }
                 }}
-                className="bg-cyan-600 hover:bg-cyan-700"
+                className="w-full bg-cyan-600 hover:bg-cyan-700"
+                disabled={!todosCompletos || subiendo !== null}
               >
                 <Send className="w-4 h-4 mr-2" />
-                Enviar Informe Final para Evaluacion
+                Enviar Informe Final para Evaluación
               </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              {!todosCompletos && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Completa todos los requisitos para poder enviar el informe final
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {tesis.estado === 'EN_EVALUACION_INFORME' && (
         <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
-          <CardContent className="py-4">
+          <CardContent className="py-4 space-y-4">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <p className="font-semibold text-indigo-800 dark:text-indigo-200">Informe final en evaluacion</p>
+                <p className="font-semibold text-indigo-800 dark:text-indigo-200">
+                  Informe final en evaluacion
+                  {(tesis as any).rondaActual > 1 && <Badge variant="outline" className="ml-2 text-[10px]">Ronda {(tesis as any).rondaActual}</Badge>}
+                </p>
                 <p className="text-sm text-indigo-700 dark:text-indigo-300">
                   Tu informe final esta siendo evaluado por el jurado.
                   {(tesis as any).fechaLimiteEvaluacion && (
@@ -916,6 +1397,68 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </p>
               </div>
             </div>
+            {/* Observaciones de rondas anteriores (solo jurados de fase INFORME_FINAL) */}
+            {(tesis as any).rondaActual > 1 && (tesis as any).jurados?.some((j: any) => j.fase === 'INFORME_FINAL' && j.evaluaciones?.length > 0) && (
+              <div className="ml-14">
+                <button
+                  onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
+                  className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors"
+                >
+                  <History className="w-4 h-4" />
+                  Observaciones de rondas anteriores
+                  {mostrarObsAnteriores ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                {mostrarObsAnteriores && (
+                  <div className="mt-3 space-y-3">
+                    {Array.from({ length: (tesis as any).rondaActual - 1 }, (_, i) => i + 1).reverse().map((ronda) => {
+                      const juradosConEval = (tesis as any).jurados?.filter((j: any) =>
+                        j.fase === 'INFORME_FINAL' && j.evaluaciones?.some((e: any) => e.ronda === ronda)
+                      )
+                      if (!juradosConEval?.length) return null
+                      return (
+                        <div key={ronda} className="space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ronda {ronda}</p>
+                          {juradosConEval.map((jurado: any) => {
+                            const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === ronda)
+                            if (!eval_) return null
+                            return (
+                              <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-sm">{jurado.nombre}</span>
+                                  <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
+                                  <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
+                                    {eval_.resultado}
+                                  </Badge>
+                                </div>
+                                {eval_.observaciones && (
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{eval_.observaciones}</p>
+                                )}
+                                {eval_.archivoUrl && (
+                                  <a href={eval_.archivoUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1 mt-1">
+                                    <FileText className="w-3 h-3" /> Ver archivo adjunto
+                                  </a>
+                                )}
+                              </div>
+                            )
+                          })}
+                          {(() => {
+                            const dictamenRonda = ((tesis as any).dictamenes || []).find((d: any) => d.version === ronda)
+                            if (!dictamenRonda) return null
+                            return (
+                              <div className="p-2 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50">
+                                <a href={dictamenRonda.rutaArchivo} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
+                                  <FileCheck className="w-3 h-3" /> Dictamen - Ronda {ronda}
+                                </a>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -937,8 +1480,48 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </p>
               </div>
             </div>
-            {/* Mostrar observaciones */}
-            {(tesis as any).jurados?.filter((j: any) => j.evaluaciones?.some((e: any) => e.ronda === (tesis as any).rondaActual))?.map((jurado: any) => {
+            {/* Dictamen del jurado */}
+            {(() => {
+              const dictamenesData = (tesis as any).dictamenes || []
+              const dictamenActual = dictamenesData.find((d: any) => d.esVersionActual) || dictamenesData[0]
+              if (!dictamenActual) return null
+              return (
+                <div className="ml-14 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileCheck className="w-5 h-5 text-indigo-600" />
+                    <span className="font-semibold text-sm text-indigo-800 dark:text-indigo-200">Dictamen del Jurado</span>
+                    <Badge variant="outline" className="text-[10px]">Ronda {dictamenActual.version}</Badge>
+                  </div>
+                  {dictamenActual.descripcion && (
+                    <p className="text-sm text-muted-foreground mb-2">{dictamenActual.descripcion}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <a href={dictamenActual.rutaArchivo} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="outline" className="text-indigo-600 border-indigo-300">
+                        <Eye className="w-3 h-3 mr-1" /> Ver Dictamen
+                      </Button>
+                    </a>
+                    <a href={dictamenActual.rutaArchivo} download>
+                      <Button size="sm" variant="outline" className="text-indigo-600 border-indigo-300">
+                        <Download className="w-3 h-3 mr-1" /> Descargar
+                      </Button>
+                    </a>
+                  </div>
+                  {dictamenesData.length > 1 && (
+                    <div className="mt-3 pt-3 border-t border-indigo-200 dark:border-indigo-700">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Dictamenes anteriores:</p>
+                      {dictamenesData.filter((d: any) => d.id !== dictamenActual.id).map((d: any) => (
+                        <a key={d.id} href={d.rutaArchivo} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
+                          <FileText className="w-3 h-3" /> Ronda {d.version} - {new Date(d.createdAt).toLocaleDateString('es-PE')}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+            {/* Mostrar observaciones (solo jurados de fase INFORME_FINAL) */}
+            {(tesis as any).jurados?.filter((j: any) => j.fase === 'INFORME_FINAL' && j.evaluaciones?.some((e: any) => e.ronda === (tesis as any).rondaActual))?.map((jurado: any) => {
               const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === (tesis as any).rondaActual)
               if (!eval_) return null
               return (
@@ -953,6 +1536,107 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </div>
               )
             })}
+            {/* Observaciones de rondas anteriores (solo jurados de fase INFORME_FINAL) */}
+            {(tesis as any).rondaActual > 1 && (
+              <div className="ml-14">
+                <button
+                  onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
+                  className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors"
+                >
+                  <History className="w-4 h-4" />
+                  Ver observaciones de rondas anteriores
+                  {mostrarObsAnteriores ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                {mostrarObsAnteriores && (
+                  <div className="mt-3 space-y-3">
+                    {Array.from({ length: (tesis as any).rondaActual - 1 }, (_, i) => i + 1).reverse().map((ronda) => {
+                      const juradosConEval = (tesis as any).jurados?.filter((j: any) =>
+                        j.fase === 'INFORME_FINAL' && j.evaluaciones?.some((e: any) => e.ronda === ronda)
+                      )
+                      if (!juradosConEval?.length) return null
+                      return (
+                        <div key={ronda} className="space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ronda {ronda}</p>
+                          {juradosConEval.map((jurado: any) => {
+                            const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === ronda)
+                            if (!eval_) return null
+                            return (
+                              <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium text-sm">{jurado.nombre}</span>
+                                  <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
+                                  <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
+                                    {eval_.resultado}
+                                  </Badge>
+                                </div>
+                                {eval_.observaciones && (
+                                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{eval_.observaciones}</p>
+                                )}
+                                {eval_.archivoUrl && (
+                                  <a href={eval_.archivoUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1 mt-1">
+                                    <FileText className="w-3 h-3" /> Ver archivo adjunto
+                                  </a>
+                                )}
+                              </div>
+                            )
+                          })}
+                          {(() => {
+                            const dictamenRonda = ((tesis as any).dictamenes || []).find((d: any) => d.version === ronda)
+                            if (!dictamenRonda) return null
+                            return (
+                              <div className="p-2 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50">
+                                <a href={dictamenRonda.rutaArchivo} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline flex items-center gap-1">
+                                  <FileCheck className="w-3 h-3" /> Dictamen - Ronda {ronda}
+                                </a>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Historial de versiones del informe */}
+            {(() => {
+              const historial = ((tesis as any).historialDocumentos || []).filter((d: any) => d.tipo === 'INFORME_FINAL_DOC')
+              if (historial.length <= 1) return null
+              return (
+                <div className="ml-14 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <History className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Historial de Versiones - Informe Final</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {historial.map((doc: any) => (
+                      <div key={doc.id} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={doc.esVersionActual ? 'default' : 'outline'} className="text-[10px]">
+                            v{doc.version}{doc.esVersionActual ? ' (actual)' : ''}
+                          </Badge>
+                          <span className="text-muted-foreground">
+                            {new Date(doc.createdAt).toLocaleDateString('es-PE')} - {doc.tamano ? (doc.tamano / (1024 * 1024)).toFixed(1) + ' MB' : ''}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          <a href={doc.rutaArchivo} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                          </a>
+                          <a href={doc.rutaArchivo} download>
+                            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                              <Download className="w-3 h-3" />
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
             {/* Upload del informe corregido + botón reenviar */}
             <div className="ml-14 space-y-3">
               <p className="text-sm font-medium">Sube el informe final corregido y reenvia:</p>
@@ -982,12 +1666,67 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   }
                 }}
                 className="w-full bg-orange-600 hover:bg-orange-700"
-                disabled={subiendo === 'INFORME_FINAL_DOC'}
+                disabled={subiendo === 'INFORME_FINAL_DOC' || !docCorregidoInformeSubido}
               >
                 <Send className="w-4 h-4 mr-2" />
                 Reenviar Informe Corregido
               </Button>
+              {!docCorregidoInformeSubido && (
+                <p className="text-xs text-orange-600 text-center">
+                  Debes subir el informe corregido antes de poder reenviar
+                </p>
+              )}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tesis.estado === 'APROBADA' && (
+        <Card className="border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
+          <CardContent className="py-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-lg font-bold text-green-800 dark:text-green-200">Tesis Aprobada</p>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                  El informe final de tesis ha sido aprobado por el jurado evaluador.
+                  {(tesis as any).fechaAprobacion && (
+                    <> Fecha de aprobacion: {new Date((tesis as any).fechaAprobacion).toLocaleDateString('es-PE')}.</>
+                  )}
+                </p>
+              </div>
+            </div>
+            {/* Dictamen final */}
+            {(() => {
+              const dictamenesData = (tesis as any).dictamenes || []
+              const dictamenFinal = dictamenesData.find((d: any) => d.esVersionActual) || dictamenesData[0]
+              if (!dictamenFinal) return null
+              return (
+                <div className="mt-4 ml-16 p-4 rounded-lg bg-green-100/50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileCheck className="w-5 h-5 text-green-600" />
+                    <span className="font-semibold text-sm text-green-800 dark:text-green-200">Dictamen de Aprobacion</span>
+                  </div>
+                  {dictamenFinal.descripcion && (
+                    <p className="text-sm text-muted-foreground mb-2">{dictamenFinal.descripcion}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <a href={dictamenFinal.rutaArchivo} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="outline" className="text-green-600 border-green-300">
+                        <Eye className="w-3 h-3 mr-1" /> Ver Dictamen
+                      </Button>
+                    </a>
+                    <a href={dictamenFinal.rutaArchivo} download>
+                      <Button size="sm" variant="outline" className="text-green-600 border-green-300">
+                        <Download className="w-3 h-3 mr-1" /> Descargar
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              )
+            })()}
           </CardContent>
         </Card>
       )}
@@ -1135,11 +1874,14 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   iconBg="bg-amber-100 dark:bg-amber-900/50"
                 />
                 {docVoucherPago ? (
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 -mt-2">
-                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700 dark:text-amber-300">
-                      <span className="font-semibold">Entrega presencial requerida:</span> debe entregar el voucher original en mesa de partes de la facultad.
-                    </p>
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700 -mt-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
+                    <div>
+                      <p className="text-xs font-bold text-red-800 dark:text-red-200">Entrega presencial obligatoria</p>
+                      <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
+                        Si no entrega el voucher original, <span className="font-semibold underline">no se dará inicio a su proyecto de investigación</span>. Diríjase a mesa de partes de su facultad.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
@@ -1284,86 +2026,131 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
           {/* Documentos y Estado (solo lectura - cuando NO puede editar O coautor no aceptó) */}
           {(!puedeEditar || miInvitacionPendiente) && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-primary" />
+            <>
+              {/* Documentos de Aprobación de Proyecto */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">Documentos - Aprobacion de Proyecto</CardTitle>
+                      <CardDescription>
+                        Documentos presentados para la aprobacion del proyecto de tesis
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">Documentos y Requisitos</CardTitle>
-                    <CardDescription>
-                      Estado actual de los documentos de tu proyecto
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {/* Documento del Proyecto */}
-                <ReadOnlyDocumentCard
-                  titulo="Proyecto de Tesis"
-                  documento={docProyecto}
-                  icon={<FileText className="w-5 h-5" />}
-                  iconColor="text-blue-600"
-                  iconBg="bg-blue-100 dark:bg-blue-900/50"
-                />
-
-                {/* Estado del Asesor */}
-                {asesor && (
-                  <ReadOnlyAdvisorCard
-                    titulo="Asesor"
-                    asesor={asesor}
-                    documento={docCartaAsesor}
-                  />
-                )}
-
-                {/* Estado del Coasesor (si existe) */}
-                {coasesor && (
-                  <ReadOnlyAdvisorCard
-                    titulo="Coasesor"
-                    asesor={coasesor}
-                    documento={docCartaCoasesor}
-                  />
-                )}
-
-                {/* Voucher de Pago */}
-                <ReadOnlyDocumentCard
-                  titulo="Voucher de Pago"
-                  documento={docVoucherPago}
-                  icon={<Receipt className="w-5 h-5" />}
-                  iconColor="text-amber-600"
-                  iconBg="bg-amber-100 dark:bg-amber-900/50"
-                />
-
-                {/* Mi Documento Sustentatorio */}
-                <ReadOnlyDocumentCard
-                  titulo={otroAutor ? 'Tu Documento Sustentatorio' : 'Documento Sustentatorio'}
-                  documento={miDocSustentatorio}
-                  icon={<FileSpreadsheet className="w-5 h-5" />}
-                  iconColor="text-indigo-600"
-                  iconBg="bg-indigo-100 dark:bg-indigo-900/50"
-                />
-
-                {/* Sustentatorio del otro tesista */}
-                {otroAutor && (
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <ReadOnlyDocumentCard
-                    titulo={`Sustentatorio de ${otroAutor.user.nombres} ${otroAutor.user.apellidoPaterno}`}
-                    documento={docSustentatorioOtroAutor ?? undefined}
+                    titulo="Proyecto de Tesis"
+                    documento={docProyecto}
+                    icon={<FileText className="w-5 h-5" />}
+                    iconColor="text-blue-600"
+                    iconBg="bg-blue-100 dark:bg-blue-900/50"
+                  />
+                  {asesor && (
+                    <ReadOnlyAdvisorCard
+                      titulo="Asesor"
+                      asesor={asesor}
+                      documento={docCartaAsesor}
+                    />
+                  )}
+                  {coasesor && (
+                    <ReadOnlyAdvisorCard
+                      titulo="Coasesor"
+                      asesor={coasesor}
+                      documento={docCartaCoasesor}
+                    />
+                  )}
+                  <ReadOnlyDocumentCard
+                    titulo="Voucher de Pago"
+                    documento={docVoucherPago}
+                    icon={<Receipt className="w-5 h-5" />}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-100 dark:bg-amber-900/50"
+                  />
+                  <ReadOnlyDocumentCard
+                    titulo={otroAutor ? 'Tu Documento Sustentatorio' : 'Documento Sustentatorio'}
+                    documento={miDocSustentatorio}
                     icon={<FileSpreadsheet className="w-5 h-5" />}
                     iconColor="text-indigo-600"
                     iconBg="bg-indigo-100 dark:bg-indigo-900/50"
                   />
-                )}
+                  {otroAutor && (
+                    <ReadOnlyDocumentCard
+                      titulo={`Sustentatorio de ${otroAutor.user.nombres} ${otroAutor.user.apellidoPaterno}`}
+                      documento={docSustentatorioOtroAutor ?? undefined}
+                      icon={<FileSpreadsheet className="w-5 h-5" />}
+                      iconColor="text-indigo-600"
+                      iconBg="bg-indigo-100 dark:bg-indigo-900/50"
+                    />
+                  )}
+                  {coautor && (
+                    <ReadOnlyCoauthorCard
+                      coautor={coautor}
+                    />
+                  )}
+                </CardContent>
+              </Card>
 
-                {/* Estado del Coautor (si existe) */}
-                {coautor && (
-                  <ReadOnlyCoauthorCard
-                    coautor={coautor}
-                  />
-                )}
-              </CardContent>
-            </Card>
+              {/* Documentos de Informe Final (solo si la tesis ya pasó a esa fase) */}
+              {['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA'].includes(tesis.estado) && (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
+                        <GraduationCap className="w-5 h-5 text-cyan-600" />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">Documentos - Informe Final</CardTitle>
+                        <CardDescription>
+                          Documentos presentados para la evaluacion del informe final
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ReadOnlyDocumentCard
+                      titulo="Informe Final de Tesis"
+                      documento={docInformeFinal}
+                      icon={<FileText className="w-5 h-5" />}
+                      iconColor="text-cyan-600"
+                      iconBg="bg-cyan-100 dark:bg-cyan-900/50"
+                    />
+                    <ReadOnlyDocumentCard
+                      titulo="Voucher de Pago - Informe Final (S/. 20 - Codigo 465)"
+                      documento={docVoucherInforme}
+                      icon={<Receipt className="w-5 h-5" />}
+                      iconColor="text-amber-600"
+                      iconBg="bg-amber-100 dark:bg-amber-900/50"
+                    />
+                    <ReadOnlyDocumentCard
+                      titulo="Reporte Turnitin firmado por asesor"
+                      documento={docReporteTurnitin}
+                      icon={<FileCheck className="w-5 h-5" />}
+                      iconColor="text-green-600"
+                      iconBg="bg-green-100 dark:bg-green-900/50"
+                    />
+                    <ReadOnlyDocumentCard
+                      titulo="Acta de Verificacion de Similitud del Asesor"
+                      documento={docActaVerificacion}
+                      icon={<ShieldCheck className="w-5 h-5" />}
+                      iconColor="text-purple-600"
+                      iconBg="bg-purple-100 dark:bg-purple-900/50"
+                    />
+                    <ReadOnlyDocumentCard
+                      titulo="Resolucion de Aprobacion del Proyecto"
+                      documento={docResolucionAprobacion}
+                      icon={<FileCheck className="w-5 h-5" />}
+                      iconColor="text-emerald-600"
+                      iconBg="bg-emerald-100 dark:bg-emerald-900/50"
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
 
           {/* Detalles del proyecto */}

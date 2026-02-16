@@ -124,6 +124,15 @@
   }
 }
 
+/* Sidebar: ocultar scrollbar manteniendo scroll funcional */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /* Grid background pattern */
 .bg-grid {
   background-image:

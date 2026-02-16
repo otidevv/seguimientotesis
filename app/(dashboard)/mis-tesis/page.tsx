@@ -68,10 +68,17 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; icon: React.
   SUSTENTADA: { label: 'Sustentada', color: 'bg-emerald-600', icon: <GraduationCap className="w-3 h-3" /> },
   ARCHIVADA: { label: 'Archivada', color: 'bg-slate-500', icon: <FileText className="w-3 h-3" /> },
   RECHAZADA: { label: 'Rechazada', color: 'bg-red-500', icon: <AlertCircle className="w-3 h-3" /> },
+  // Estados del flujo de evaluación
+  ASIGNANDO_JURADOS: { label: 'Asignando Jurados', color: 'bg-purple-500', icon: <Clock className="w-3 h-3" /> },
+  EN_EVALUACION_JURADO: { label: 'En Evaluación', color: 'bg-indigo-500', icon: <Clock className="w-3 h-3" /> },
+  OBSERVADA_JURADO: { label: 'Observada por Jurado', color: 'bg-orange-500', icon: <AlertCircle className="w-3 h-3" /> },
+  PROYECTO_APROBADO: { label: 'Proyecto Aprobado', color: 'bg-green-500', icon: <CheckCircle className="w-3 h-3" /> },
+  INFORME_FINAL: { label: 'Informe Final', color: 'bg-cyan-500', icon: <FileText className="w-3 h-3" /> },
+  EN_EVALUACION_INFORME: { label: 'Evaluando Informe', color: 'bg-indigo-500', icon: <Clock className="w-3 h-3" /> },
+  OBSERVADA_INFORME: { label: 'Informe Observado', color: 'bg-orange-500', icon: <AlertCircle className="w-3 h-3" /> },
   // Estados legacy para compatibilidad
   REGISTRO_PENDIENTE: { label: 'Proyecto en Revisión', color: 'bg-blue-500', icon: <Clock className="w-3 h-3" /> },
   PROYECTO_OBSERVADO: { label: 'Observada', color: 'bg-orange-500', icon: <AlertCircle className="w-3 h-3" /> },
-  PROYECTO_APROBADO: { label: 'Proyecto Aprobado', color: 'bg-green-500', icon: <CheckCircle className="w-3 h-3" /> },
 }
 
 export default function MisTesisPage() {

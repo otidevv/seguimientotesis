@@ -17,9 +17,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Verificar que el usuario es jurado de esta tesis
-    const miJurado = await prisma.thesisJury.findFirst({
-      where: { thesisId, userId: user.id, isActive: true },
-    })
+    // Si se pasa juradoId, usar ese registro específico (permite ver por fase)
+    const { searchParams } = new URL(request.url)
+    const juradoId = searchParams.get('juradoId')
+
+    const miJurado = juradoId
+      ? await prisma.thesisJury.findFirst({
+          where: { id: juradoId, thesisId, userId: user.id, isActive: true },
+        })
+      : await prisma.thesisJury.findFirst({
+          where: { thesisId, userId: user.id, isActive: true },
+          orderBy: { createdAt: 'desc' }, // Preferir el más reciente (INFORME_FINAL)
+        })
 
     if (!miJurado) {
       return NextResponse.json(
@@ -27,6 +36,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         { status: 403 }
       )
     }
+
+    const faseJurado = miJurado.fase
 
     const tesis = await prisma.thesis.findUnique({
       where: { id: thesisId, deletedAt: null },
@@ -59,7 +70,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           },
         },
         documentos: {
-          where: { esVersionActual: true },
+          where: {
+            esVersionActual: true,
+            // Solo mostrar el documento principal que el jurado debe evaluar
+            ...(faseJurado === 'PROYECTO' ? {
+              tipo: 'PROYECTO',
+            } : faseJurado === 'INFORME_FINAL' ? {
+              tipo: 'INFORME_FINAL_DOC',
+            } : {}),
+          },
           select: {
             id: true,
             tipo: true,
@@ -74,7 +93,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           orderBy: { createdAt: 'desc' },
         },
         jurados: {
-          where: { isActive: true },
+          where: { isActive: true, fase: faseJurado },
           include: {
             user: {
               select: {
@@ -97,46 +116,73 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    // Verificar si el jurado actual ya evaluó en esta ronda
+    // Determinar si la fase del jurado ya terminó
+    const faseTerminada = faseJurado === 'PROYECTO' && (
+      tesis.faseActual === 'INFORME_FINAL' ||
+      ['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA'].includes(tesis.estado)
+    )
+
+    // Verificar si el jurado actual ya evaluó
+    // Para fases terminadas, buscar la última evaluación; para activas, buscar la de rondaActual
     const miEvalActual = miJurado
       ? await prisma.juryEvaluation.findFirst({
           where: {
             juryMemberId: miJurado.id,
-            ronda: tesis.rondaActual,
+            ...(faseTerminada ? {} : { ronda: tesis.rondaActual }),
           },
+          orderBy: { ronda: 'desc' },
         })
       : null
 
-    // Calcular progreso de evaluaciones de la ronda actual
+    // Calcular progreso de evaluaciones (solo para la fase del jurado)
     const juradosRequeridos = tesis.jurados.filter(
       (j) => ['PRESIDENTE', 'VOCAL', 'SECRETARIO'].includes(j.tipo)
     )
+
+    // Para fases terminadas, buscar la última ronda evaluada; para activas, usar rondaActual
+    const rondaParaProgreso = faseTerminada
+      ? (miEvalActual?.ronda || 1)
+      : tesis.rondaActual
+
     const juradosQueEvaluaron = juradosRequeridos.filter((j) =>
-      j.evaluaciones.some((e) => e.ronda === tesis.rondaActual)
+      j.evaluaciones.some((e) => e.ronda === rondaParaProgreso)
     )
     const todosJuradosEvaluaron = juradosRequeridos.length > 0 &&
       juradosQueEvaluaron.length === juradosRequeridos.length
 
-    // Verificar si ya existe dictamen para esta ronda
-    const dictamenExistente = await prisma.thesisDocument.findFirst({
-      where: {
-        thesisId,
-        tipo: 'DICTAMEN_JURADO',
-        esVersionActual: true,
-      },
-    })
+    // Verificar si ya existe dictamen para la fase actual
+    // Usamos la fecha de la última transición al estado de evaluación actual para filtrar
+    let dictamenExistente = null
+    if (!faseTerminada) {
+      const estadoEvaluacion = faseJurado === 'INFORME_FINAL' ? 'EN_EVALUACION_INFORME' : 'EN_EVALUACION_JURADO'
+      const transicionFase = await prisma.thesisStatusHistory.findFirst({
+        where: { thesisId, estadoNuevo: estadoEvaluacion },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true },
+      })
+
+      dictamenExistente = await prisma.thesisDocument.findFirst({
+        where: {
+          thesisId,
+          tipo: 'DICTAMEN_JURADO',
+          esVersionActual: true,
+          ...(transicionFase ? { createdAt: { gte: transicionFase.createdAt } } : {}),
+        },
+      })
+    }
 
     const resultado = {
       id: tesis.id,
       titulo: tesis.titulo,
       resumen: tesis.resumen,
       palabrasClave: tesis.palabrasClave,
-      estado: tesis.estado,
+      estado: faseTerminada ? 'PROYECTO_APROBADO' : tesis.estado,
       lineaInvestigacion: tesis.lineaInvestigacion,
-      rondaActual: tesis.rondaActual,
+      rondaActual: faseTerminada ? rondaParaProgreso : tesis.rondaActual,
       faseActual: tesis.faseActual,
-      fechaLimiteEvaluacion: tesis.fechaLimiteEvaluacion,
-      fechaLimiteCorreccion: tesis.fechaLimiteCorreccion,
+      faseTerminada,
+      fechaLimiteEvaluacion: faseTerminada ? null : tesis.fechaLimiteEvaluacion,
+      fechaLimiteCorreccion: faseTerminada ? null : tesis.fechaLimiteCorreccion,
       autores: tesis.autores.map((a) => ({
         nombre: `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno}`,
         email: a.user.email,
@@ -169,7 +215,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
       // Evaluaciones de otros jurados (solo visible si ya evalué)
       jurados: tesis.jurados.map((j) => {
-        const evalActual = j.evaluaciones.find((e) => e.ronda === tesis.rondaActual)
+        const evalActual = faseTerminada
+          ? (j.evaluaciones.length > 0 ? j.evaluaciones[0] : null) // última evaluación
+          : j.evaluaciones.find((e) => e.ronda === tesis.rondaActual)
         return {
           id: j.id,
           tipo: j.tipo,
@@ -196,12 +244,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         total: juradosRequeridos.length,
         todosEvaluaron: todosJuradosEvaluaron,
         dictamenSubido: !!dictamenExistente,
+        // Resultado por unanimidad: todos deben aprobar (solo cuando todos evaluaron)
+        resultadoMayoria: todosJuradosEvaluaron ? (() => {
+          const evaluacionesRonda = juradosRequeridos
+            .map((j) => j.evaluaciones.find((e) => e.ronda === rondaParaProgreso))
+            .filter(Boolean)
+          const observados = evaluacionesRonda.filter((e) => e!.resultado === 'OBSERVADO').length
+          return observados === 0 ? 'APROBADO' : 'OBSERVADO'
+        })() : null,
       },
-      // Historial de rondas anteriores
+      // Historial de rondas anteriores (solo de la fase actual)
       rondasAnteriores: await prisma.juryEvaluation.findMany({
         where: {
           thesisId,
           ronda: { lt: tesis.rondaActual },
+          juryMember: { fase: faseJurado },
         },
         include: {
           juryMember: {

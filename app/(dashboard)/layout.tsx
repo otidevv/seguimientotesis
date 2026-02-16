@@ -90,11 +90,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       <DashboardHeader />
-      <div className="flex">
+      <div className="flex flex-1 overflow-hidden">
         <DashboardSidebar />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-4rem)] w-full lg:w-auto overflow-x-hidden">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
           {children}
         </main>
       </div>

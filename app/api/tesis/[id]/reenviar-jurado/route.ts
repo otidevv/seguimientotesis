@@ -39,10 +39,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Verificar que hay un documento de proyecto actualizado
+    const tipoDoc = tesis.estado === 'OBSERVADA_INFORME' ? 'INFORME_FINAL_DOC' : 'PROYECTO'
     const docProyecto = await prisma.thesisDocument.findFirst({
       where: {
         thesisId: tesisId,
-        tipo: tesis.estado === 'OBSERVADA_INFORME' ? 'INFORME_FINAL_DOC' : 'PROYECTO',
+        tipo: tipoDoc,
         esVersionActual: true,
       },
     })
@@ -50,6 +51,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (!docProyecto) {
       return NextResponse.json(
         { error: 'Debe subir el documento corregido antes de reenviar' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar que el documento fue subido DESPUÉS de la observación
+    // (el documento antiguo no cuenta como corrección)
+    const ultimaObservacion = await prisma.thesisStatusHistory.findFirst({
+      where: {
+        thesisId: tesisId,
+        estadoNuevo: tesis.estado as any,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (ultimaObservacion && docProyecto.createdAt <= ultimaObservacion.createdAt) {
+      return NextResponse.json(
+        { error: 'Debe subir el documento corregido antes de reenviar. El documento actual es anterior a la observación.' },
         { status: 400 }
       )
     }
@@ -62,6 +80,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       : 'EN_EVALUACION_JURADO'
 
     await prisma.$transaction([
+      // Desactivar dictámenes anteriores para que el presidente pueda subir uno nuevo en la nueva ronda
+      prisma.thesisDocument.updateMany({
+        where: {
+          thesisId: tesisId,
+          tipo: 'DICTAMEN_JURADO',
+          esVersionActual: true,
+        },
+        data: { esVersionActual: false },
+      }),
       prisma.thesis.update({
         where: { id: tesisId },
         data: {

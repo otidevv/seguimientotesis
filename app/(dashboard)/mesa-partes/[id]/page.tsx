@@ -125,6 +125,8 @@ interface Proyecto {
   lineaInvestigacion: string | null
   voucherFisicoEntregado: boolean
   voucherFisicoFecha: string | null
+  voucherInformeFisicoEntregado: boolean
+  voucherInformeFisicoFecha: string | null
   createdAt: string
   carrera: string
   facultad: {
@@ -354,6 +356,30 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
     }
   }
 
+  const confirmarVoucherInforme = async () => {
+    setProcesando(true)
+    try {
+      const response = await fetch(`/api/mesa-partes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'CONFIRMAR_VOUCHER_INFORME' }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success(data.message)
+        loadProyecto()
+      } else {
+        toast.error(data.error)
+      }
+    } catch {
+      toast.error('Error al confirmar voucher del informe final')
+    } finally {
+      setProcesando(false)
+    }
+  }
+
   // Buscar jurados
   const buscarJurados = useCallback(async (query: string) => {
     if (query.length < 2) {
@@ -363,7 +389,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
 
     setBuscando(true)
     try {
-      const response = await fetch(`/api/buscar-jurados?q=${encodeURIComponent(query)}&tesisId=${id}`)
+      const fase = proyecto?.estado === 'INFORME_FINAL' ? 'INFORME_FINAL' : 'PROYECTO'
+      const response = await fetch(`/api/buscar-jurados?q=${encodeURIComponent(query)}&tesisId=${id}&fase=${fase}`)
       const data = await response.json()
       if (data.success) {
         setResultadosBusqueda(data.data)
@@ -373,7 +400,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
     } finally {
       setBuscando(false)
     }
-  }, [id])
+  }, [id, proyecto?.estado])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -478,8 +505,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
       const uploadData = await uploadResponse.json()
 
       if (!uploadData.success) {
-        // Si falla por permisos, intentar subir via mesa-partes
-        // Pero por ahora transicionar directamente
+        toast.error(uploadData.error || 'Error al subir el archivo de resolución')
+        return
       }
 
       // Transicionar estado
@@ -540,18 +567,43 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const puedeGestionar = ['EN_REVISION', 'OBSERVADA'].includes(proyecto.estado)
   const esAsignandoJurados = proyecto.estado === 'ASIGNANDO_JURADOS'
   const esProyectoAprobado = proyecto.estado === 'PROYECTO_APROBADO'
+  const esInformeFinal = proyecto.estado === 'INFORME_FINAL'
   const docProyecto = proyecto.documentos.find((d) => d.tipo === 'PROYECTO')
   const docCartaAsesor = proyecto.documentos.find((d) => d.tipo === 'CARTA_ACEPTACION_ASESOR')
   const docCartaCoasesor = proyecto.documentos.find((d) => d.tipo === 'CARTA_ACEPTACION_COASESOR')
   const docVoucher = proyecto.documentos.find((d) => d.tipo === 'VOUCHER_PAGO')
   const docsSustentatorios = proyecto.documentos.filter((d) => d.tipo === 'DOCUMENTO_SUSTENTATORIO')
 
-  // Verificar jurados completos
-  const tiposJuradoAsignados = (proyecto.jurados || []).map((j) => j.tipo)
+  // Documentos de Informe Final
+  const docInformeFinal = proyecto.documentos.find((d) => d.tipo === 'INFORME_FINAL_DOC')
+  const docVoucherInforme = proyecto.documentos.find((d) => d.tipo === 'VOUCHER_PAGO_INFORME')
+  const docReporteTurnitin = proyecto.documentos.find((d) => d.tipo === 'REPORTE_TURNITIN')
+  const docActaVerificacion = proyecto.documentos.find((d) => d.tipo === 'ACTA_VERIFICACION_ASESOR')
+  const docResolucionAprobacion = proyecto.documentos.find((d) => d.tipo === 'RESOLUCION_APROBACION')
+  const docDictamenProyecto = proyecto.documentos.find((d) => d.tipo === 'DICTAMEN_JURADO' && d.nombre?.toLowerCase().includes('proyecto'))
+  const docDictamenInforme = proyecto.documentos.find((d) => d.tipo === 'DICTAMEN_JURADO' && d.nombre?.toLowerCase().includes('informe'))
+  const docDictamen = proyecto.documentos.find((d) => d.tipo === 'DICTAMEN_JURADO')
+
+  // Estados que muestran documentos de informe final
+  const mostrarDocsInforme = ['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'PROYECTO_APROBADO'].includes(proyecto.estado)
+  const esAprobada = proyecto.estado === 'APROBADA'
+
+  // Verificar jurados completos (fase PROYECTO)
+  const juradosProyecto = (proyecto.jurados || []).filter((j: any) => j.fase === 'PROYECTO')
+  const tiposJuradoAsignados = juradosProyecto.map((j: any) => j.tipo)
   const tienePresidente = tiposJuradoAsignados.includes('PRESIDENTE')
   const tieneVocal = tiposJuradoAsignados.includes('VOCAL')
   const tieneSecretario = tiposJuradoAsignados.includes('SECRETARIO')
   const juradosCompletos = tienePresidente && tieneVocal && tieneSecretario
+
+  // Jurados para fase INFORME_FINAL
+  const juradosInforme = (proyecto.jurados || []).filter((j: any) => j.fase === 'INFORME_FINAL')
+  const tiposJuradoInforme = juradosInforme.map((j: any) => j.tipo)
+  const tienePresidenteInforme = tiposJuradoInforme.includes('PRESIDENTE')
+  const tieneVocalInforme = tiposJuradoInforme.includes('VOCAL')
+  const tieneSecretarioInforme = tiposJuradoInforme.includes('SECRETARIO')
+  const tieneAccesitarioInforme = tiposJuradoInforme.includes('ACCESITARIO')
+  const juradosInformeCompletos = tienePresidenteInforme && tieneVocalInforme && tieneSecretarioInforme && tieneAccesitarioInforme
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -664,11 +716,11 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Jurados asignados */}
-                  {(proyecto.jurados || []).length > 0 && (
+                  {/* Jurados asignados (fase PROYECTO) */}
+                  {juradosProyecto.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-sm font-medium">Jurados asignados:</p>
-                      {proyecto.jurados.map((jurado) => (
+                      {juradosProyecto.map((jurado: any) => (
                         <div key={jurado.id} className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-background">
                           <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
                             <User className="w-4 h-4 text-purple-600" />
@@ -830,7 +882,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       id="resolucion"
                       type="file"
                       accept=".pdf"
-                      className="mt-2"
+                      className="mt-2 cursor-pointer file:cursor-pointer"
                       onChange={(e) => setArchivoResolucion(e.target.files?.[0] || null)}
                     />
                   </div>
@@ -855,8 +907,307 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               </Card>
             )}
 
+            {/* Panel para subir resolución si falta en INFORME_FINAL */}
+            {esInformeFinal && !proyecto.documentos.find((d: any) => d.tipo === 'RESOLUCION_APROBACION') && (
+              <Card className="border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileUp className="w-5 h-5 text-emerald-600" />
+                    Subir Resolución de Aprobación
+                  </CardTitle>
+                  <CardDescription>
+                    La resolución de aprobación no fue guardada correctamente. Suba el archivo nuevamente.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="resolucion-informe">Archivo de Resolución (PDF)</Label>
+                    <Input
+                      id="resolucion-informe"
+                      type="file"
+                      accept=".pdf"
+                      className="mt-2 cursor-pointer file:cursor-pointer"
+                      onChange={(e) => setArchivoResolucion(e.target.files?.[0] || null)}
+                    />
+                  </div>
+                  <Button
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    onClick={async () => {
+                      if (!archivoResolucion) {
+                        toast.error('Seleccione un archivo de resolución')
+                        return
+                      }
+                      setSubiendoResolucion(true)
+                      try {
+                        const formData = new FormData()
+                        formData.append('file', archivoResolucion)
+                        formData.append('tipoDocumento', 'RESOLUCION_APROBACION')
+                        const res = await fetch(`/api/tesis/${id}/documentos`, {
+                          method: 'POST',
+                          body: formData,
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          toast.success('Resolución subida exitosamente')
+                          setArchivoResolucion(null)
+                          loadProyecto()
+                        } else {
+                          toast.error(data.error || 'Error al subir resolución')
+                        }
+                      } catch {
+                        toast.error('Error al subir resolución')
+                      } finally {
+                        setSubiendoResolucion(false)
+                      }
+                    }}
+                    disabled={subiendoResolucion || !archivoResolucion}
+                  >
+                    {subiendoResolucion ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Subiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Subir Resolución de Aprobación
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Panel de Gestión de Jurados para Informe Final */}
+            {esInformeFinal && (
+              <Card className="border-2 border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Gavel className="w-5 h-5 text-purple-600" />
+                    Jurados para Informe Final
+                  </CardTitle>
+                  <CardDescription>
+                    Los jurados del proyecto fueron copiados automáticamente. Puede modificarlos si es necesario antes de que el estudiante envíe su informe final.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Jurados asignados para informe final */}
+                  {juradosInforme.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Jurados asignados para informe final:</p>
+                      {juradosInforme.map((jurado: any) => (
+                        <div key={jurado.id} className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-background">
+                          <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-purple-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{jurado.nombre}</p>
+                            <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
+                          </div>
+                          <Badge className={cn('text-xs', TIPO_JURADO_COLORS[jurado.tipo])}>
+                            {TIPO_JURADO_LABELS[jurado.tipo]}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => removerJurado(jurado.id)}
+                            disabled={procesando}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Indicadores de roles */}
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge variant="outline" className={cn('text-xs', tienePresidenteInforme ? 'border-green-500 text-green-600' : 'border-red-500 text-red-600')}>
+                      {tienePresidenteInforme ? <CheckCircle className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      Presidente
+                    </Badge>
+                    <Badge variant="outline" className={cn('text-xs', tieneVocalInforme ? 'border-green-500 text-green-600' : 'border-red-500 text-red-600')}>
+                      {tieneVocalInforme ? <CheckCircle className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      Vocal
+                    </Badge>
+                    <Badge variant="outline" className={cn('text-xs', tieneSecretarioInforme ? 'border-green-500 text-green-600' : 'border-red-500 text-red-600')}>
+                      {tieneSecretarioInforme ? <CheckCircle className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      Secretario
+                    </Badge>
+                    <Badge variant="outline" className={cn('text-xs', tieneAccesitarioInforme ? 'border-green-500 text-green-600' : 'border-red-500 text-red-600')}>
+                      {tieneAccesitarioInforme ? <CheckCircle className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      Accesitario
+                    </Badge>
+                  </div>
+
+                  <Separator />
+
+                  {/* Buscador para agregar/cambiar jurado */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium">Buscar y agregar jurado:</p>
+                    <div className="flex gap-2">
+                      <Select value={tipoJurado} onValueChange={setTipoJurado}>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PRESIDENTE">Presidente</SelectItem>
+                          <SelectItem value="VOCAL">Vocal</SelectItem>
+                          <SelectItem value="SECRETARIO">Secretario</SelectItem>
+                          <SelectItem value="ACCESITARIO">Accesitario</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Buscar por nombre, DNI o email..."
+                          value={busquedaJurado}
+                          onChange={(e) => setBusquedaJurado(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Resultados de busqueda */}
+                    {(buscando || resultadosBusqueda.length > 0) && busquedaJurado.length >= 2 && (
+                      <div className="border rounded-lg max-h-60 overflow-y-auto">
+                        {buscando ? (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            <span className="text-sm text-muted-foreground">Buscando...</span>
+                          </div>
+                        ) : resultadosBusqueda.length === 0 ? (
+                          <div className="text-center py-4 text-sm text-muted-foreground">
+                            No se encontraron resultados
+                          </div>
+                        ) : (
+                          resultadosBusqueda.map((resultado) => (
+                            <div
+                              key={resultado.id}
+                              className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0"
+                              onClick={() => asignarJurado(resultado.id)}
+                            >
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                <User className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{resultado.nombreCompleto}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  DNI: {resultado.numeroDocumento} - {resultado.email}
+                                </p>
+                                {resultado.esDocente && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Docente - {resultado.departamento || 'Sin departamento'}
+                                  </p>
+                                )}
+                              </div>
+                              <Button variant="outline" size="sm" disabled={procesando}>
+                                <UserPlus className="w-3 h-3 mr-1" />
+                                Asignar
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {!juradosInformeCompletos && (
+                    <p className="text-xs text-red-500 text-center">
+                      Debe tener Presidente, Vocal, Secretario y Accesitario asignados
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Confirmacion de Voucher Fisico - Informe Final */}
+            {mostrarDocsInforme && (
+              <Card className={cn(
+                'border-2',
+                proyecto.voucherInformeFisicoEntregado
+                  ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
+                  : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
+              )}>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Receipt className={cn(
+                      'w-5 h-5',
+                      proyecto.voucherInformeFisicoEntregado ? 'text-green-600' : 'text-yellow-600'
+                    )} />
+                    Voucher Fisico - Informe Final
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {proyecto.voucherInformeFisicoEntregado ? (
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-green-800 dark:text-green-200">
+                          Voucher fisico del informe final recibido
+                        </p>
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          Confirmado el {proyecto.voucherInformeFisicoFecha
+                            ? new Date(proyecto.voucherInformeFisicoFecha).toLocaleString('es-PE')
+                            : ''}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center flex-shrink-0">
+                          <AlertCircle className="w-5 h-5 text-yellow-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-yellow-800 dark:text-yellow-200">
+                            Voucher fisico del informe final pendiente
+                          </p>
+                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                            El estudiante debe entregar el voucher original del informe final en mesa de partes.
+                            {docVoucherInforme && ' El voucher digital ya fue subido al sistema.'}
+                          </p>
+                          {docVoucherInforme && (
+                            <a
+                              href={docVoucherInforme.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 mt-2 px-3 py-2 text-sm font-medium rounded-lg bg-yellow-100 dark:bg-yellow-900/40 border border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-900/60 transition-colors"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Ver Voucher Digital
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={confirmarVoucherInforme}
+                        disabled={procesando}
+                        className="w-full bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        {procesando ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Confirmando...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Confirmar Entrega de Voucher Fisico - Informe Final
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Panel informativo de estados de jurado (read-only) */}
-            {['EN_EVALUACION_JURADO', 'OBSERVADA_JURADO', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'INFORME_FINAL'].includes(proyecto.estado) && (
+            {['EN_EVALUACION_JURADO', 'OBSERVADA_JURADO', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(proyecto.estado) && (
               <Card className="border-2 border-indigo-300 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -915,14 +1266,17 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     </div>
                   )}
 
-                  {/* Lista de jurados y sus evaluaciones */}
-                  {(proyecto.jurados || []).length > 0 && (
+                  {/* Lista de jurados y sus evaluaciones (filtrados por fase actual) */}
+                  {(() => {
+                    const faseActual = ['EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(proyecto.estado) ? 'INFORME_FINAL' : 'PROYECTO'
+                    const juradosFase = (proyecto.jurados || []).filter((j: any) => j.fase === faseActual)
+                    return juradosFase.length > 0 && (
                     <>
                       <Separator />
                       <div className="space-y-2">
-                        <p className="text-sm font-medium">Jurados asignados:</p>
-                        {proyecto.jurados.map((jurado) => {
-                          const evalActual = jurado.evaluaciones.find((e) => e.ronda === proyecto.rondaActual)
+                        <p className="text-sm font-medium">Jurados asignados ({faseActual === 'INFORME_FINAL' ? 'Informe Final' : 'Proyecto'}):</p>
+                        {juradosFase.map((jurado: any) => {
+                          const evalActual = jurado.evaluaciones.find((e: any) => e.ronda === proyecto.rondaActual)
                           return (
                             <div key={jurado.id} className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-background">
                               <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
@@ -952,7 +1306,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                         })}
                       </div>
                     </>
-                  )}
+                  )
+                  })()}
                 </CardContent>
               </Card>
             )}
@@ -1003,8 +1358,19 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                           </p>
                           <p className="text-sm text-yellow-700 dark:text-yellow-300">
                             El estudiante debe entregar el voucher original en mesa de partes.
-                            {docVoucher && ' El voucher digital ya fue subido al sistema (ver documentos).'}
+                            {docVoucher && ' El voucher digital ya fue subido al sistema.'}
                           </p>
+                          {docVoucher && (
+                            <a
+                              href={docVoucher.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 mt-2 px-3 py-2 text-sm font-medium rounded-lg bg-yellow-100 dark:bg-yellow-900/40 border border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-900/60 transition-colors"
+                            >
+                              <Eye className="w-4 h-4" />
+                              Ver Voucher Digital
+                            </a>
+                          )}
                         </div>
                       </div>
                       <Button
@@ -1030,12 +1396,33 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               </Card>
             )}
 
-            {/* Documentos */}
+            {/* Banner APROBADA */}
+            {esAprobada && (
+              <Card className="border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
+                <CardContent className="py-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-7 h-7 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-green-800 dark:text-green-200">
+                        Tesis Aprobada
+                      </h3>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        El informe final de tesis ha sido aprobado por el jurado evaluador.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documentos - Aprobacion de Proyecto */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary" />
-                  Documentos
+                  Documentos - Aprobacion de Proyecto
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1083,8 +1470,68 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     iconBg="bg-indigo-100 dark:bg-indigo-900/50"
                   />
                 )}
+                {(docDictamenProyecto || (!docDictamenInforme && docDictamen && !mostrarDocsInforme)) && (
+                  <DocumentoCard
+                    titulo="Dictamen de Jurado - Proyecto"
+                    documento={docDictamenProyecto || docDictamen}
+                    iconColor="text-emerald-600"
+                    iconBg="bg-emerald-100 dark:bg-emerald-900/50"
+                  />
+                )}
               </CardContent>
             </Card>
+
+            {/* Documentos - Informe Final */}
+            {mostrarDocsInforme && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-cyan-600" />
+                    Documentos - Informe Final
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <DocumentoCard
+                    titulo="Resolucion de Aprobacion"
+                    documento={docResolucionAprobacion}
+                    iconColor="text-emerald-600"
+                    iconBg="bg-emerald-100 dark:bg-emerald-900/50"
+                  />
+                  <DocumentoCard
+                    titulo="Informe Final de Tesis"
+                    documento={docInformeFinal}
+                    iconColor="text-blue-600"
+                    iconBg="bg-blue-100 dark:bg-blue-900/50"
+                  />
+                  <DocumentoCard
+                    titulo="Voucher de Pago - Informe Final (S/ 20.00 - Cod. 465)"
+                    documento={docVoucherInforme}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-100 dark:bg-amber-900/50"
+                  />
+                  <DocumentoCard
+                    titulo="Reporte Turnitin (firmado por asesor)"
+                    documento={docReporteTurnitin}
+                    iconColor="text-red-600"
+                    iconBg="bg-red-100 dark:bg-red-900/50"
+                  />
+                  <DocumentoCard
+                    titulo="Acta de Verificacion de Similitud del Asesor"
+                    documento={docActaVerificacion}
+                    iconColor="text-indigo-600"
+                    iconBg="bg-indigo-100 dark:bg-indigo-900/50"
+                  />
+                  {(docDictamenInforme || (docDictamen && esAprobada && !docDictamenProyecto)) && (
+                    <DocumentoCard
+                      titulo="Dictamen de Jurado - Informe Final"
+                      documento={docDictamenInforme || docDictamen}
+                      iconColor="text-green-600"
+                      iconBg="bg-green-100 dark:bg-green-900/50"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Detalles */}
             {(proyecto.resumen || proyecto.lineaInvestigacion || proyecto.palabrasClave.length > 0) && (
@@ -1265,21 +1712,53 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     Jurados
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {proyecto.jurados.map((jurado) => (
-                    <div key={jurado.id} className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
-                        <User className="w-4 h-4 text-purple-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{jurado.nombre}</p>
-                        <Badge className={cn('text-[10px] px-1.5 py-0', TIPO_JURADO_COLORS[jurado.tipo])}>
-                          {TIPO_JURADO_LABELS[jurado.tipo]}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
-                      </div>
+                <CardContent className="space-y-4">
+                  {/* Jurados fase PROYECTO */}
+                  {juradosProyecto.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Aprobación de Proyecto</p>
+                      {juradosProyecto.map((jurado: any) => (
+                        <div key={jurado.id} className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-purple-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{jurado.nombre}</p>
+                            <Badge className={cn('text-[10px] px-1.5 py-0', TIPO_JURADO_COLORS[jurado.tipo])}>
+                              {TIPO_JURADO_LABELS[jurado.tipo]}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+
+                  {/* Separador si hay ambas fases */}
+                  {juradosProyecto.length > 0 && juradosInforme.length > 0 && (
+                    <Separator />
+                  )}
+
+                  {/* Jurados fase INFORME_FINAL */}
+                  {juradosInforme.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Informe Final</p>
+                      {juradosInforme.map((jurado: any) => (
+                        <div key={jurado.id} className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-cyan-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{jurado.nombre}</p>
+                            <Badge className={cn('text-[10px] px-1.5 py-0', TIPO_JURADO_COLORS[jurado.tipo])}>
+                              {TIPO_JURADO_LABELS[jurado.tipo]}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

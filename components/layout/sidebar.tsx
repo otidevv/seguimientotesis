@@ -159,20 +159,23 @@ const adminNavItems: NavItem[] = [
 // Contenido compartido del sidebar
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
-  const { hasPermission, hasRole, logout } = useAuth()
+  const { hasPermission, logout } = useAuth()
 
   const visibleMainItems = mainNavItems.filter((item) =>
     hasPermission(item.moduleCode, 'view')
   )
 
-  // Items de estudiante visibles solo para usuarios con rol ESTUDIANTE
-  const visibleStudentItems = hasRole('ESTUDIANTE') ? studentNavItems : []
+  const visibleStudentItems = studentNavItems.filter((item) =>
+    hasPermission(item.moduleCode, 'view')
+  )
 
-  // Items de docente visibles solo para usuarios con rol DOCENTE
-  const visibleDocenteItems = hasRole('DOCENTE') ? docenteNavItems : []
+  const visibleDocenteItems = docenteNavItems.filter((item) =>
+    hasPermission(item.moduleCode, 'view')
+  )
 
-  // Items de mesa de partes visibles solo para usuarios con rol MESA_PARTES
-  const visibleMesaPartesItems = (hasRole('MESA_PARTES') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')) ? mesaPartesNavItems : []
+  const visibleMesaPartesItems = mesaPartesNavItems.filter((item) =>
+    hasPermission(item.moduleCode, 'view')
+  )
 
   const visibleAdminItems = adminNavItems.filter((item) =>
     hasPermission(item.moduleCode, 'view')
@@ -333,21 +336,24 @@ export function MobileSidebar() {
 // Sidebar para desktop
 export function DesktopSidebar() {
   const pathname = usePathname()
-  const { hasPermission, hasRole, logout } = useAuth()
+  const { hasPermission, logout } = useAuth()
   const { isCollapsed, setIsCollapsed } = useSidebar()
 
   const visibleMainItems = mainNavItems.filter((item) =>
     hasPermission(item.moduleCode, 'view')
   )
 
-  // Items de estudiante visibles solo para usuarios con rol ESTUDIANTE
-  const visibleStudentItems = hasRole('ESTUDIANTE') ? studentNavItems : []
+  const visibleStudentItems = studentNavItems.filter((item) =>
+    hasPermission(item.moduleCode, 'view')
+  )
 
-  // Items de docente visibles solo para usuarios con rol DOCENTE
-  const visibleDocenteItems = hasRole('DOCENTE') ? docenteNavItems : []
+  const visibleDocenteItems = docenteNavItems.filter((item) =>
+    hasPermission(item.moduleCode, 'view')
+  )
 
-  // Items de mesa de partes visibles solo para usuarios con rol MESA_PARTES
-  const visibleMesaPartesItems = (hasRole('MESA_PARTES') || hasRole('ADMIN') || hasRole('SUPER_ADMIN')) ? mesaPartesNavItems : []
+  const visibleMesaPartesItems = mesaPartesNavItems.filter((item) =>
+    hasPermission(item.moduleCode, 'view')
+  )
 
   const visibleAdminItems = adminNavItems.filter((item) =>
     hasPermission(item.moduleCode, 'view')
@@ -410,7 +416,7 @@ export function DesktopSidebar() {
     <TooltipProvider>
       <aside
         className={cn(
-          'hidden lg:flex sticky top-16 h-[calc(100vh-4rem)] border-r bg-card transition-all duration-300 flex-col',
+          'hidden lg:flex border-r bg-card transition-[width] duration-300 flex-col overflow-hidden',
           isCollapsed ? 'w-[70px]' : 'w-[260px]'
         )}
       >
@@ -451,7 +457,7 @@ export function DesktopSidebar() {
         </div>
 
         {/* Navegación principal */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hidden whitespace-nowrap">
           {!isCollapsed && (
             <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Principal
