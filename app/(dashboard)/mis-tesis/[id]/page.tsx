@@ -1746,17 +1746,21 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               </div>
             </div>
             <div className="mt-4 ml-16 grid gap-3 sm:grid-cols-3">
-              {(tesis as any).fechaSustentacion && (
-                <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Fecha y Hora</p>
-                  <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-                    {new Date((tesis as any).fechaSustentacion).toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                  </p>
-                  <p className="text-sm text-purple-700 dark:text-purple-300">
-                    {new Date((tesis as any).fechaSustentacion).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              )}
+              {(tesis as any).fechaSustentacion && (() => {
+                const inicio = new Date((tesis as any).fechaSustentacion)
+                const fin = new Date(inicio.getTime() + 2 * 60 * 60 * 1000)
+                return (
+                  <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Fecha y Hora</p>
+                    <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+                      {inicio.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                      {inicio.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })} - {fin.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                )
+              })()}
               {(tesis as any).lugarSustentacion && (
                 <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
                   <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Lugar</p>
