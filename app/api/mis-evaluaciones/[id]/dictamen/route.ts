@@ -108,6 +108,71 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           { status: 400 }
         )
       }
+
+      // Verificar conflictos de horario antes de programar
+      const DURACION_SUSTENTACION_MS = 2 * 60 * 60 * 1000 // 2 horas
+      const inicioNueva = new Date(`${fechaSustentacion}T${horaSustentacion}:00`)
+      const finNueva = new Date(inicioNueva.getTime() + DURACION_SUSTENTACION_MS)
+
+      const inicioDia = new Date(`${fechaSustentacion}T00:00:00`)
+      const finDia = new Date(`${fechaSustentacion}T23:59:59`)
+
+      const sustentacionesDelDia = await prisma.thesis.findMany({
+        where: {
+          deletedAt: null,
+          id: { not: thesisId },
+          estado: { in: ['EN_SUSTENTACION', 'SUSTENTADA'] },
+          fechaSustentacion: { gte: inicioDia, lte: finDia },
+        },
+        select: {
+          titulo: true,
+          fechaSustentacion: true,
+          lugarSustentacion: true,
+          jurados: {
+            where: { isActive: true },
+            select: { userId: true, user: { select: { nombres: true, apellidoPaterno: true } } },
+          },
+        },
+      })
+
+      // Obtener jurados de la tesis actual
+      const juradosActuales = await prisma.thesisJury.findMany({
+        where: { thesisId, isActive: true },
+        select: { userId: true },
+      })
+      const juradoIds = juradosActuales.map(j => j.userId)
+
+      for (const sust of sustentacionesDelDia) {
+        if (!sust.fechaSustentacion) continue
+        const inicioExistente = new Date(sust.fechaSustentacion)
+        const finExistente = new Date(inicioExistente.getTime() + DURACION_SUSTENTACION_MS)
+
+        const haySolapamiento = inicioNueva < finExistente && finNueva > inicioExistente
+        if (!haySolapamiento) continue
+
+        // Conflicto por lugar
+        if (sust.lugarSustentacion?.toLowerCase().trim() === lugarSustentacion.toLowerCase().trim()) {
+          const horaIni = inicioExistente.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false })
+          const horaFn = finExistente.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false })
+          return NextResponse.json(
+            { error: `Conflicto de horario: El lugar "${lugarSustentacion}" ya tiene una sustentación programada de ${horaIni} a ${horaFn} ("${sust.titulo.substring(0, 50)}...")` },
+            { status: 409 }
+          )
+        }
+
+        // Conflicto por jurado
+        for (const jurado of sust.jurados) {
+          if (juradoIds.includes(jurado.userId)) {
+            const horaIni = inicioExistente.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false })
+            const horaFn = finExistente.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false })
+            const nombre = `${jurado.user.nombres} ${jurado.user.apellidoPaterno}`
+            return NextResponse.json(
+              { error: `Conflicto de horario: El jurado ${nombre} ya tiene otra sustentación de ${horaIni} a ${horaFn}` },
+              { status: 409 }
+            )
+          }
+        }
+      }
     }
 
     // El resultado del dictamen es determinado por mayoría, no por el presidente

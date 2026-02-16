@@ -1925,7 +1925,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   iconColor="text-amber-600"
                   iconBg="bg-amber-100 dark:bg-amber-900/50"
                 />
-                {docVoucherPago ? (
+                {docVoucherPago && tesis.estado !== 'BORRADOR' ? (
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700 -mt-2">
                     <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
                     <div>
@@ -1935,14 +1935,14 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                       </p>
                     </div>
                   </div>
-                ) : (
+                ) : !docVoucherPago ? (
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
                     <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-muted-foreground">
                       Realice el pago de <span className="font-semibold">S/. 30.00</span> al <span className="font-semibold">código 277</span> y suba el voucher escaneado. Además, debe entregar el voucher original en mesa de partes.
                     </p>
                   </div>
-                )}
+                ) : null}
 
                 {/* Mi Documento Sustentatorio */}
                 <DocumentUploadCard
@@ -2648,16 +2648,18 @@ function DocumentUploadCard({
     // No abrir el selector si se hizo clic en un enlace, botón o el input
     const target = e.target as HTMLElement
     if (target.closest('a') || target.closest('button') || target.closest('input')) return
+    // Si ya hay documento, no abrir selector al hacer clic en la tarjeta
+    if (documento) return
     if (!subiendo) inputRef.current?.click()
   }
 
   return (
     <div
       className={cn(
-        'relative rounded-xl border-2 border-dashed transition-all cursor-pointer',
+        'relative rounded-xl border-2 border-dashed transition-all',
         isDragging && 'border-primary bg-primary/5',
         documento && !isDragging && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
-        !documento && !isDragging && 'border-border hover:border-primary/50'
+        !documento && !isDragging && 'border-border hover:border-primary/50 cursor-pointer'
       )}
       onClick={handleCardClick}
       onDragOver={handleDragOver}
@@ -2691,22 +2693,20 @@ function DocumentUploadCard({
             <p className="text-xs text-muted-foreground mb-3">{descripcion}</p>
 
             {documento ? (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border">
+              <a
+                href={documento.archivoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border hover:bg-muted/50 transition-colors cursor-pointer"
+                title="Ver documento"
+              >
                 <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm flex-1 truncate">{documento.nombre}</span>
                 <span className="text-xs text-muted-foreground">
                   {formatFileSize(documento.archivoTamano)}
                 </span>
-                <a
-                  href={documento.archivoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                  title="Ver documento"
-                >
-                  <Eye className="w-4 h-4" />
-                </a>
-              </div>
+                <Eye className="w-4 h-4 text-muted-foreground" />
+              </a>
             ) : (
               <div className="text-center py-2">
                 <p className="text-xs text-muted-foreground">
@@ -2865,22 +2865,20 @@ function AdvisorStatusCard({
             </p>
 
             {asesor.estado === 'ACEPTADO' && documento ? (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border">
+              <a
+                href={documento.archivoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border hover:bg-muted/50 transition-colors cursor-pointer"
+                title="Ver carta de aceptación"
+              >
                 <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm flex-1 truncate">{documento.nombre}</span>
                 <span className="text-xs text-muted-foreground">
                   {formatFileSize(documento.archivoTamano)}
                 </span>
-                <a
-                  href={documento.archivoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                  title="Ver carta de aceptación"
-                >
-                  <Eye className="w-4 h-4" />
-                </a>
-              </div>
+                <Eye className="w-4 h-4 text-muted-foreground" />
+              </a>
             ) : asesor.estado === 'ACEPTADO' && !documento ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                 <Clock className="w-4 h-4 text-blue-600 flex-shrink-0" />
@@ -3076,22 +3074,20 @@ function ReadOnlyAdvisorCard({
 
           {/* Mostrar documento si existe */}
           {asesor.estado === 'ACEPTADO' && documento && (
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border mt-2">
+            <a
+              href={documento.archivoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border mt-2 hover:bg-muted/50 transition-colors cursor-pointer"
+              title="Ver carta de aceptación"
+            >
               <FileCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
               <span className="text-sm flex-1 truncate">Carta de Aceptación</span>
               <span className="text-xs text-muted-foreground">
                 {formatFileSize(documento.archivoTamano)}
               </span>
-              <a
-                href={documento.archivoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                title="Ver carta de aceptación"
-              >
-                <Eye className="w-4 h-4" />
-              </a>
-            </div>
+              <Eye className="w-4 h-4 text-muted-foreground" />
+            </a>
           )}
           {asesor.estado === 'ACEPTADO' && !documento && (
             <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">

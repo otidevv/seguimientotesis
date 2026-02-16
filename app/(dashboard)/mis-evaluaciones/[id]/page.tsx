@@ -124,6 +124,72 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   const [lugarSustentacion, setLugarSustentacion] = useState('')
   const [modalidadSustentacion, setModalidadSustentacion] = useState('')
 
+  // Conflictos de sustentación
+  const [conflictos, setConflictos] = useState<{
+    tipo: string
+    mensaje: string
+    tesis: string
+    horaInicio: string
+    horaFin: string
+  }[]>([])
+  const [sustentacionesDia, setSustentacionesDia] = useState<{
+    titulo: string
+    horaInicio: string
+    horaFin: string
+    lugar: string | null
+    modalidad: string | null
+  }[]>([])
+  const [verificandoConflictos, setVerificandoConflictos] = useState(false)
+  const [horaFinCalculada, setHoraFinCalculada] = useState('')
+
+  // Calcular hora fin cuando cambia hora inicio
+  useEffect(() => {
+    if (horaSustentacion) {
+      const [h, m] = horaSustentacion.split(':').map(Number)
+      const finH = h + 2
+      setHoraFinCalculada(`${String(finH).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+    } else {
+      setHoraFinCalculada('')
+    }
+  }, [horaSustentacion])
+
+  // Verificar conflictos cuando cambian fecha, hora o lugar
+  useEffect(() => {
+    if (!fechaSustentacion || !horaSustentacion) {
+      setConflictos([])
+      setSustentacionesDia([])
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setVerificandoConflictos(true)
+      try {
+        const params = new URLSearchParams({
+          fecha: fechaSustentacion,
+          hora: horaSustentacion,
+          thesisId: id,
+        })
+        if (lugarSustentacion.trim()) {
+          params.set('lugar', lugarSustentacion.trim())
+        }
+
+        const res = await fetch(`/api/sustentaciones/verificar-conflictos?${params}`)
+        const data = await res.json()
+
+        if (data.success) {
+          setConflictos(data.data.conflictos || [])
+          setSustentacionesDia(data.data.sustentacionesDia || [])
+        }
+      } catch {
+        // Silenciar errores de verificación
+      } finally {
+        setVerificandoConflictos(false)
+      }
+    }, 500) // debounce 500ms
+
+    return () => clearTimeout(timer)
+  }, [fechaSustentacion, horaSustentacion, lugarSustentacion, id])
+
   useEffect(() => {
     if (!authLoading && user) {
       loadTesis()
@@ -519,23 +585,23 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                           Programar Sustentación
                         </CardTitle>
                         <CardDescription>
-                          Ingrese los datos de la sustentación que se programará al aprobar el informe final.
+                          Ingrese los datos de la sustentación. Cada sustentación tiene una duración de <strong>2 horas</strong>.
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
+                        <div>
+                          <Label>Fecha de sustentación</Label>
+                          <Input
+                            type="date"
+                            value={fechaSustentacion}
+                            onChange={(e) => setFechaSustentacion(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="mt-1"
+                          />
+                        </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <Label>Fecha de sustentación</Label>
-                            <Input
-                              type="date"
-                              value={fechaSustentacion}
-                              onChange={(e) => setFechaSustentacion(e.target.value)}
-                              min={new Date().toISOString().split('T')[0]}
-                              className="mt-1"
-                            />
-                          </div>
-                          <div>
-                            <Label>Hora</Label>
+                            <Label>Hora inicio</Label>
                             <Input
                               type="time"
                               value={horaSustentacion}
@@ -543,7 +609,23 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                               className="mt-1"
                             />
                           </div>
+                          <div>
+                            <Label>Hora fin (automático +2h)</Label>
+                            <Input
+                              type="time"
+                              value={horaFinCalculada}
+                              readOnly
+                              disabled
+                              className="mt-1 bg-muted"
+                            />
+                          </div>
                         </div>
+                        {horaSustentacion && horaFinCalculada && (
+                          <div className="flex items-center gap-2 text-sm text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 p-2 rounded-md">
+                            <Clock className="w-4 h-4 flex-shrink-0" />
+                            <span>Horario: <strong>{horaSustentacion} - {horaFinCalculada}</strong> (2 horas)</span>
+                          </div>
+                        )}
                         <div>
                           <Label>Lugar</Label>
                           <Input
@@ -566,6 +648,56 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                             </SelectContent>
                           </Select>
                         </div>
+
+                        {/* Verificación de conflictos */}
+                        {verificandoConflictos && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground p-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Verificando disponibilidad...</span>
+                          </div>
+                        )}
+
+                        {/* Alertas de conflictos */}
+                        {conflictos.length > 0 && (
+                          <div className="space-y-2">
+                            {conflictos.map((conflicto, i) => (
+                              <div key={i} className="flex items-start gap-2 p-3 rounded-lg border-2 border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-300">
+                                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                <div className="text-sm">
+                                  <p className="font-medium">{conflicto.mensaje}</p>
+                                  <p className="text-xs mt-1 opacity-80">Tesis: {conflicto.tesis}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Sustentaciones del día */}
+                        {sustentacionesDia.length > 0 && (
+                          <div className="border rounded-lg p-3 bg-muted/30">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              Sustentaciones programadas ese día ({sustentacionesDia.length})
+                            </p>
+                            <div className="space-y-1.5">
+                              {sustentacionesDia.map((s, i) => (
+                                <div key={i} className="flex items-center gap-2 text-xs p-1.5 rounded bg-background border">
+                                  <Clock className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                                  <span className="font-mono font-medium">{s.horaInicio}-{s.horaFin}</span>
+                                  <Separator orientation="vertical" className="h-3" />
+                                  {s.lugar && (
+                                    <>
+                                      <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                                      <span className="truncate max-w-[100px]">{s.lugar}</span>
+                                      <Separator orientation="vertical" className="h-3" />
+                                    </>
+                                  )}
+                                  <span className="truncate flex-1 text-muted-foreground">{s.titulo}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   )}
@@ -584,6 +716,7 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                     className="w-full bg-amber-600 hover:bg-amber-700"
                     onClick={enviarDictamen}
                     disabled={enviando || !archivoDictamen ||
+                      conflictos.length > 0 ||
                       (tesis.progresoEvaluacion.resultadoMayoria === 'APROBADO' &&
                         (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') &&
                         (!fechaSustentacion || !horaSustentacion || !lugarSustentacion || !modalidadSustentacion))
