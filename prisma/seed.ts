@@ -284,6 +284,54 @@ async function main() {
         orden: 11,
       },
     }),
+    prisma.systemModule.upsert({
+      where: { codigo: 'mis-tesis' },
+      update: {},
+      create: {
+        nombre: 'Mis Tesis',
+        codigo: 'mis-tesis',
+        descripcion: 'Gestión de tesis del estudiante',
+        icono: 'GraduationCap',
+        ruta: '/mis-tesis',
+        orden: 12,
+      },
+    }),
+    prisma.systemModule.upsert({
+      where: { codigo: 'mis-invitaciones' },
+      update: {},
+      create: {
+        nombre: 'Mis Invitaciones',
+        codigo: 'mis-invitaciones',
+        descripcion: 'Invitaciones recibidas como coautor o asesor',
+        icono: 'Mail',
+        ruta: '/mis-invitaciones',
+        orden: 13,
+      },
+    }),
+    prisma.systemModule.upsert({
+      where: { codigo: 'mis-asesorias' },
+      update: {},
+      create: {
+        nombre: 'Mis Asesorías',
+        codigo: 'mis-asesorias',
+        descripcion: 'Gestión de asesorías del docente',
+        icono: 'GraduationCap',
+        ruta: '/mis-asesorias',
+        orden: 14,
+      },
+    }),
+    prisma.systemModule.upsert({
+      where: { codigo: 'mis-evaluaciones' },
+      update: {},
+      create: {
+        nombre: 'Mis Evaluaciones',
+        codigo: 'mis-evaluaciones',
+        descripcion: 'Evaluaciones de tesis como jurado',
+        icono: 'ClipboardCheck',
+        ruta: '/mis-evaluaciones',
+        orden: 15,
+      },
+    }),
   ])
 
   console.log(`Módulos creados: ${modulos.length}`)
