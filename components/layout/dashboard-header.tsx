@@ -15,7 +15,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ModeToggle } from '@/components/mode-toggle'
-import { LogOut, User, Settings, Bell, Menu } from 'lucide-react'
+import { NotificationPanel } from '@/components/layout/notification-panel'
+import { LogOut, User, Settings, Menu } from 'lucide-react'
 
 export function DashboardHeader() {
   const { user, logout } = useAuth()
@@ -64,14 +65,7 @@ export function DashboardHeader() {
         {/* Right side - Actions */}
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Notificaciones */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notificaciones</span>
-            {/* Badge de notificaciones */}
-            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
-              3
-            </span>
-          </Button>
+          <NotificationPanel />
 
           {/* Theme Toggle */}
           <ModeToggle />

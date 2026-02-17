@@ -5,6 +5,7 @@ import path from 'path'
 import fs from 'fs'
 import { EstadoTesis } from '@prisma/client'
 import { agregarDiasHabiles, DIAS_HABILES_CORRECCION } from '@/lib/business-days'
+import { crearNotificacion } from '@/lib/notificaciones'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -304,6 +305,43 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         },
       }),
     ])
+
+    // Notificar si se programó sustentación
+    if (nuevoEstado === 'EN_SUSTENTACION' && fechaSustentacion && horaSustentacion) {
+      try {
+        const tesisNotif = await prisma.thesis.findUnique({
+          where: { id: thesisId },
+          select: {
+            titulo: true,
+            autores: { select: { userId: true } },
+            asesores: { select: { userId: true } },
+            jurados: {
+              where: { isActive: true },
+              select: { userId: true },
+            },
+          },
+        })
+        if (tesisNotif) {
+          const destinatarios = [
+            ...tesisNotif.autores.map(a => a.userId),
+            ...tesisNotif.asesores.map(a => a.userId),
+            ...tesisNotif.jurados.map(j => j.userId),
+          ]
+          const fechaFormateada = new Date(`${fechaSustentacion}T${horaSustentacion}:00`)
+            .toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+          await crearNotificacion({
+            userId: [...new Set(destinatarios)],
+            tipo: 'SUSTENTACION_PROGRAMADA',
+            titulo: 'Sustentación programada',
+            mensaje: `Sustentación programada para ${fechaFormateada}: "${tesisNotif.titulo}"`,
+            enlace: `/mis-tesis/${thesisId}`,
+          })
+        }
+      } catch (notifError) {
+        console.error('[Notificacion] Error al notificar sustentación:', notifError)
+      }
+    }
 
     return NextResponse.json({
       success: true,

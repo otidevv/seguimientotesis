@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
+import { sendEmail, emailTemplates } from '@/lib/email'
+import { crearNotificacion } from '@/lib/notificaciones'
 
 // GET /api/tesis - Listar tesis del usuario actual
 export async function GET(request: NextRequest) {
@@ -355,6 +357,7 @@ export async function POST(request: NextRequest) {
                 nombres: true,
                 apellidoPaterno: true,
                 apellidoMaterno: true,
+                email: true,
               },
             },
           },
@@ -402,6 +405,136 @@ export async function POST(request: NextRequest) {
         changedById: user.id,
       },
     })
+
+    // === NOTIFICACIONES IN-APP ===
+    const tesistaNombre = `${user.nombres} ${user.apellidoPaterno} ${user.apellidoMaterno}`
+
+    // Notificación al asesor principal
+    await crearNotificacion({
+      userId: asesorId,
+      tipo: 'INVITACION_ASESOR',
+      titulo: 'Nueva invitación como asesor',
+      mensaje: `${tesistaNombre} te invitó como asesor de: "${tesis.titulo}"`,
+      enlace: '/mis-invitaciones',
+    })
+
+    // Notificación al coasesor si existe
+    if (coasesorId) {
+      await crearNotificacion({
+        userId: coasesorId,
+        tipo: 'INVITACION_COASESOR',
+        titulo: 'Nueva invitación como co-asesor',
+        mensaje: `${tesistaNombre} te invitó como co-asesor de: "${tesis.titulo}"`,
+        enlace: '/mis-invitaciones',
+      })
+    }
+
+    // === ENVIAR NOTIFICACIONES POR EMAIL ===
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const asesorData = tesis.asesores[0]?.user
+    const asesorNombre = asesorData
+      ? `${asesorData.nombres} ${asesorData.apellidoPaterno} ${asesorData.apellidoMaterno}`
+      : 'Sin asesor'
+
+    // 1. Email al tesista (autor principal)
+    try {
+      const tesisUrl = `${appUrl}/mis-tesis/${tesis.id}`
+      const templateTesista = emailTemplates.thesisCreated(
+        tesistaNombre,
+        tesis.titulo,
+        asesorNombre,
+        tesisUrl
+      )
+      await sendEmail({
+        to: user.email!,
+        subject: templateTesista.subject,
+        html: templateTesista.html,
+        text: templateTesista.text,
+      })
+      console.log(`[Email] Notificacion enviada al tesista: ${user.email}`)
+    } catch (emailError) {
+      console.error('[Email] Error al notificar al tesista:', emailError)
+    }
+
+    // 2. Email al asesor principal
+    if (asesorData?.email) {
+      try {
+        const invitacionesUrl = `${appUrl}/mis-invitaciones`
+        const templateAsesor = emailTemplates.advisorInvitation(
+          asesorNombre,
+          tesistaNombre,
+          tesis.titulo,
+          invitacionesUrl
+        )
+        await sendEmail({
+          to: asesorData.email,
+          subject: templateAsesor.subject,
+          html: templateAsesor.html,
+          text: templateAsesor.text,
+        })
+        console.log(`[Email] Invitacion enviada al asesor: ${asesorData.email}`)
+      } catch (emailError) {
+        console.error('[Email] Error al notificar al asesor:', emailError)
+      }
+    }
+
+    // 3. Email al coautor (si existe)
+    if (coautorId) {
+      try {
+        const coautor = await prisma.user.findUnique({
+          where: { id: coautorId },
+          select: { email: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true },
+        })
+        if (coautor?.email) {
+          const coautorNombre = `${coautor.nombres} ${coautor.apellidoPaterno} ${coautor.apellidoMaterno}`
+          const invitacionesUrl = `${appUrl}/mis-invitaciones`
+          const templateCoautor = emailTemplates.coauthorInvitation(
+            coautorNombre,
+            tesistaNombre,
+            tesis.titulo,
+            invitacionesUrl
+          )
+          await sendEmail({
+            to: coautor.email,
+            subject: templateCoautor.subject,
+            html: templateCoautor.html,
+            text: templateCoautor.text,
+          })
+          console.log(`[Email] Invitacion enviada al coautor: ${coautor.email}`)
+        }
+      } catch (emailError) {
+        console.error('[Email] Error al notificar al coautor:', emailError)
+      }
+    }
+
+    // 4. Email al coasesor (si existe)
+    if (coasesorId) {
+      try {
+        const coasesor = await prisma.user.findUnique({
+          where: { id: coasesorId },
+          select: { email: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true },
+        })
+        if (coasesor?.email) {
+          const coasesorNombre = `${coasesor.nombres} ${coasesor.apellidoPaterno} ${coasesor.apellidoMaterno}`
+          const invitacionesUrl = `${appUrl}/mis-invitaciones`
+          const templateCoasesor = emailTemplates.coadvisorInvitation(
+            coasesorNombre,
+            tesistaNombre,
+            tesis.titulo,
+            invitacionesUrl
+          )
+          await sendEmail({
+            to: coasesor.email,
+            subject: templateCoasesor.subject,
+            html: templateCoasesor.html,
+            text: templateCoasesor.text,
+          })
+          console.log(`[Email] Invitacion enviada al coasesor: ${coasesor.email}`)
+        }
+      } catch (emailError) {
+        console.error('[Email] Error al notificar al coasesor:', emailError)
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -31,7 +31,8 @@
       "Bash(npx next build:*)",
       "Bash(cd D:sistemas unamadseguimientotesis)",
       "Bash(wc:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

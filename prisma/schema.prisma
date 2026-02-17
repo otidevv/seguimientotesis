@@ -88,6 +88,7 @@ model User {
   tesisComoJurado       ThesisJury[]
   documentosSubidos     ThesisDocument[]
   cambiosEstadoTesis    ThesisStatusHistory[]
+  notificaciones        Notification[]
 
   @@index([email])
   @@index([numeroDocumento])
@@ -735,4 +736,26 @@ model JuryEvaluation {
   @@index([thesisId])
   @@index([juryMemberId])
   @@map("jury_evaluations")
+}
+
+// ============================================
+// NOTIFICACIONES IN-APP
+// ============================================
+
+/// Notificaciones del sistema para los usuarios
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  tipo        String    @db.VarChar(50)
+  titulo      String    @db.VarChar(200)
+  mensaje     String    @db.VarChar(500)
+  enlace      String?   @db.VarChar(300)
+  leida       Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, leida])
+  @@index([createdAt])
+  @@map("notifications")
 }

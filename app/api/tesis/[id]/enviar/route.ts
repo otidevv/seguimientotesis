@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { crearNotificacion } from '@/lib/notificaciones'
 
 interface RouteParams {
   params: Promise<{
@@ -222,6 +223,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     ])
 
     console.log(`[Enviar Tesis] Tesis ${tesisId} enviada a revisión por ${user.id}`)
+
+    // Notificar a usuarios con rol MESA_PARTES
+    try {
+      const mesaPartesUsers = await prisma.userRole.findMany({
+        where: {
+          role: { codigo: 'MESA_PARTES' },
+          isActive: true,
+        },
+        select: { userId: true },
+      })
+      const mesaPartesIds = mesaPartesUsers.map(u => u.userId)
+      if (mesaPartesIds.length > 0) {
+        await crearNotificacion({
+          userId: mesaPartesIds,
+          tipo: 'TESIS_EN_REVISION',
+          titulo: 'Nueva tesis enviada a revisión',
+          mensaje: `Se ha enviado a revisión: "${tesis.titulo}"`,
+          enlace: `/mesa-partes/${tesisId}`,
+        })
+      }
+    } catch (notifError) {
+      console.error('[Notificacion] Error al notificar mesa de partes:', notifError)
+    }
 
     return NextResponse.json({
       success: true,

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
 import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
+import { crearNotificacion } from '@/lib/notificaciones'
 
 // GET /api/mesa-partes/[id] - Obtener detalle de un proyecto
 export async function GET(
@@ -590,6 +591,41 @@ export async function PUT(
         changedById: user.id,
       },
     })
+
+    // Notificar a autores y asesores
+    try {
+      const tesisCompleta = await prisma.thesis.findUnique({
+        where: { id },
+        select: {
+          titulo: true,
+          autores: { select: { userId: true } },
+          asesores: { select: { userId: true } },
+        },
+      })
+      if (tesisCompleta) {
+        const destinatarios = [
+          ...tesisCompleta.autores.map(a => a.userId),
+          ...tesisCompleta.asesores.map(a => a.userId),
+        ]
+        const tipoNotif = accion === 'APROBAR' ? 'TESIS_APROBADA' : 'TESIS_OBSERVADA'
+        const tituloNotif = accion === 'APROBAR'
+          ? 'Proyecto aprobado por mesa de partes'
+          : 'Proyecto observado por mesa de partes'
+        const mensajeNotif = accion === 'APROBAR'
+          ? `Tu proyecto "${tesisCompleta.titulo}" fue aprobado por mesa de partes`
+          : `Tu proyecto "${tesisCompleta.titulo}" fue observado por mesa de partes`
+
+        await crearNotificacion({
+          userId: destinatarios,
+          tipo: tipoNotif,
+          titulo: tituloNotif,
+          mensaje: mensajeNotif,
+          enlace: `/mis-tesis/${id}`,
+        })
+      }
+    } catch (notifError) {
+      console.error('[Notificacion] Error al notificar autores/asesores:', notifError)
+    }
 
     return NextResponse.json({
       success: true,
