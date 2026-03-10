@@ -107,9 +107,6 @@ export default function NuevoProyectoPage() {
   // Estado del wizard
   const [currentStep, setCurrentStep] = useState(1)
   const [slideDirection, setSlideDirection] = useState<'right' | 'left'>('right')
-  const [autoAdvancing, setAutoAdvancing] = useState(false)
-  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const hasAutoAdvanced = useRef(false)
 
   // Estados del formulario
   const [carreras, setCarreras] = useState<Carrera[]>([])
@@ -306,27 +303,6 @@ export default function NuevoProyectoPage() {
     return () => clearTimeout(timer)
   }, [busquedaCoasesor, buscarDocente])
 
-  // Auto-avance si hay una sola carrera disponible
-  useEffect(() => {
-    if (currentStep === 1 && !loading && !hasAutoAdvanced.current) {
-      const carrerasDisponibles = carreras.filter((c) => !c.tesisActiva)
-      if (carrerasDisponibles.length === 1 && carreraSeleccionada) {
-        hasAutoAdvanced.current = true
-        setAutoAdvancing(true)
-        autoAdvanceRef.current = setTimeout(() => {
-          setSlideDirection('right')
-          setCurrentStep(2)
-          setAutoAdvancing(false)
-        }, 1200)
-      }
-    }
-    return () => {
-      if (autoAdvanceRef.current) {
-        clearTimeout(autoAdvanceRef.current)
-        autoAdvanceRef.current = null
-      }
-    }
-  }, [currentStep, loading, carreras, carreraSeleccionada])
 
   // Navegación por teclado
   useEffect(() => {
@@ -742,13 +718,6 @@ export default function NuevoProyectoPage() {
                           </div>
                           <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
                         </div>
-                      </div>
-                    )}
-
-                    {autoAdvancing && (
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-primary animate-in fade-in duration-300">
-                        <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
-                        <p className="text-sm font-medium">Avanzando al siguiente paso...</p>
                       </div>
                     )}
 
