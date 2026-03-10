@@ -80,7 +80,8 @@ function LoginForm() {
     }
 
     try {
-      await login({ email, password, rememberMe });
+      const redirectTo = searchParams.get('redirect') || undefined;
+      await login({ email, password, rememberMe, redirectTo });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     }

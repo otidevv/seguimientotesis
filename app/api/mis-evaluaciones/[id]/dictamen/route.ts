@@ -6,6 +6,7 @@ import fs from 'fs'
 import { EstadoTesis } from '@prisma/client'
 import { agregarDiasHabiles, DIAS_HABILES_CORRECCION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
+import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -176,7 +177,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // El resultado del dictamen es determinado por mayoría, no por el presidente
+    // El resultado del dictamen es determinado por unanimidad de votos del jurado
     const resultado = resultadoMayoria
     const detalleVotacion = `Votacion: ${aprobados} aprobado(s), ${observados} observado(s)`
 
@@ -306,6 +307,119 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }),
     ])
 
+    // Notificar a tesistas y asesores sobre el resultado del dictamen
+    try {
+      const tesisNotifDictamen = await prisma.thesis.findUnique({
+        where: { id: thesisId },
+        select: {
+          titulo: true,
+          autores: {
+            include: {
+              user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+              studentCareer: {
+                select: {
+                  facultad: { select: { nombre: true, codigo: true } },
+                },
+              },
+            },
+            orderBy: { orden: 'asc' },
+          },
+          asesores: {
+            include: {
+              user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+            },
+          },
+        },
+      })
+
+      if (tesisNotifDictamen) {
+        const primerAutor = tesisNotifDictamen.autores[0]
+        const facultadCodigo = primerAutor?.studentCareer?.facultad?.codigo || 'FI'
+        const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const faseLabel = faseEvaluacion === 'INFORME_FINAL' ? 'informe final' : 'proyecto'
+        const resultadoLabel = resultado === 'APROBADO' ? 'aprobado' : 'observado'
+
+        const tipoNotif = resultado === 'APROBADO' ? 'DICTAMEN_APROBADO' : 'DICTAMEN_OBSERVADO'
+        const tituloNotif = resultado === 'APROBADO'
+          ? `${faseEvaluacion === 'INFORME_FINAL' ? 'Informe final' : 'Proyecto'} aprobado por el jurado`
+          : `${faseEvaluacion === 'INFORME_FINAL' ? 'Informe final' : 'Proyecto'} observado por el jurado`
+        const mensajeNotif = `Tu ${faseLabel} "${tesisNotifDictamen.titulo}" fue ${resultadoLabel} por el jurado evaluador`
+
+        // Notificación en sistema a tesistas
+        await crearNotificacion({
+          userId: tesisNotifDictamen.autores.map(a => a.user.id),
+          tipo: tipoNotif,
+          titulo: tituloNotif,
+          mensaje: mensajeNotif,
+          enlace: `/mis-tesis/${thesisId}`,
+        })
+
+        // Notificación en sistema a asesores
+        await crearNotificacion({
+          userId: tesisNotifDictamen.asesores.map(a => a.user.id),
+          tipo: tipoNotif,
+          titulo: tituloNotif,
+          mensaje: mensajeNotif,
+          enlace: `/mis-asesorias/${thesisId}`,
+        })
+
+        // Email a tesistas
+        for (const autor of tesisNotifDictamen.autores) {
+          if (!autor.user.email) continue
+          try {
+            const nombre = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
+            const template = emailTemplates.juryDictamen(
+              nombre,
+              tesisNotifDictamen.titulo,
+              resultado,
+              faseEvaluacion,
+              observaciones?.trim() || '',
+              facultadNombre,
+              `${appUrl}/mis-tesis/${thesisId}`
+            )
+            await sendEmailByFaculty(facultadCodigo, {
+              to: autor.user.email,
+              subject: template.subject,
+              html: template.html,
+              text: template.text,
+            })
+            console.log(`[Email] Dictamen ${resultadoLabel} enviado a tesista: ${autor.user.email}`)
+          } catch (emailError) {
+            console.error(`[Email] Error al notificar tesista ${autor.user.email}:`, emailError)
+          }
+        }
+
+        // Email a asesores
+        for (const asesor of tesisNotifDictamen.asesores) {
+          if (!asesor.user.email) continue
+          try {
+            const nombre = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()
+            const template = emailTemplates.juryDictamen(
+              nombre,
+              tesisNotifDictamen.titulo,
+              resultado,
+              faseEvaluacion,
+              observaciones?.trim() || '',
+              facultadNombre,
+              `${appUrl}/mis-asesorias/${thesisId}`
+            )
+            await sendEmailByFaculty(facultadCodigo, {
+              to: asesor.user.email,
+              subject: template.subject,
+              html: template.html,
+              text: template.text,
+            })
+            console.log(`[Email] Dictamen ${resultadoLabel} enviado a asesor: ${asesor.user.email}`)
+          } catch (emailError) {
+            console.error(`[Email] Error al notificar asesor ${asesor.user.email}:`, emailError)
+          }
+        }
+      }
+    } catch (notifError) {
+      console.error('[Notificacion] Error al notificar dictamen:', notifError)
+    }
+
     // Notificar si se programó sustentación
     if (nuevoEstado === 'EN_SUSTENTACION' && fechaSustentacion && horaSustentacion) {
       try {
@@ -317,26 +431,48 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             asesores: { select: { userId: true } },
             jurados: {
               where: { isActive: true },
-              select: { userId: true },
+              select: { id: true, userId: true },
             },
           },
         })
         if (tesisNotif) {
-          const destinatarios = [
-            ...tesisNotif.autores.map(a => a.userId),
-            ...tesisNotif.asesores.map(a => a.userId),
-            ...tesisNotif.jurados.map(j => j.userId),
-          ]
           const fechaFormateada = new Date(`${fechaSustentacion}T${horaSustentacion}:00`)
             .toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-          await crearNotificacion({
-            userId: [...new Set(destinatarios)],
-            tipo: 'SUSTENTACION_PROGRAMADA',
-            titulo: 'Sustentación programada',
-            mensaje: `Sustentación programada para ${fechaFormateada}: "${tesisNotif.titulo}"`,
-            enlace: `/mis-tesis/${thesisId}`,
-          })
+          // Notificación a autores → /mis-tesis/
+          const idsAutores = tesisNotif.autores.map(a => a.userId)
+          if (idsAutores.length > 0) {
+            await crearNotificacion({
+              userId: idsAutores,
+              tipo: 'SUSTENTACION_PROGRAMADA',
+              titulo: 'Sustentación programada',
+              mensaje: `Sustentación programada para ${fechaFormateada}: "${tesisNotif.titulo}"`,
+              enlace: `/mis-tesis/${thesisId}`,
+            })
+          }
+
+          // Notificación a asesores → /mis-asesorias/
+          const idsAsesores = tesisNotif.asesores.map(a => a.userId)
+          if (idsAsesores.length > 0) {
+            await crearNotificacion({
+              userId: idsAsesores,
+              tipo: 'SUSTENTACION_PROGRAMADA',
+              titulo: 'Sustentación programada',
+              mensaje: `Sustentación programada para ${fechaFormateada}: "${tesisNotif.titulo}"`,
+              enlace: `/mis-asesorias/${thesisId}`,
+            })
+          }
+
+          // Notificación a jurados → /mis-evaluaciones/ con juradoId
+          for (const jurado of tesisNotif.jurados) {
+            await crearNotificacion({
+              userId: [jurado.userId],
+              tipo: 'SUSTENTACION_PROGRAMADA',
+              titulo: 'Sustentación programada',
+              mensaje: `Sustentación programada para ${fechaFormateada}: "${tesisNotif.titulo}"`,
+              enlace: `/mis-evaluaciones/${thesisId}?juradoId=${jurado.id}`,
+            })
+          }
         }
       } catch (notifError) {
         console.error('[Notificacion] Error al notificar sustentación:', notifError)

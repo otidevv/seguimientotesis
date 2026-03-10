@@ -951,7 +951,7 @@ export default function NuevoProyectoPage() {
                                 <button
                                   key={p.id}
                                   type="button"
-                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
+                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
                                   onClick={() => {
                                     setCoautorSeleccionado(p)
                                     setBusquedaCoautor('')
@@ -1045,7 +1045,7 @@ export default function NuevoProyectoPage() {
                                 <button
                                   key={p.id}
                                   type="button"
-                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
+                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
                                   onClick={() => {
                                     setAsesorSeleccionado(p)
                                     setBusquedaAsesor('')
@@ -1139,7 +1139,7 @@ export default function NuevoProyectoPage() {
                                 <button
                                   key={p.id}
                                   type="button"
-                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
+                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
                                   onClick={() => {
                                     setCoasesorSeleccionado(p)
                                     setBusquedaCoasesor('')
@@ -1197,7 +1197,7 @@ export default function NuevoProyectoPage() {
                       <div className="p-4 rounded-xl bg-muted/50 space-y-3">
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground uppercase tracking-wide">Carrera</p>
-                          <button type="button" onClick={() => goToStep(1)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
+                          <button type="button" onClick={() => goToStep(1)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors cursor-pointer">
                             <Pencil className="w-3 h-3" />
                             Editar
                           </button>
@@ -1211,7 +1211,7 @@ export default function NuevoProyectoPage() {
                       <div className="p-4 rounded-xl bg-muted/50 space-y-3">
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground uppercase tracking-wide">Proyecto</p>
-                          <button type="button" onClick={() => goToStep(2)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
+                          <button type="button" onClick={() => goToStep(2)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors cursor-pointer">
                             <Pencil className="w-3 h-3" />
                             Editar
                           </button>
@@ -1247,7 +1247,7 @@ export default function NuevoProyectoPage() {
                       <div className="p-4 rounded-xl bg-muted/50 space-y-3">
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground uppercase tracking-wide">Equipo de Investigación</p>
-                          <button type="button" onClick={() => goToStep(3)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors">
+                          <button type="button" onClick={() => goToStep(3)} className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors cursor-pointer">
                             <Pencil className="w-3 h-3" />
                             Editar
                           </button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -125,6 +126,7 @@ const TIPO_CONFIG: Record<string, { label: string; color: string; icon: typeof U
 }
 
 export default function MisInvitacionesPage() {
+  const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
   const [invitaciones, setInvitaciones] = useState<Invitacion[]>([])
   const [conteo, setConteo] = useState<Conteo>({ total: 0, pendientes: 0, aceptadas: 0, rechazadas: 0 })
@@ -233,6 +235,19 @@ export default function MisInvitacionesPage() {
       if (data.success) {
         toast.success(data.message)
         setDialogOpen(false)
+
+        // Si acepto como asesor/coasesor, redirigir a la asesoria para subir carta de aceptacion
+        if (accion === 'ACEPTAR' && (selectedInvitacion.tipoInvitacion === 'ASESOR' || selectedInvitacion.tipoInvitacion === 'COASESOR')) {
+          router.push(`/mis-asesorias/${selectedInvitacion.tesis.id}`)
+          return
+        }
+
+        // Si acepto como coautor, redirigir a la tesis
+        if (accion === 'ACEPTAR' && selectedInvitacion.tipoInvitacion === 'COAUTOR') {
+          router.push(`/mis-tesis/${selectedInvitacion.tesis.id}`)
+          return
+        }
+
         loadInvitaciones()
       } else {
         toast.error(data.error || 'Error al procesar respuesta')

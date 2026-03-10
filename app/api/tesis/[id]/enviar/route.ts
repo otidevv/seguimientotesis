@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { crearNotificacion } from '@/lib/notificaciones'
+import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 
 interface RouteParams {
   params: Promise<{
@@ -39,6 +40,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 id: true,
                 nombres: true,
                 apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
+              },
+            },
+            studentCareer: {
+              select: {
+                facultad: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                    codigo: true,
+                  },
+                },
               },
             },
           },
@@ -51,6 +65,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 id: true,
                 nombres: true,
                 apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
               },
             },
           },
@@ -74,10 +90,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Verificar que la tesis está en estado BORRADOR
-    if (tesis.estado !== 'BORRADOR') {
+    // Verificar que la tesis está en estado BORRADOR u OBSERVADA (reenvío tras correcciones)
+    if (tesis.estado !== 'BORRADOR' && tesis.estado !== 'OBSERVADA') {
       return NextResponse.json(
-        { error: 'Solo se pueden enviar tesis en estado borrador' },
+        { error: 'Solo se pueden enviar tesis en estado borrador u observada' },
         { status: 400 }
       )
     }
@@ -214,9 +230,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       prisma.thesisStatusHistory.create({
         data: {
           thesisId: tesisId,
-          estadoAnterior: 'BORRADOR',
+          estadoAnterior: tesis.estado,
           estadoNuevo: 'EN_REVISION',
-          comentario: 'Tesis enviada a revisión por el autor',
+          comentario: tesis.estado === 'OBSERVADA'
+            ? 'Tesis reenviada a revisión tras correcciones'
+            : 'Tesis enviada a revisión por el autor',
           changedById: user.id,
         },
       }),
@@ -245,6 +263,67 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     } catch (notifError) {
       console.error('[Notificacion] Error al notificar mesa de partes:', notifError)
+    }
+
+    // === ENVIAR CORREOS ELECTRÓNICOS ===
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const primerAutor = tesis.autores[0]
+    const facultad = primerAutor?.studentCareer?.facultad
+    const facultadCodigo = facultad?.codigo || 'FI'
+    const facultadNombre = facultad?.nombre || 'Facultad'
+
+    // Email a cada autor (tesistas)
+    for (const autor of tesis.autores) {
+      if (autor.user?.email) {
+        try {
+          const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
+          const tesisUrl = `${appUrl}/mis-tesis/${tesisId}`
+          const template = emailTemplates.thesisSubmittedForReview(
+            nombreAutor,
+            tesis.titulo,
+            facultadNombre,
+            tesisUrl
+          )
+          await sendEmailByFaculty(facultadCodigo, {
+            to: autor.user.email,
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
+          })
+          console.log(`[Email] Notificacion revision enviada al tesista: ${autor.user.email}`)
+        } catch (emailError) {
+          console.error(`[Email] Error al notificar tesista ${autor.user.email}:`, emailError)
+        }
+      }
+    }
+
+    // Email a cada asesor
+    for (const asesor of tesis.asesores) {
+      if (asesor.user?.email) {
+        try {
+          const nombreAsesor = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()
+          const nombreTesista = primerAutor?.user
+            ? `${primerAutor.user.nombres} ${primerAutor.user.apellidoPaterno} ${primerAutor.user.apellidoMaterno || ''}`.trim()
+            : 'Tesista'
+          const tesisUrl = `${appUrl}/mis-asesorias/${tesisId}`
+          const template = emailTemplates.thesisSubmittedForReviewAdvisor(
+            nombreAsesor,
+            nombreTesista,
+            tesis.titulo,
+            facultadNombre,
+            tesisUrl
+          )
+          await sendEmailByFaculty(facultadCodigo, {
+            to: asesor.user.email,
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
+          })
+          console.log(`[Email] Notificacion revision enviada al asesor: ${asesor.user.email}`)
+        } catch (emailError) {
+          console.error(`[Email] Error al notificar asesor ${asesor.user.email}:`, emailError)
+        }
+      }
     }
 
     return NextResponse.json({

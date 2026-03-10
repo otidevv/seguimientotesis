@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
 import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
+import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 
 // GET /api/mesa-partes/[id] - Obtener detalle de un proyecto
 export async function GET(
@@ -82,6 +83,8 @@ export async function GET(
             OR: [
               { esVersionActual: true },
               { tipo: 'DICTAMEN_JURADO' },
+              { tipo: 'RESOLUCION_JURADO' },
+              { tipo: 'RESOLUCION_JURADO_INFORME' },
             ],
           },
           select: {
@@ -176,6 +179,10 @@ export async function GET(
       voucherFisicoFecha: tesis.voucherFisicoFecha,
       voucherInformeFisicoEntregado: tesis.voucherInformeFisicoEntregado,
       voucherInformeFisicoFecha: tesis.voucherInformeFisicoFecha,
+      voucherSustentacionFisicoEntregado: tesis.voucherSustentacionFisicoEntregado,
+      voucherSustentacionFisicoFecha: tesis.voucherSustentacionFisicoFecha,
+      ejemplaresEntregados: tesis.ejemplaresEntregados,
+      ejemplaresEntregadosFecha: tesis.ejemplaresEntregadosFecha,
       fechaSustentacion: tesis.fechaSustentacion,
       lugarSustentacion: tesis.lugarSustentacion,
       modalidadSustentacion: tesis.modalidadSustentacion,
@@ -298,7 +305,7 @@ export async function PUT(
     const { accion, comentario } = body
 
     // Validar acción
-    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR', 'CONFIRMAR_VOUCHER', 'CONFIRMAR_VOUCHER_INFORME', 'CONFIRMAR_JURADOS', 'SUBIR_RESOLUCION']
+    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR', 'CONFIRMAR_VOUCHER', 'CONFIRMAR_VOUCHER_INFORME', 'CONFIRMAR_JURADOS', 'SUBIR_RESOLUCION', 'CONFIRMAR_VOUCHER_SUSTENTACION', 'CONFIRMAR_EJEMPLARES', 'SUBIR_RESOLUCION_SUSTENTACION']
     if (!accion || !accionesValidas.includes(accion)) {
       return NextResponse.json(
         { error: 'Acción inválida' },
@@ -377,7 +384,7 @@ export async function PUT(
 
     // Acción especial: confirmar voucher físico informe final
     if (accion === 'CONFIRMAR_VOUCHER_INFORME') {
-      if (!['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(tesis.estado)) {
+      if (!['INFORME_FINAL', 'EN_REVISION_INFORME', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(tesis.estado)) {
         return NextResponse.json(
           { error: 'No se puede confirmar el voucher de informe final en el estado actual' },
           { status: 400 }
@@ -422,9 +429,14 @@ export async function PUT(
         )
       }
 
-      // Verificar que hay al menos presidente, vocal y secretario
+      // Verificar que hay presidente, vocal, secretario y accesitario
       const jurados = await prisma.thesisJury.findMany({
         where: { thesisId: id, isActive: true, fase: 'PROYECTO' },
+        include: {
+          user: {
+            select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true },
+          },
+        },
       })
 
       const tiposAsignados = jurados.map((j) => j.tipo)
@@ -432,6 +444,7 @@ export async function PUT(
       if (!tiposAsignados.includes('PRESIDENTE')) faltantes.push('Presidente')
       if (!tiposAsignados.includes('VOCAL')) faltantes.push('Vocal')
       if (!tiposAsignados.includes('SECRETARIO')) faltantes.push('Secretario')
+      if (!tiposAsignados.includes('ACCESITARIO')) faltantes.push('Accesitario')
 
       if (faltantes.length > 0) {
         return NextResponse.json(
@@ -463,6 +476,115 @@ export async function PUT(
           },
         }),
       ])
+
+      // Notificaciones a jurados y tesistas
+      try {
+        const tesisCompleta = await prisma.thesis.findUnique({
+          where: { id },
+          include: {
+            autores: {
+              include: {
+                user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+                studentCareer: {
+                  select: {
+                    facultad: { select: { nombre: true, codigo: true } },
+                  },
+                },
+              },
+              orderBy: { orden: 'asc' },
+            },
+          },
+        })
+
+        if (tesisCompleta) {
+          const primerAutor = tesisCompleta.autores[0]
+          const facultadCodigo = primerAutor?.studentCareer?.facultad?.codigo || 'FI'
+          const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+          const fechaLimiteStr = fechaLimite.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
+          const nombresAutores = tesisCompleta.autores.map(a =>
+            `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno || ''}`.trim()
+          ).join(', ')
+
+          const TIPO_JURADO_NOMBRE: Record<string, string> = {
+            PRESIDENTE: 'Presidente',
+            VOCAL: 'Vocal',
+            SECRETARIO: 'Secretario',
+            ACCESITARIO: 'Accesitario',
+          }
+
+          // Notificación en sistema a jurados
+          await crearNotificacion({
+            userId: jurados.map(j => j.user.id),
+            tipo: 'JURADO_ASIGNADO',
+            titulo: 'Asignado como jurado evaluador',
+            mensaje: `Ha sido designado como jurado evaluador del proyecto "${tesisCompleta.titulo}"`,
+            enlace: `/mis-evaluaciones`,
+          })
+
+          // Notificación en sistema a tesistas
+          await crearNotificacion({
+            userId: tesisCompleta.autores.map(a => a.user.id),
+            tipo: 'JURADOS_CONFIRMADOS',
+            titulo: 'Jurados asignados - Evaluacion iniciada',
+            mensaje: `Los jurados de tu proyecto "${tesisCompleta.titulo}" han sido confirmados. Fecha limite de evaluacion: ${fechaLimiteStr}`,
+            enlace: `/mis-tesis/${id}`,
+          })
+
+          // Email a cada jurado
+          for (const jurado of jurados) {
+            if (!jurado.user.email) continue
+            try {
+              const nombreJurado = `${jurado.user.nombres} ${jurado.user.apellidoPaterno} ${jurado.user.apellidoMaterno || ''}`.trim()
+              const tipoNombre = TIPO_JURADO_NOMBRE[jurado.tipo] || jurado.tipo
+              const template = emailTemplates.juryAssigned(
+                nombreJurado,
+                tipoNombre,
+                tesisCompleta.titulo,
+                nombresAutores,
+                facultadNombre,
+                fechaLimiteStr,
+                `${appUrl}/mis-evaluaciones`
+              )
+              await sendEmailByFaculty(facultadCodigo, {
+                to: jurado.user.email,
+                subject: template.subject,
+                html: template.html,
+                text: template.text,
+              })
+              console.log(`[Email] Notificacion jurado asignado enviada a: ${jurado.user.email}`)
+            } catch (emailError) {
+              console.error(`[Email] Error al notificar jurado ${jurado.user.email}:`, emailError)
+            }
+          }
+
+          // Email a cada tesista
+          for (const autor of tesisCompleta.autores) {
+            if (!autor.user.email) continue
+            try {
+              const nombreTesista = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
+              const template = emailTemplates.juryConfirmedStudent(
+                nombreTesista,
+                tesisCompleta.titulo,
+                facultadNombre,
+                fechaLimiteStr,
+                `${appUrl}/mis-tesis/${id}`
+              )
+              await sendEmailByFaculty(facultadCodigo, {
+                to: autor.user.email,
+                subject: template.subject,
+                html: template.html,
+                text: template.text,
+              })
+              console.log(`[Email] Notificacion jurados confirmados enviada a tesista: ${autor.user.email}`)
+            } catch (emailError) {
+              console.error(`[Email] Error al notificar tesista ${autor.user.email}:`, emailError)
+            }
+          }
+        }
+      } catch (notifError) {
+        console.error('[Notificacion] Error al notificar sobre jurados confirmados:', notifError)
+      }
 
       return NextResponse.json({
         success: true,
@@ -533,6 +655,381 @@ export async function PUT(
       })
     }
 
+    // Acción: CONFIRMAR_VOUCHER_SUSTENTACION (solo en EN_SUSTENTACION)
+    if (accion === 'CONFIRMAR_VOUCHER_SUSTENTACION') {
+      if (tesis.estado !== 'EN_SUSTENTACION') {
+        return NextResponse.json(
+          { error: 'No se puede confirmar el voucher de sustentación en el estado actual' },
+          { status: 400 }
+        )
+      }
+
+      await prisma.thesis.update({
+        where: { id },
+        data: {
+          voucherSustentacionFisicoEntregado: true,
+          voucherSustentacionFisicoFecha: new Date(),
+        },
+      })
+
+      await prisma.thesisStatusHistory.create({
+        data: {
+          thesisId: id,
+          estadoAnterior: tesis.estado,
+          estadoNuevo: tesis.estado,
+          comentario: 'Vouchers físicos de sustentación (Cod. 384 + 466) recibidos — confirmado por Mesa de Partes',
+          changedById: user.id,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Vouchers físicos de sustentación confirmados exitosamente',
+        data: {
+          id: tesis.id,
+          voucherSustentacionFisicoEntregado: true,
+          voucherSustentacionFisicoFecha: new Date(),
+        },
+      })
+    }
+
+    // Acción: CONFIRMAR_EJEMPLARES (solo en EN_SUSTENTACION)
+    if (accion === 'CONFIRMAR_EJEMPLARES') {
+      if (tesis.estado !== 'EN_SUSTENTACION') {
+        return NextResponse.json(
+          { error: 'No se puede confirmar los ejemplares en el estado actual' },
+          { status: 400 }
+        )
+      }
+
+      await prisma.thesis.update({
+        where: { id },
+        data: {
+          ejemplaresEntregados: true,
+          ejemplaresEntregadosFecha: new Date(),
+        },
+      })
+
+      await prisma.thesisStatusHistory.create({
+        data: {
+          thesisId: id,
+          estadoAnterior: tesis.estado,
+          estadoNuevo: tesis.estado,
+          comentario: '4 ejemplares del informe final en folder manila recibidos — confirmado por Mesa de Partes',
+          changedById: user.id,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Ejemplares confirmados exitosamente',
+        data: {
+          id: tesis.id,
+          ejemplaresEntregados: true,
+          ejemplaresEntregadosFecha: new Date(),
+        },
+      })
+    }
+
+    // Acción: SUBIR_RESOLUCION_SUSTENTACION (solo en EN_SUSTENTACION, requiere 3 confirmaciones)
+    if (accion === 'SUBIR_RESOLUCION_SUSTENTACION') {
+      if (tesis.estado !== 'EN_SUSTENTACION') {
+        return NextResponse.json(
+          { error: 'Solo se puede subir resolución de sustentación en estado EN_SUSTENTACION' },
+          { status: 400 }
+        )
+      }
+
+      // Verificar que las confirmaciones físicas estén completas
+      if (!tesis.voucherSustentacionFisicoEntregado) {
+        return NextResponse.json(
+          { error: 'Debe confirmar la entrega de los vouchers físicos de sustentación primero' },
+          { status: 400 }
+        )
+      }
+      if (!tesis.ejemplaresEntregados) {
+        return NextResponse.json(
+          { error: 'Debe confirmar la entrega de los 4 ejemplares del informe final primero' },
+          { status: 400 }
+        )
+      }
+
+      await prisma.thesisStatusHistory.create({
+        data: {
+          thesisId: id,
+          estadoAnterior: tesis.estado,
+          estadoNuevo: tesis.estado,
+          comentario: comentario?.trim() || 'Resolución de sustentación subida por Mesa de Partes. Todos los requisitos cumplidos.',
+          changedById: user.id,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Resolución de sustentación registrada exitosamente',
+        data: { id: tesis.id, estado: tesis.estado },
+      })
+    }
+
+    // === ACCIONES PARA EN_REVISION_INFORME (revisión de informe final por mesa de partes) ===
+    if (tesis.estado === 'EN_REVISION_INFORME') {
+      if (accion !== 'APROBAR' && accion !== 'OBSERVAR') {
+        return NextResponse.json(
+          { error: `Solo se puede aprobar u observar un informe en revisión` },
+          { status: 400 }
+        )
+      }
+
+      // Bloquear aprobación si no se ha confirmado el voucher físico del informe
+      if (accion === 'APROBAR' && !tesis.voucherInformeFisicoEntregado) {
+        return NextResponse.json(
+          { error: 'Debe confirmar la entrega del voucher físico del informe final antes de aprobar' },
+          { status: 400 }
+        )
+      }
+
+      if (accion === 'APROBAR') {
+        // APROBAR informe → EN_EVALUACION_INFORME (notificar jurados y tesistas)
+        const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
+
+        await prisma.$transaction([
+          prisma.thesis.update({
+            where: { id },
+            data: {
+              estado: 'EN_EVALUACION_INFORME',
+              rondaActual: 1,
+              fechaLimiteEvaluacion: fechaLimite,
+              fechaLimiteCorreccion: null,
+            },
+          }),
+          prisma.thesisStatusHistory.create({
+            data: {
+              thesisId: id,
+              estadoAnterior: 'EN_REVISION_INFORME',
+              estadoNuevo: 'EN_EVALUACION_INFORME',
+              comentario: comentario?.trim() || `Informe final aprobado por Mesa de Partes. Evaluación por jurados iniciada. Fecha límite (${DIAS_HABILES_EVALUACION} días hábiles): ${fechaLimite.toLocaleDateString('es-PE')}`,
+              changedById: user.id,
+            },
+          }),
+        ])
+
+        // Notificaciones a jurados y tesistas
+        try {
+          const tesisCompleta = await prisma.thesis.findUnique({
+            where: { id },
+            include: {
+              autores: {
+                include: {
+                  user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+                  studentCareer: {
+                    select: {
+                      facultad: { select: { nombre: true, codigo: true } },
+                    },
+                  },
+                },
+                orderBy: { orden: 'asc' },
+              },
+              jurados: {
+                where: { isActive: true, fase: 'INFORME_FINAL' },
+                include: {
+                  user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+                },
+              },
+            },
+          })
+
+          if (tesisCompleta) {
+            const primerAutor = tesisCompleta.autores[0]
+            const facultadCodigo = primerAutor?.studentCareer?.facultad?.codigo || 'FI'
+            const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+            const fechaLimiteStr = fechaLimite.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
+            const nombresAutores = tesisCompleta.autores.map(a =>
+              `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno || ''}`.trim()
+            ).join(', ')
+
+            const TIPO_JURADO_NOMBRE: Record<string, string> = {
+              PRESIDENTE: 'Presidente',
+              VOCAL: 'Vocal',
+              SECRETARIO: 'Secretario',
+              ACCESITARIO: 'Accesitario',
+            }
+
+            // Notificación en sistema a jurados
+            const juradoIds = tesisCompleta.jurados.map(j => j.user.id)
+            if (juradoIds.length > 0) {
+              await crearNotificacion({
+                userId: juradoIds,
+                tipo: 'INFORME_EN_EVALUACION',
+                titulo: 'Informe final enviado para evaluación',
+                mensaje: `El informe final "${tesisCompleta.titulo}" ha sido aprobado por mesa de partes y está listo para su evaluación. Fecha límite: ${fechaLimiteStr}`,
+                enlace: `/mis-evaluaciones`,
+              })
+            }
+
+            // Notificación en sistema a tesistas
+            const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+            if (idsAutores.length > 0) {
+              await crearNotificacion({
+                userId: idsAutores,
+                tipo: 'INFORME_APROBADO_MESA',
+                titulo: 'Informe final aprobado por mesa de partes',
+                mensaje: `Tu informe final "${tesisCompleta.titulo}" fue aprobado por mesa de partes. Los jurados iniciarán la evaluación. Fecha límite: ${fechaLimiteStr}`,
+                enlace: `/mis-tesis/${id}`,
+              })
+            }
+
+            // Email a cada jurado
+            for (const jurado of tesisCompleta.jurados) {
+              if (!jurado.user.email) continue
+              try {
+                const nombreJurado = `${jurado.user.nombres} ${jurado.user.apellidoPaterno} ${jurado.user.apellidoMaterno || ''}`.trim()
+                const tipoNombre = TIPO_JURADO_NOMBRE[jurado.tipo] || jurado.tipo
+                const template = emailTemplates.juryAssigned(
+                  nombreJurado,
+                  tipoNombre,
+                  tesisCompleta.titulo,
+                  nombresAutores,
+                  facultadNombre,
+                  fechaLimiteStr,
+                  `${appUrl}/mis-evaluaciones`
+                )
+                await sendEmailByFaculty(facultadCodigo, {
+                  to: jurado.user.email,
+                  subject: `Informe Final Enviado para Evaluación - ${tipoNombre} - SeguiTesis UNAMAD`,
+                  html: template.html,
+                  text: template.text,
+                })
+                console.log(`[Email] Notificacion informe final enviada al jurado: ${jurado.user.email}`)
+              } catch (emailError) {
+                console.error(`[Email] Error al notificar jurado ${jurado.user.email}:`, emailError)
+              }
+            }
+
+            // Email a cada tesista
+            for (const autor of tesisCompleta.autores) {
+              if (!autor.user.email) continue
+              try {
+                const nombreTesista = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
+                const template = emailTemplates.thesisApproved(
+                  nombreTesista,
+                  tesisCompleta.titulo,
+                  facultadNombre,
+                  `${appUrl}/mis-tesis/${id}`
+                )
+                await sendEmailByFaculty(facultadCodigo, {
+                  to: autor.user.email,
+                  subject: `Informe Final Aprobado - Evaluación Iniciada - SeguiTesis UNAMAD`,
+                  html: template.html,
+                  text: template.text,
+                })
+                console.log(`[Email] Notificacion informe aprobado enviada a tesista: ${autor.user.email}`)
+              } catch (emailError) {
+                console.error(`[Email] Error al notificar tesista ${autor.user.email}:`, emailError)
+              }
+            }
+          }
+        } catch (notifError) {
+          console.error('[Notificacion] Error al notificar sobre informe aprobado:', notifError)
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Informe final aprobado. Evaluación por jurados iniciada.',
+          data: { id: tesis.id, estadoAnterior: 'EN_REVISION_INFORME', estadoNuevo: 'EN_EVALUACION_INFORME' },
+        })
+      } else {
+        // OBSERVAR informe → INFORME_FINAL (tesista corrige)
+        await prisma.$transaction([
+          prisma.thesis.update({
+            where: { id },
+            data: {
+              estado: 'INFORME_FINAL',
+            },
+          }),
+          prisma.thesisStatusHistory.create({
+            data: {
+              thesisId: id,
+              estadoAnterior: 'EN_REVISION_INFORME',
+              estadoNuevo: 'INFORME_FINAL',
+              comentario: comentario?.trim() || 'Informe final observado por Mesa de Partes.',
+              changedById: user.id,
+            },
+          }),
+        ])
+
+        // Notificar tesistas
+        try {
+          const tesisCompleta = await prisma.thesis.findUnique({
+            where: { id },
+            include: {
+              autores: {
+                include: {
+                  user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+                  studentCareer: {
+                    select: {
+                      facultad: { select: { nombre: true, codigo: true } },
+                    },
+                  },
+                },
+                orderBy: { orden: 'asc' },
+              },
+            },
+          })
+
+          if (tesisCompleta) {
+            const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+            if (idsAutores.length > 0) {
+              await crearNotificacion({
+                userId: idsAutores,
+                tipo: 'INFORME_OBSERVADO_MESA',
+                titulo: 'Informe final observado por mesa de partes',
+                mensaje: `Tu informe final "${tesisCompleta.titulo}" fue observado por mesa de partes: ${comentario?.trim() || 'Revisar observaciones'}`,
+                enlace: `/mis-tesis/${id}`,
+              })
+            }
+
+            // Emails a tesistas
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+            const primerAutor = tesisCompleta.autores[0]
+            const facultadCodigo = primerAutor?.studentCareer?.facultad?.codigo || 'FI'
+            const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
+
+            for (const autor of tesisCompleta.autores) {
+              if (!autor.user.email) continue
+              try {
+                const nombreCompleto = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
+                const template = emailTemplates.thesisObserved(
+                  nombreCompleto,
+                  tesisCompleta.titulo,
+                  comentario?.trim() || '',
+                  facultadNombre,
+                  `${appUrl}/mis-tesis/${id}`
+                )
+                await sendEmailByFaculty(facultadCodigo, {
+                  to: autor.user.email,
+                  subject: `Informe Final Observado - SeguiTesis UNAMAD`,
+                  html: template.html,
+                  text: template.text,
+                })
+                console.log(`[Email] Notificacion informe observado enviada a tesista: ${autor.user.email}`)
+              } catch (emailError) {
+                console.error(`[Email] Error al notificar tesista ${autor.user.email}:`, emailError)
+              }
+            }
+          }
+        } catch (notifError) {
+          console.error('[Notificacion] Error al notificar sobre informe observado:', notifError)
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Informe final observado. El estudiante recibirá las observaciones.',
+          data: { id: tesis.id, estadoAnterior: 'EN_REVISION_INFORME', estadoNuevo: 'INFORME_FINAL' },
+        })
+      }
+    }
+
     // Acciones estándar: APROBAR, OBSERVAR, RECHAZAR (solo en EN_REVISION u OBSERVADA)
     const estadosPermitidos: EstadoTesis[] = ['EN_REVISION', 'OBSERVADA']
     if (!estadosPermitidos.includes(tesis.estado)) {
@@ -592,36 +1089,131 @@ export async function PUT(
       },
     })
 
-    // Notificar a autores y asesores
+    // Notificar a autores y asesores (sistema + email)
     try {
       const tesisCompleta = await prisma.thesis.findUnique({
         where: { id },
-        select: {
-          titulo: true,
-          autores: { select: { userId: true } },
-          asesores: { select: { userId: true } },
+        include: {
+          autores: {
+            include: {
+              user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+              studentCareer: {
+                select: {
+                  facultad: { select: { nombre: true, codigo: true } },
+                },
+              },
+            },
+            orderBy: { orden: 'asc' },
+          },
+          asesores: {
+            include: {
+              user: { select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true } },
+            },
+          },
         },
       })
       if (tesisCompleta) {
         const destinatarios = [
-          ...tesisCompleta.autores.map(a => a.userId),
-          ...tesisCompleta.asesores.map(a => a.userId),
+          ...tesisCompleta.autores.map(a => a.user.id),
+          ...tesisCompleta.asesores.map(a => a.user.id),
         ]
-        const tipoNotif = accion === 'APROBAR' ? 'TESIS_APROBADA' : 'TESIS_OBSERVADA'
-        const tituloNotif = accion === 'APROBAR'
-          ? 'Proyecto aprobado por mesa de partes'
-          : 'Proyecto observado por mesa de partes'
-        const mensajeNotif = accion === 'APROBAR'
-          ? `Tu proyecto "${tesisCompleta.titulo}" fue aprobado por mesa de partes`
-          : `Tu proyecto "${tesisCompleta.titulo}" fue observado por mesa de partes`
+        const tipoNotifMap: Record<string, string> = {
+          APROBAR: 'TESIS_APROBADA',
+          OBSERVAR: 'TESIS_OBSERVADA',
+          RECHAZAR: 'TESIS_RECHAZADA',
+        }
+        const tituloNotifMap: Record<string, string> = {
+          APROBAR: 'Proyecto aprobado por mesa de partes',
+          OBSERVAR: 'Proyecto observado por mesa de partes',
+          RECHAZAR: 'Proyecto rechazado por mesa de partes',
+        }
+        const mensajeNotifMap: Record<string, string> = {
+          APROBAR: `Tu proyecto "${tesisCompleta.titulo}" fue aprobado por mesa de partes`,
+          OBSERVAR: `Tu proyecto "${tesisCompleta.titulo}" fue observado por mesa de partes`,
+          RECHAZAR: `Tu proyecto "${tesisCompleta.titulo}" fue rechazado por mesa de partes`,
+        }
 
-        await crearNotificacion({
-          userId: destinatarios,
-          tipo: tipoNotif,
-          titulo: tituloNotif,
-          mensaje: mensajeNotif,
-          enlace: `/mis-tesis/${id}`,
-        })
+        // Notificación en sistema a autores (enlace a /mis-tesis/)
+        const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+        if (idsAutores.length > 0) {
+          await crearNotificacion({
+            userId: idsAutores,
+            tipo: tipoNotifMap[accion],
+            titulo: tituloNotifMap[accion],
+            mensaje: mensajeNotifMap[accion],
+            enlace: `/mis-tesis/${id}`,
+          })
+        }
+
+        // Notificación en sistema a asesores (enlace a /mis-asesorias/)
+        const idsAsesores = tesisCompleta.asesores.map(a => a.user.id)
+        if (idsAsesores.length > 0) {
+          await crearNotificacion({
+            userId: idsAsesores,
+            tipo: tipoNotifMap[accion],
+            titulo: tituloNotifMap[accion],
+            mensaje: mensajeNotifMap[accion],
+            enlace: `/mis-asesorias/${id}`,
+          })
+        }
+
+        // Enviar correos electrónicos
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+        const primerAutor = tesisCompleta.autores[0]
+        const facultadCodigo = primerAutor?.studentCareer?.facultad?.codigo || 'FI'
+        const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
+
+        // Emails a autores (con URL /mis-tesis/)
+        for (const autor of tesisCompleta.autores) {
+          if (!autor.user.email) continue
+          try {
+            const nombreCompleto = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
+            const tesisUrl = `${appUrl}/mis-tesis/${id}`
+            let template
+            if (accion === 'OBSERVAR') {
+              template = emailTemplates.thesisObserved(nombreCompleto, tesisCompleta.titulo, comentario?.trim() || '', facultadNombre, tesisUrl)
+            } else if (accion === 'APROBAR') {
+              template = emailTemplates.thesisApproved(nombreCompleto, tesisCompleta.titulo, facultadNombre, tesisUrl)
+            } else {
+              template = emailTemplates.thesisRejected(nombreCompleto, tesisCompleta.titulo, comentario?.trim() || '', facultadNombre, tesisUrl)
+            }
+            await sendEmailByFaculty(facultadCodigo, {
+              to: autor.user.email,
+              subject: template.subject,
+              html: template.html,
+              text: template.text,
+            })
+            console.log(`[Email] Notificacion ${accion} enviada a tesista: ${autor.user.email}`)
+          } catch (emailError) {
+            console.error(`[Email] Error al notificar tesista ${autor.user.email}:`, emailError)
+          }
+        }
+
+        // Emails a asesores (con URL /mis-asesorias/)
+        for (const asesor of tesisCompleta.asesores) {
+          if (!asesor.user.email) continue
+          try {
+            const nombreCompleto = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()
+            const tesisUrl = `${appUrl}/mis-asesorias/${id}`
+            let template
+            if (accion === 'OBSERVAR') {
+              template = emailTemplates.thesisObserved(nombreCompleto, tesisCompleta.titulo, comentario?.trim() || '', facultadNombre, tesisUrl)
+            } else if (accion === 'APROBAR') {
+              template = emailTemplates.thesisApproved(nombreCompleto, tesisCompleta.titulo, facultadNombre, tesisUrl)
+            } else {
+              template = emailTemplates.thesisRejected(nombreCompleto, tesisCompleta.titulo, comentario?.trim() || '', facultadNombre, tesisUrl)
+            }
+            await sendEmailByFaculty(facultadCodigo, {
+              to: asesor.user.email,
+              subject: template.subject,
+              html: template.html,
+              text: template.text,
+            })
+            console.log(`[Email] Notificacion ${accion} enviada a asesor: ${asesor.user.email}`)
+          } catch (emailError) {
+            console.error(`[Email] Error al notificar asesor ${asesor.user.email}:`, emailError)
+          }
+        }
       }
     } catch (notifError) {
       console.error('[Notificacion] Error al notificar autores/asesores:', notifError)

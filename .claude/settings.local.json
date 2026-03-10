@@ -32,7 +32,13 @@
       "Bash(cd D:sistemas unamadseguimientotesis)",
       "Bash(wc:*)",
       "Bash(git rm:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "WebSearch",
+      "Bash(PGPASSWORD=954040025 psql:*)",
+      "Bash(PGPASSWORD=954040025 \"/c/Program Files/PostgreSQL/17/bin/psql.exe\":*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep:*)",
+      "Bash(npx dotenv:*)"
     ]
   }
 }

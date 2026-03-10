@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
-import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
+import { crearNotificacion } from '@/lib/notificaciones'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -26,6 +26,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       include: {
         documentos: {
           where: { esVersionActual: true },
+        },
+        autores: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
+              },
+            },
+            studentCareer: {
+              select: {
+                facultad: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                    codigo: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { orden: 'asc' },
         },
       },
     })
@@ -79,43 +104,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       detalle: docResolucion ? 'Subido' : 'Falta la resolución de aprobación (subida por mesa de partes)',
     })
 
-    // Verificar voucher fisico confirmado por mesa de partes
-    requisitos.push({
-      nombre: 'Voucher Físico Confirmado',
-      cumplido: tesis.voucherInformeFisicoEntregado,
-      detalle: tesis.voucherInformeFisicoEntregado
-        ? 'Confirmado por mesa de partes'
-        : 'Mesa de partes debe confirmar la entrega del voucher físico original del informe final',
-    })
-
-    // Verificar que existan jurados para la fase INFORME_FINAL
-    const juradosInforme = await prisma.thesisJury.findMany({
-      where: { thesisId: tesisId, isActive: true, fase: 'INFORME_FINAL' },
-    })
-    const tiposJurado = juradosInforme.map((j) => j.tipo)
-    const tienePresidente = tiposJurado.includes('PRESIDENTE')
-    const tieneVocal = tiposJurado.includes('VOCAL')
-    const tieneSecretario = tiposJurado.includes('SECRETARIO')
-    const tieneAccesitario = tiposJurado.includes('ACCESITARIO')
-
-    if (!tienePresidente || !tieneVocal || !tieneSecretario || !tieneAccesitario) {
-      const faltantes = []
-      if (!tienePresidente) faltantes.push('Presidente')
-      if (!tieneVocal) faltantes.push('Vocal')
-      if (!tieneSecretario) faltantes.push('Secretario')
-      if (!tieneAccesitario) faltantes.push('Accesitario')
-      requisitos.push({
-        nombre: 'Jurados Asignados',
-        cumplido: false,
-        detalle: `Faltan jurados para el informe final: ${faltantes.join(', ')}. Contacte a mesa de partes.`,
-      })
-    } else {
-      requisitos.push({
-        nombre: 'Jurados Asignados',
-        cumplido: true,
-        detalle: `${juradosInforme.length} jurados asignados`,
-      })
-    }
+    // Nota: La resolución de jurado informe, voucher físico y jurados asignados
+    // se verifican cuando mesa de partes apruebe el informe (EN_REVISION_INFORME → EN_EVALUACION_INFORME),
+    // no al momento de enviar.
 
     const requisitosNoCumplidos = requisitos.filter((r) => !r.cumplido)
 
@@ -127,8 +118,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 })
     }
 
-    const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
-
     // Desactivar dictámenes de la fase anterior (PROYECTO) para no confundir con INFORME_FINAL
     await prisma.thesisDocument.updateMany({
       where: {
@@ -139,14 +128,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       data: { esVersionActual: false },
     })
 
+    // Enviar a revisión de mesa de partes (NO directamente a jurados)
     await prisma.$transaction([
       prisma.thesis.update({
         where: { id: tesisId },
         data: {
-          estado: 'EN_EVALUACION_INFORME',
-          rondaActual: 1,
+          estado: 'EN_REVISION_INFORME',
           faseActual: 'INFORME_FINAL',
-          fechaLimiteEvaluacion: fechaLimite,
           fechaLimiteCorreccion: null,
         },
       }),
@@ -154,17 +142,47 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         data: {
           thesisId: tesisId,
           estadoAnterior: 'INFORME_FINAL',
-          estadoNuevo: 'EN_EVALUACION_INFORME',
-          comentario: `Informe final enviado para evaluación por el jurado. Fecha límite (${DIAS_HABILES_EVALUACION} días hábiles): ${fechaLimite.toLocaleDateString('es-PE')}`,
+          estadoNuevo: 'EN_REVISION_INFORME',
+          comentario: 'Informe final enviado para revisión por mesa de partes.',
           changedById: user.id,
         },
       }),
     ])
 
+    // === NOTIFICACIONES ===
+    const primerAutor = tesis.autores[0]
+
+    const nombreTesista = primerAutor?.user
+      ? `${primerAutor.user.nombres} ${primerAutor.user.apellidoPaterno} ${primerAutor.user.apellidoMaterno || ''}`.trim()
+      : 'Tesista'
+
+    // Notificación por sistema a mesa de partes (para que revisen el informe)
+    try {
+      const mesaPartesUsers = await prisma.userRole.findMany({
+        where: {
+          role: { codigo: 'MESA_PARTES' },
+          isActive: true,
+        },
+        select: { userId: true },
+      })
+      const mesaPartesIds = mesaPartesUsers.map((u) => u.userId)
+      if (mesaPartesIds.length > 0) {
+        await crearNotificacion({
+          userId: mesaPartesIds,
+          tipo: 'INFORME_ENVIADO_REVISION',
+          titulo: 'Informe final enviado para revisión',
+          mensaje: `El tesista ${nombreTesista} ha enviado su informe final para revisión: "${tesis.titulo}"`,
+          enlace: `/mesa-partes/${tesisId}`,
+        })
+      }
+    } catch (notifError) {
+      console.error('[Notificacion] Error al notificar mesa de partes:', notifError)
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Informe final enviado para evaluacion',
-      data: { nuevoEstado: 'EN_EVALUACION_INFORME' },
+      message: 'Informe final enviado para revisión por mesa de partes',
+      data: { nuevoEstado: 'EN_REVISION_INFORME' },
     })
   } catch (error) {
     console.error('[POST /api/tesis/[id]/enviar-informe] Error:', error)

@@ -45,6 +45,7 @@ interface EvaluacionItem {
   rondaActual: number
   faseActual: string | null
   fechaLimiteEvaluacion: string | null
+  fechaSustentacion: string | null
   autores: string
   yaEvaluo: boolean
   miResultado: string | null
@@ -65,6 +66,8 @@ const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   PROYECTO_APROBADO: { label: 'Proyecto Aprobado', color: 'text-green-600 bg-green-100' },
   EN_EVALUACION_INFORME: { label: 'Evaluando Informe', color: 'text-indigo-600 bg-indigo-100' },
   OBSERVADA_INFORME: { label: 'Informe Observado', color: 'text-orange-600 bg-orange-100' },
+  EN_SUSTENTACION: { label: 'En Sustentación', color: 'text-emerald-600 bg-emerald-100' },
+  SUSTENTADA: { label: 'Sustentada', color: 'text-green-700 bg-green-100' },
   APROBADA: { label: 'Aprobada', color: 'text-green-600 bg-green-100' },
   ASIGNANDO_JURADOS: { label: 'Asignando Jurados', color: 'text-purple-600 bg-purple-100' },
   INFORME_FINAL: { label: 'Informe Final', color: 'text-cyan-600 bg-cyan-100' },
@@ -276,7 +279,7 @@ export default function MisEvaluacionesPage() {
                           <TableHead className="hidden md:table-cell">Mi Rol</TableHead>
                           <TableHead className="hidden md:table-cell">Fase</TableHead>
                           <TableHead>Estado</TableHead>
-                          <TableHead className="hidden lg:table-cell">Fecha Limite</TableHead>
+                          <TableHead className="hidden lg:table-cell">Fecha</TableHead>
                           <TableHead>Mi Evaluacion</TableHead>
                           <TableHead className="w-[80px]">Accion</TableHead>
                         </TableRow>
@@ -309,7 +312,11 @@ export default function MisEvaluacionesPage() {
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden lg:table-cell">
-                                {item.fechaLimiteEvaluacion ? (
+                                {['EN_SUSTENTACION', 'SUSTENTADA'].includes(item.estado) && item.fechaSustentacion ? (
+                                  <span className="text-xs text-purple-600 font-medium">
+                                    {new Date(item.fechaSustentacion).toLocaleDateString('es-PE')}
+                                  </span>
+                                ) : item.fechaLimiteEvaluacion ? (
                                   <span className="text-xs">
                                     {new Date(item.fechaLimiteEvaluacion).toLocaleDateString('es-PE')}
                                   </span>

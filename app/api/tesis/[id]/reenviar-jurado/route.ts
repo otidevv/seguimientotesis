@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
+import { crearNotificacion } from '@/lib/notificaciones'
+import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -22,6 +24,47 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         id: tesisId,
         deletedAt: null,
         autores: { some: { userId: user.id } },
+      },
+      include: {
+        autores: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
+              },
+            },
+            studentCareer: {
+              select: {
+                facultad: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                    codigo: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { orden: 'asc' },
+        },
+        jurados: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -79,6 +122,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       ? 'EN_EVALUACION_INFORME'
       : 'EN_EVALUACION_JURADO'
 
+    const faseTexto = tesis.estado === 'OBSERVADA_INFORME' ? 'informe final' : 'proyecto de tesis'
+    const faseEvaluacion = tesis.estado === 'OBSERVADA_INFORME' ? 'INFORME_FINAL' : 'PROYECTO'
+
     await prisma.$transaction([
       // Desactivar dictámenes anteriores para que el presidente pueda subir uno nuevo en la nueva ronda
       prisma.thesisDocument.updateMany({
@@ -108,6 +154,89 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         },
       }),
     ])
+
+    // === NOTIFICACIONES ===
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const primerAutor = tesis.autores[0]
+    const facultad = primerAutor?.studentCareer?.facultad
+    const facultadCodigo = facultad?.codigo || 'FI'
+    const facultadNombre = facultad?.nombre || 'Facultad'
+    const fechaLimiteStr = fechaLimite.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
+
+    const nombreTesista = primerAutor?.user
+      ? `${primerAutor.user.nombres} ${primerAutor.user.apellidoPaterno} ${primerAutor.user.apellidoMaterno || ''}`.trim()
+      : 'Tesista'
+
+    // Filtrar jurados de la fase correspondiente
+    const juradosFase = tesis.jurados.filter((j) => j.fase === faseEvaluacion)
+
+    // Notificación por sistema a cada jurado
+    try {
+      const juradoIds = juradosFase.map((j) => j.user.id)
+      if (juradoIds.length > 0) {
+        await crearNotificacion({
+          userId: juradoIds,
+          tipo: 'TESIS_REENVIADA',
+          titulo: `Documento corregido reenviado - Ronda ${nuevaRonda}`,
+          mensaje: `El tesista ${nombreTesista} ha reenviado su ${faseTexto} corregido: "${tesis.titulo}". Fecha límite de evaluación: ${fechaLimiteStr}`,
+          enlace: `/mis-evaluaciones/${tesisId}`,
+        })
+      }
+    } catch (notifError) {
+      console.error('[Notificacion] Error al notificar jurados:', notifError)
+    }
+
+    // Notificación por sistema a mesa de partes
+    try {
+      const mesaPartesUsers = await prisma.userRole.findMany({
+        where: {
+          role: { codigo: 'MESA_PARTES' },
+          isActive: true,
+        },
+        select: { userId: true },
+      })
+      const mesaPartesIds = mesaPartesUsers.map((u) => u.userId)
+      if (mesaPartesIds.length > 0) {
+        await crearNotificacion({
+          userId: mesaPartesIds,
+          tipo: 'TESIS_REENVIADA',
+          titulo: `Documento corregido reenviado - Ronda ${nuevaRonda}`,
+          mensaje: `El tesista ${nombreTesista} ha reenviado su ${faseTexto} corregido: "${tesis.titulo}"`,
+          enlace: `/mesa-partes/${tesisId}`,
+        })
+      }
+    } catch (notifError) {
+      console.error('[Notificacion] Error al notificar mesa de partes:', notifError)
+    }
+
+    // Email a cada jurado
+    for (const jurado of juradosFase) {
+      if (jurado.user?.email) {
+        try {
+          const nombreJurado = `${jurado.user.nombres} ${jurado.user.apellidoPaterno} ${jurado.user.apellidoMaterno || ''}`.trim()
+          const tesisUrl = `${appUrl}/mis-evaluaciones/${tesisId}?juradoId=${jurado.id}`
+          const template = emailTemplates.thesisResubmittedToJury(
+            nombreJurado,
+            nombreTesista,
+            tesis.titulo,
+            faseEvaluacion,
+            nuevaRonda,
+            facultadNombre,
+            fechaLimiteStr,
+            tesisUrl
+          )
+          await sendEmailByFaculty(facultadCodigo, {
+            to: jurado.user.email,
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
+          })
+          console.log(`[Email] Notificacion reenvio enviada al jurado: ${jurado.user.email}`)
+        } catch (emailError) {
+          console.error(`[Email] Error al notificar jurado ${jurado.user.email}:`, emailError)
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -86,6 +86,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             createdAt: 'desc',
           },
         },
+        historialEstados: {
+          include: {
+            changedBy: {
+              select: {
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
       },
     })
 
@@ -161,6 +173,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         version: d.version,
         firmadoDigitalmente: d.firmadoDigitalmente,
         createdAt: d.createdAt,
+      })),
+      historial: tesis.historialEstados.map((h) => ({
+        id: h.id,
+        estadoAnterior: h.estadoAnterior,
+        estadoNuevo: h.estadoNuevo,
+        comentario: h.comentario,
+        fecha: h.createdAt,
+        realizadoPor: h.changedBy
+          ? `${h.changedBy.nombres} ${h.changedBy.apellidoPaterno} ${h.changedBy.apellidoMaterno || ''}`.trim()
+          : 'Sistema',
       })),
     }
 

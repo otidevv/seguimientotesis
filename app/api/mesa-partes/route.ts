@@ -199,9 +199,11 @@ export async function GET(request: NextRequest) {
       OBSERVADA_JURADO: 0,
       PROYECTO_APROBADO: 0,
       INFORME_FINAL: 0,
+      EN_REVISION_INFORME: 0,
       EN_EVALUACION_INFORME: 0,
       OBSERVADA_INFORME: 0,
       APROBADA: 0,
+      EN_SUSTENTACION: 0,
       RECHAZADA: 0,
     }
 

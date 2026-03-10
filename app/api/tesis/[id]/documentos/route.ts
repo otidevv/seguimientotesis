@@ -31,11 +31,17 @@ const TIPO_DOCUMENTO_MAP: Record<string, string> = {
   'VOUCHER_PAGO': 'VOUCHER_PAGO',
   'DOCUMENTO_SUSTENTATORIO': 'DOCUMENTO_SUSTENTATORIO',
   'DICTAMEN_JURADO': 'DICTAMEN_JURADO',
+  'RESOLUCION_JURADO': 'RESOLUCION_JURADO',
+  'RESOLUCION_JURADO_INFORME': 'RESOLUCION_JURADO_INFORME',
   'RESOLUCION_APROBACION': 'RESOLUCION_APROBACION',
   'REPORTE_TURNITIN': 'REPORTE_TURNITIN',
   'INFORME_FINAL_DOC': 'INFORME_FINAL_DOC',
   'VOUCHER_PAGO_INFORME': 'VOUCHER_PAGO_INFORME',
   'ACTA_VERIFICACION_ASESOR': 'ACTA_VERIFICACION_ASESOR',
+  'VOUCHER_SALA_GRADOS': 'VOUCHER_SALA_GRADOS',
+  'VOUCHER_SUSTENTACION': 'VOUCHER_SUSTENTACION',
+  'CONSTANCIA_SUNEDU': 'CONSTANCIA_SUNEDU',
+  'RESOLUCION_SUSTENTACION': 'RESOLUCION_SUSTENTACION',
   'OTRO': 'OTRO',
 }
 
@@ -52,11 +58,17 @@ const TIPO_DOCUMENTO_NOMBRES: Record<string, string> = {
   'VOUCHER_PAGO': 'Voucher de Pago',
   'DOCUMENTO_SUSTENTATORIO': 'Documento Sustentatorio',
   'DICTAMEN_JURADO': 'Dictamen del Jurado',
+  'RESOLUCION_JURADO': 'Resolucion de Conformacion de Jurado',
+  'RESOLUCION_JURADO_INFORME': 'Resolucion de Conformacion de Jurado Evaluador de Informe Final',
   'RESOLUCION_APROBACION': 'Resolucion de Aprobacion',
   'REPORTE_TURNITIN': 'Reporte de Turnitin',
   'INFORME_FINAL_DOC': 'Informe Final',
   'VOUCHER_PAGO_INFORME': 'Voucher de Pago - Informe Final',
   'ACTA_VERIFICACION_ASESOR': 'Acta de Verificación de Similitud del Asesor',
+  'VOUCHER_SALA_GRADOS': 'Voucher Alquiler Sala de Grados (Cod. 384)',
+  'VOUCHER_SUSTENTACION': 'Voucher Sustentacion por Tesista (Cod. 466)',
+  'CONSTANCIA_SUNEDU': 'Constancia de Inscripcion en SUNEDU',
+  'RESOLUCION_SUSTENTACION': 'Resolucion de Sustentacion',
   'OTRO': 'Otro Documento',
 }
 
@@ -124,6 +136,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const tipoDocumentoRaw = formData.get('tipoDocumento') as string | null
+    const nombreDocumento = formData.get('nombreDocumento') as string | null
 
     if (!file) {
       return NextResponse.json(
@@ -278,8 +291,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       data: {
         thesisId: tesisId,
         tipo: tipoDocumento as any,
-        nombre: TIPO_DOCUMENTO_NOMBRES[tipoDocumento] || file.name,
-        descripcion: `${TIPO_DOCUMENTO_NOMBRES[tipoDocumento]} - Versión ${nuevaVersion}`,
+        nombre: nombreDocumento?.trim() || TIPO_DOCUMENTO_NOMBRES[tipoDocumento] || file.name,
+        descripcion: nombreDocumento?.trim()
+          ? `${nombreDocumento.trim()} - ${TIPO_DOCUMENTO_NOMBRES[tipoDocumento]}`
+          : `${TIPO_DOCUMENTO_NOMBRES[tipoDocumento]} - Versión ${nuevaVersion}`,
         rutaArchivo: `/documentos/tesis/${tesisId}/${fileName}`,
         mimeType: file.type,
         tamano: file.size,

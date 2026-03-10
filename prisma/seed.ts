@@ -518,9 +518,10 @@ async function main() {
   // ============================================
   console.log('Asignando permisos a Estudiante...')
 
-  const modulosEstudiante = ['dashboard', 'tesis', 'firma-digital']
+  const modulosEstudianteView = ['dashboard', 'tesis', 'mis-tesis', 'mis-invitaciones', 'firma-digital']
+  const modulosEstudianteCreate = ['tesis', 'mis-tesis', 'firma-digital']
+  const modulosEstudianteEdit = ['tesis', 'mis-tesis']
   for (const modulo of modulos) {
-    const tieneAcceso = modulosEstudiante.includes(modulo.codigo)
     await prisma.rolePermission.upsert({
       where: {
         roleId_moduleId: {
@@ -529,17 +530,17 @@ async function main() {
         },
       },
       update: {
-        canView: tieneAcceso,
-        canCreate: modulo.codigo === 'tesis',
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosEstudianteView.includes(modulo.codigo),
+        canCreate: modulosEstudianteCreate.includes(modulo.codigo),
+        canEdit: modulosEstudianteEdit.includes(modulo.codigo),
         canDelete: false,
       },
       create: {
         roleId: rolEstudiante.id,
         moduleId: modulo.id,
-        canView: tieneAcceso,
-        canCreate: modulo.codigo === 'tesis',
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosEstudianteView.includes(modulo.codigo),
+        canCreate: modulosEstudianteCreate.includes(modulo.codigo),
+        canEdit: modulosEstudianteEdit.includes(modulo.codigo),
         canDelete: false,
       },
     })
@@ -550,9 +551,10 @@ async function main() {
   // ============================================
   console.log('Asignando permisos a Docente...')
 
-  const modulosDocente = ['dashboard', 'tesis', 'reportes', 'firma-digital']
+  const modulosDocenteView = ['dashboard', 'tesis', 'mis-asesorias', 'mis-invitaciones', 'mis-evaluaciones', 'reportes', 'firma-digital']
+  const modulosDocenteCreate = ['firma-digital']
+  const modulosDocenteEdit = ['tesis', 'mis-evaluaciones']
   for (const modulo of modulos) {
-    const tieneAcceso = modulosDocente.includes(modulo.codigo)
     await prisma.rolePermission.upsert({
       where: {
         roleId_moduleId: {
@@ -561,17 +563,17 @@ async function main() {
         },
       },
       update: {
-        canView: tieneAcceso,
-        canCreate: false,
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosDocenteView.includes(modulo.codigo),
+        canCreate: modulosDocenteCreate.includes(modulo.codigo),
+        canEdit: modulosDocenteEdit.includes(modulo.codigo),
         canDelete: false,
       },
       create: {
         roleId: rolDocente.id,
         moduleId: modulo.id,
-        canView: tieneAcceso,
-        canCreate: false,
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosDocenteView.includes(modulo.codigo),
+        canCreate: modulosDocenteCreate.includes(modulo.codigo),
+        canEdit: modulosDocenteEdit.includes(modulo.codigo),
         canDelete: false,
       },
     })
@@ -582,8 +584,10 @@ async function main() {
   // ============================================
   console.log('Asignando permisos a Asesor...')
 
+  const modulosAsesorView = ['dashboard', 'tesis', 'mis-asesorias', 'mis-invitaciones', 'reportes', 'firma-digital']
+  const modulosAsesorCreate = ['firma-digital']
+  const modulosAsesorEdit = ['tesis']
   for (const modulo of modulos) {
-    const tieneAcceso = ['dashboard', 'tesis', 'reportes', 'firma-digital'].includes(modulo.codigo)
     await prisma.rolePermission.upsert({
       where: {
         roleId_moduleId: {
@@ -592,17 +596,17 @@ async function main() {
         },
       },
       update: {
-        canView: tieneAcceso,
-        canCreate: false,
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosAsesorView.includes(modulo.codigo),
+        canCreate: modulosAsesorCreate.includes(modulo.codigo),
+        canEdit: modulosAsesorEdit.includes(modulo.codigo),
         canDelete: false,
       },
       create: {
         roleId: rolAsesor.id,
         moduleId: modulo.id,
-        canView: tieneAcceso,
-        canCreate: false,
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosAsesorView.includes(modulo.codigo),
+        canCreate: modulosAsesorCreate.includes(modulo.codigo),
+        canEdit: modulosAsesorEdit.includes(modulo.codigo),
         canDelete: false,
       },
     })
@@ -613,8 +617,10 @@ async function main() {
   // ============================================
   console.log('Asignando permisos a Jurado...')
 
+  const modulosJuradoView = ['dashboard', 'tesis', 'mis-evaluaciones', 'reportes', 'firma-digital']
+  const modulosJuradoCreate = ['firma-digital']
+  const modulosJuradoEdit = ['tesis', 'mis-evaluaciones']
   for (const modulo of modulos) {
-    const tieneAcceso = ['dashboard', 'tesis', 'firma-digital'].includes(modulo.codigo)
     await prisma.rolePermission.upsert({
       where: {
         roleId_moduleId: {
@@ -623,17 +629,17 @@ async function main() {
         },
       },
       update: {
-        canView: tieneAcceso,
-        canCreate: false,
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosJuradoView.includes(modulo.codigo),
+        canCreate: modulosJuradoCreate.includes(modulo.codigo),
+        canEdit: modulosJuradoEdit.includes(modulo.codigo),
         canDelete: false,
       },
       create: {
         roleId: rolJurado.id,
         moduleId: modulo.id,
-        canView: tieneAcceso,
-        canCreate: false,
-        canEdit: modulo.codigo === 'tesis',
+        canView: modulosJuradoView.includes(modulo.codigo),
+        canCreate: modulosJuradoCreate.includes(modulo.codigo),
+        canEdit: modulosJuradoEdit.includes(modulo.codigo),
         canDelete: false,
       },
     })
@@ -644,8 +650,10 @@ async function main() {
   // ============================================
   console.log('Asignando permisos a Coordinador...')
 
+  const modulosCoordinadorView = ['dashboard', 'tesis', 'usuarios', 'mis-asesorias', 'mis-invitaciones', 'mis-evaluaciones', 'reportes', 'firma-digital']
+  const modulosCoordinadorCreate = ['tesis', 'firma-digital']
+  const modulosCoordinadorEdit = ['tesis', 'usuarios', 'mis-evaluaciones']
   for (const modulo of modulos) {
-    const tieneAcceso = ['dashboard', 'tesis', 'usuarios', 'reportes', 'firma-digital'].includes(modulo.codigo)
     await prisma.rolePermission.upsert({
       where: {
         roleId_moduleId: {
@@ -654,17 +662,17 @@ async function main() {
         },
       },
       update: {
-        canView: tieneAcceso,
-        canCreate: modulo.codigo === 'tesis',
-        canEdit: tieneAcceso,
+        canView: modulosCoordinadorView.includes(modulo.codigo),
+        canCreate: modulosCoordinadorCreate.includes(modulo.codigo),
+        canEdit: modulosCoordinadorEdit.includes(modulo.codigo),
         canDelete: false,
       },
       create: {
         roleId: rolCoordinador.id,
         moduleId: modulo.id,
-        canView: tieneAcceso,
-        canCreate: modulo.codigo === 'tesis',
-        canEdit: tieneAcceso,
+        canView: modulosCoordinadorView.includes(modulo.codigo),
+        canCreate: modulosCoordinadorCreate.includes(modulo.codigo),
+        canEdit: modulosCoordinadorEdit.includes(modulo.codigo),
         canDelete: false,
       },
     })
@@ -815,12 +823,12 @@ async function main() {
 
   // --- DOCENTE: Nelly Jacqueline Ulloa Gallardo ---
   const nellyUser = await prisma.user.upsert({
-    where: { email: 'nulloa@unamad.edu.pe' },
+    where: { email: 'verseker2@gmail.com' },
     update: {},
     create: {
       tipoDocumento: TipoDocumento.DNI,
       numeroDocumento: '18168848',
-      email: 'nulloa@unamad.edu.pe',
+      email: 'verseker2@gmail.com',
       passwordHash: defaultPasswordHash,
       nombres: 'NELLY JACQUELINE',
       apellidoPaterno: 'ULLOA',
@@ -846,12 +854,12 @@ async function main() {
 
   // --- DOCENTE: Ralph Miranda Castillo ---
   const ralphUser = await prisma.user.upsert({
-    where: { email: 'rmiranda@unamad.edu.pe' },
+    where: { email: 'bytevoxtechnologies@gmail.com' },
     update: {},
     create: {
       tipoDocumento: TipoDocumento.DNI,
       numeroDocumento: '40941903',
-      email: 'rmiranda@unamad.edu.pe',
+      email: 'bytevoxtechnologies@gmail.com',
       passwordHash: defaultPasswordHash,
       nombres: 'RALPH',
       apellidoPaterno: 'MIRANDA',
@@ -973,12 +981,12 @@ async function main() {
 
   // --- DOCENTE: Denys Alberto Jaramillo Peralta ---
   const jaramrilloUser = await prisma.user.upsert({
-    where: { email: 'djaramillo@unamad.edu.pe' },
+    where: { email: 'docenteprueba@unamad.edu.pe' },
     update: {},
     create: {
       tipoDocumento: TipoDocumento.DNI,
       numeroDocumento: '41496703',
-      email: 'djaramillo@unamad.edu.pe',
+      email: 'docenteprueba@unamad.edu.pe',
       passwordHash: defaultPasswordHash,
       nombres: 'DENYS ALBERTO',
       apellidoPaterno: 'JARAMILLO',
@@ -1003,12 +1011,12 @@ async function main() {
 
   // --- DOCENTE: Dany Dorian Isuiza Perez ---
   const isuizaUser = await prisma.user.upsert({
-    where: { email: 'disuiza@unamad.edu.pe' },
+    where: { email: 'sistemascuc@unamad.edu.pe' },
     update: {},
     create: {
       tipoDocumento: TipoDocumento.DNI,
       numeroDocumento: '41639193',
-      email: 'disuiza@unamad.edu.pe',
+      email: 'sistemascuc@unamad.edu.pe',
       passwordHash: defaultPasswordHash,
       nombres: 'DANY DORIAN',
       apellidoPaterno: 'ISUIZA',
@@ -1033,12 +1041,12 @@ async function main() {
 
   // --- ESTUDIANTE/DOCENTE: Luis Alberto Holgado Apaza ---
   const holgadoUser = await prisma.user.upsert({
-    where: { email: 'holgado@unamad.edu.pe' },
+    where: { email: 'pruebasoti@unamad.edu.pe' },
     update: {},
     create: {
       tipoDocumento: TipoDocumento.DNI,
       numeroDocumento: '44076704',
-      email: 'holgado@unamad.edu.pe',
+      email: 'pruebasoti@unamad.edu.pe',
       passwordHash: defaultPasswordHash,
       nombres: 'LUIS ALBERTO',
       apellidoPaterno: 'HOLGADO',
@@ -1092,12 +1100,12 @@ async function main() {
   console.log('ESTUDIANTE:       apenam@unamad.edu.pe (Alberto Peña)')
   console.log('ESTUDIANTE:       31azareza40@gmail.com (Abner Acuña)')
   console.log('ESTUDIANTE:       jzavaleta@unamad.edu.pe (Jefferson Morales)')
-  console.log('DOCENTE:          nulloa@unamad.edu.pe (Nelly Ulloa)')
-  console.log('DOCENTE:          rmiranda@unamad.edu.pe (Ralph Miranda)')
+  console.log('DOCENTE:          verseker2@gmail.com (Nelly Ulloa)')
+  console.log('DOCENTE:          bytevoxtechnologies@gmail.com (Ralph Miranda)')
   console.log('MESA_PARTES:      garcia@unamad.edu.pe (Alberto Peña García)')
   console.log('DOCENTE:          djaramillo@unamad.edu.pe (Denys Jaramillo)')
-  console.log('DOCENTE:          disuiza@unamad.edu.pe (Dany Isuiza)')
-  console.log('ESTUDIANTE/DOC:   holgado@unamad.edu.pe (Luis Holgado)')
+  console.log('DOCENTE:          sistemascuc@unamad.edu.pe (Dany Isuiza)')
+  console.log('ESTUDIANTE/DOC:   pruebasoti@unamad.edu.pe (Luis Holgado)')
   console.log('========================================\n')
 }
 

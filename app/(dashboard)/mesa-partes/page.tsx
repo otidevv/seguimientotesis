@@ -37,6 +37,7 @@ import {
   Inbox,
   Loader2,
   Search,
+  GraduationCap,
   UserPlus,
   X,
 } from 'lucide-react'
@@ -115,6 +116,12 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
     bgColor: 'bg-cyan-100 dark:bg-cyan-900/30',
     icon: <FileUp className="w-3.5 h-3.5" />,
   },
+  EN_REVISION_INFORME: {
+    label: 'Rev. Informe',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+    icon: <Clock className="w-3.5 h-3.5" />,
+  },
   EN_EVALUACION_INFORME: {
     label: 'Eval. Informe',
     color: 'text-indigo-600',
@@ -133,6 +140,12 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     icon: <CheckCircle className="w-3.5 h-3.5" />,
   },
+  EN_SUSTENTACION: {
+    label: 'En Sustentación',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
+    icon: <GraduationCap className="w-3.5 h-3.5" />,
+  },
   RECHAZADA: {
     label: 'Rechazada',
     color: 'text-red-600',
@@ -144,8 +157,8 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
 // Estados principales para contadores
 const ESTADOS_PRINCIPALES = [
   'EN_REVISION', 'OBSERVADA', 'ASIGNANDO_JURADOS', 'EN_EVALUACION_JURADO',
-  'OBSERVADA_JURADO', 'PROYECTO_APROBADO', 'INFORME_FINAL', 'EN_EVALUACION_INFORME',
-  'OBSERVADA_INFORME', 'APROBADA', 'RECHAZADA',
+  'OBSERVADA_JURADO', 'PROYECTO_APROBADO', 'INFORME_FINAL', 'EN_REVISION_INFORME',
+  'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION', 'RECHAZADA',
 ]
 
 export default function MesaPartesPage() {

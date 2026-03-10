@@ -10,6 +10,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findLoteByCode, getLoteTempPath, cleanLoteTempPath } from '@/lib/firma-peru/storage';
 import { prisma } from '@/lib/prisma';
+import { crearNotificacion } from '@/lib/notificaciones';
+import { sendEmailByFaculty, emailTemplates } from '@/lib/email';
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
@@ -236,6 +238,80 @@ export async function POST(
         }
 
         console.log(`[Firma Perú] Carta de aceptación firmada guardada: ${destFileName}`);
+
+        // === NOTIFICACIONES al tesista ===
+        try {
+          const tesisConAutores = await prisma.thesis.findUnique({
+            where: { id: loteExtendido.tesisId! },
+            include: {
+              autores: {
+                include: {
+                  user: {
+                    select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, email: true },
+                  },
+                  studentCareer: {
+                    select: { facultad: { select: { nombre: true, codigo: true } } },
+                  },
+                },
+                orderBy: { orden: 'asc' },
+              },
+            },
+          });
+
+          if (tesisConAutores) {
+            const asesorUser = await prisma.user.findUnique({
+              where: { id: loteExtendido.userId! },
+              select: { nombres: true, apellidoPaterno: true, apellidoMaterno: true },
+            });
+            const asesorNombre = asesorUser
+              ? `${asesorUser.nombres} ${asesorUser.apellidoPaterno} ${asesorUser.apellidoMaterno || ''}`.trim()
+              : 'Asesor';
+            const tipoAsesorTexto = loteExtendido.tipoAsesor === 'ASESOR' ? 'asesor' : 'co-asesor';
+            const primerAutor = tesisConAutores.autores[0];
+            const facultad = primerAutor?.studentCareer?.facultad;
+            const facultadCodigo = facultad?.codigo || 'FI';
+            const facultadNombre = facultad?.nombre || 'Facultad';
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+            // Notificación in-app
+            const autorIds = tesisConAutores.autores.map(a => a.user.id);
+            if (autorIds.length > 0) {
+              await crearNotificacion({
+                userId: autorIds,
+                tipo: 'CARTA_ACEPTACION_FIRMADA',
+                titulo: 'Carta de aceptacion firmada digitalmente',
+                mensaje: `El ${tipoAsesorTexto} ${asesorNombre} ha firmado digitalmente su carta de aceptacion para: "${tesisConAutores.titulo}"`,
+                enlace: `/mis-tesis/${loteExtendido.tesisId}`,
+              });
+            }
+
+            // Email a cada autor
+            for (const autor of tesisConAutores.autores) {
+              if (autor.user?.email) {
+                const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim();
+                const tesisUrl = `${appUrl}/mis-tesis/${loteExtendido.tesisId}`;
+                const template = emailTemplates.advisorLetterRegistered(
+                  nombreAutor,
+                  asesorNombre,
+                  tipoAsesorTexto,
+                  tesisConAutores.titulo,
+                  facultadNombre,
+                  tesisUrl
+                );
+                await sendEmailByFaculty(facultadCodigo, {
+                  to: autor.user.email,
+                  subject: template.subject,
+                  html: template.html,
+                  text: template.text,
+                });
+                console.log(`[Email] Notificacion carta firmada enviada a: ${autor.user.email}`);
+              }
+            }
+          }
+        } catch (notifError) {
+          console.error('[Notificacion/Email] Error al notificar carta firmada:', notifError);
+        }
+
         procesados.push(archivoId);
       } else {
         // Documento genérico - guardar en directorio de firmados

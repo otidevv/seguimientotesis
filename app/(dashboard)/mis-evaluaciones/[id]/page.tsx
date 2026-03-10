@@ -51,6 +51,10 @@ interface TesisEvaluacion {
   lineaInvestigacion: string | null
   rondaActual: number
   faseActual: string | null
+  faseTerminada: boolean
+  fechaSustentacion: string | null
+  lugarSustentacion: string | null
+  modalidadSustentacion: string | null
   fechaLimiteEvaluacion: string | null
   fechaLimiteCorreccion: string | null
   autores: { nombre: string; email: string }[]
@@ -96,6 +100,18 @@ const TIPO_JURADO_LABELS: Record<string, string> = {
   VOCAL: 'Vocal',
   SECRETARIO: 'Secretario',
   ACCESITARIO: 'Accesitario',
+}
+
+const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
+  EN_EVALUACION_JURADO: { label: 'En Evaluación', color: 'text-indigo-700 bg-indigo-100 border-indigo-300' },
+  OBSERVADA_JURADO: { label: 'Observada por Jurado', color: 'text-orange-700 bg-orange-100 border-orange-300' },
+  PROYECTO_APROBADO: { label: 'Proyecto Aprobado', color: 'text-green-700 bg-green-100 border-green-300' },
+  EN_EVALUACION_INFORME: { label: 'Evaluando Informe Final', color: 'text-indigo-700 bg-indigo-100 border-indigo-300' },
+  OBSERVADA_INFORME: { label: 'Informe Observado', color: 'text-orange-700 bg-orange-100 border-orange-300' },
+  EN_SUSTENTACION: { label: 'En Sustentación', color: 'text-emerald-700 bg-emerald-100 border-emerald-300' },
+  SUSTENTADA: { label: 'Sustentada', color: 'text-green-700 bg-green-100 border-green-300' },
+  APROBADA: { label: 'Aprobada', color: 'text-green-700 bg-green-100 border-green-300' },
+  INFORME_FINAL: { label: 'Informe Final', color: 'text-cyan-700 bg-cyan-100 border-cyan-300' },
 }
 
 export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id: string }> }) {
@@ -348,7 +364,12 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
               {tesis.rondaActual > 0 && (
                 <Badge variant="outline">Ronda {tesis.rondaActual}</Badge>
               )}
-              {tesis.fechaLimiteEvaluacion && (
+              {ESTADO_LABELS[tesis.estado] && (
+                <Badge className={cn('text-xs', ESTADO_LABELS[tesis.estado].color)}>
+                  {ESTADO_LABELS[tesis.estado].label}
+                </Badge>
+              )}
+              {tesis.fechaLimiteEvaluacion && !['EN_SUSTENTACION', 'SUSTENTADA', 'PROYECTO_APROBADO', 'APROBADA'].includes(tesis.estado) && (
                 <Badge variant="outline" className="text-xs">
                   <Clock className="w-3 h-3 mr-1" />
                   Limite (dias habiles): {new Date(tesis.fechaLimiteEvaluacion).toLocaleDateString('es-PE')}
@@ -358,6 +379,96 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
             <h1 className="text-xl sm:text-2xl font-bold leading-tight">{tesis.titulo}</h1>
           </div>
         </div>
+
+        {/* Banner de estado post-evaluación */}
+        {tesis.estado === 'EN_SUSTENTACION' && (
+          <Card className="border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-emerald-800 dark:text-emerald-300">Informe Final Aprobado - Sustentación Programada</p>
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                    El informe final fue aprobado por el jurado evaluador. La sustentación ha sido programada.
+                  </p>
+                </div>
+              </div>
+              {tesis.fechaSustentacion && (
+                <div className="mt-3 ml-[3.25rem] grid gap-3 sm:grid-cols-3">
+                  {(() => {
+                    const inicio = new Date(tesis.fechaSustentacion)
+                    const fin = new Date(inicio.getTime() + 2 * 60 * 60 * 1000)
+                    return (
+                      <div className="p-3 rounded-lg bg-emerald-100/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium uppercase tracking-wide mb-1">Fecha y Hora</p>
+                        <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                          {inicio.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                        <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                          {inicio.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })} - {fin.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    )
+                  })()}
+                  {tesis.lugarSustentacion && (
+                    <div className="p-3 rounded-lg bg-emerald-100/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium uppercase tracking-wide mb-1">Lugar</p>
+                      <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                        {tesis.lugarSustentacion}
+                      </p>
+                    </div>
+                  )}
+                  {tesis.modalidadSustentacion && (
+                    <div className="p-3 rounded-lg bg-emerald-100/50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium uppercase tracking-wide mb-1">Modalidad</p>
+                      <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                        {tesis.modalidadSustentacion === 'PRESENCIAL' ? 'Presencial' :
+                         tesis.modalidadSustentacion === 'VIRTUAL' ? 'Virtual' : 'Mixta'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {tesis.estado === 'PROYECTO_APROBADO' && !tesis.faseTerminada && (
+          <Card className="border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-green-800 dark:text-green-300">Proyecto Aprobado por el Jurado</p>
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    El dictamen de aprobación fue registrado. Esperando resolución y fase de informe final.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {['OBSERVADA_JURADO', 'OBSERVADA_INFORME'].includes(tesis.estado) && (
+          <Card className="border-2 border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-orange-800 dark:text-orange-300">
+                    {tesis.estado === 'OBSERVADA_JURADO' ? 'Proyecto Observado' : 'Informe Final Observado'}
+                  </p>
+                  <p className="text-sm text-orange-700 dark:text-orange-400">
+                    El jurado ha observado el documento. El tesista tiene plazo para realizar correcciones.
+                    {tesis.fechaLimiteCorreccion && ` Fecha limite: ${new Date(tesis.fechaLimiteCorreccion).toLocaleDateString('es-PE')}`}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Progreso de evaluaciones */}
         {enEvaluacion && tesis.progresoEvaluacion && (
@@ -476,12 +587,12 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                   <div>
                     <Label>Resultado</Label>
                     <Select value={resultado} onValueChange={setResultado}>
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="mt-1 cursor-pointer">
                         <SelectValue placeholder="Seleccionar resultado..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="APROBADO">Aprobado</SelectItem>
-                        <SelectItem value="OBSERVADO">Observado</SelectItem>
+                        <SelectItem value="APROBADO" className="cursor-pointer">Aprobado</SelectItem>
+                        <SelectItem value="OBSERVADO" className="cursor-pointer">Observado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -503,7 +614,7 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                       type="file"
                       accept=".pdf"
                       onChange={(e) => setArchivoEval(e.target.files?.[0] || null)}
-                      className="mt-1"
+                      className="mt-1 cursor-pointer file:cursor-pointer"
                     />
                   </div>
 
@@ -537,18 +648,18 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                     Dictamen del Presidente
                   </CardTitle>
                   <CardDescription>
-                    Como presidente, suba el dictamen firmado. El resultado se determina por mayoría de votos del jurado.
+                    Como presidente, suba el dictamen firmado. El resultado se determina por voto unánime del jurado.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Resultado por mayoría - solo lectura */}
+                  {/* Resultado por unanimidad - solo lectura */}
                   <div className={cn(
                     'p-4 rounded-lg border-2',
                     tesis.progresoEvaluacion.resultadoMayoria === 'APROBADO'
                       ? 'border-green-300 bg-green-50 dark:bg-green-950/30'
                       : 'border-orange-300 bg-orange-50 dark:bg-orange-950/30'
                   )}>
-                    <p className="text-sm font-medium mb-1">Resultado por mayoría de votos:</p>
+                    <p className="text-sm font-medium mb-1">Resultado por unanimidad de votos:</p>
                     <div className="flex items-center gap-2">
                       <Badge className={cn(
                         'text-sm px-3 py-1',

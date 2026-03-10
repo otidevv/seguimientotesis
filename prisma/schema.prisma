@@ -445,6 +445,7 @@ enum EstadoTesis {
   OBSERVADA_JURADO        // Jurado observó, estudiante corrige (30 días)
   PROYECTO_APROBADO       // Jurado aprobó el proyecto
   INFORME_FINAL           // Estudiante sube informe final
+  EN_REVISION_INFORME     // Mesa de partes revisa informe final antes de jurados
   EN_EVALUACION_INFORME   // Jurados evaluando el informe final
   OBSERVADA_INFORME       // Jurado observó informe, estudiante corrige
   APROBADA                // Aprobada por el comité
@@ -522,11 +523,17 @@ enum TipoDocumentoTesis {
   VOUCHER_PAGO                // Voucher de pago (S/. 30 - código 277)
   DOCUMENTO_SUSTENTATORIO     // Documento sustentatorio (matrícula, SUNEDU o egresado)
   DICTAMEN_JURADO             // Dictamen firmado por el jurado
+  RESOLUCION_JURADO           // Resolución de conformación de jurado de revisión
+  RESOLUCION_JURADO_INFORME   // Resolución de conformación de jurado evaluador de informe final
   RESOLUCION_APROBACION       // Resolución de aprobación subida por mesa de partes
   REPORTE_TURNITIN            // Reporte de similitud Turnitin
   INFORME_FINAL_DOC           // Documento de informe final
   VOUCHER_PAGO_INFORME        // Voucher de pago informe final (S/. 20 - código 465)
   ACTA_VERIFICACION_ASESOR    // Acta de verificación de similitud del asesor
+  VOUCHER_SALA_GRADOS         // Voucher alquiler sala de grados (Cod. 384, S/ 515)
+  VOUCHER_SUSTENTACION        // Voucher sustentación por tesista (Cod. 466, S/ 36)
+  CONSTANCIA_SUNEDU           // Constancia inscripción SUNEDU
+  RESOLUCION_SUSTENTACION     // Resolución aprobación informe final + sustentación
   OTRO
 
   @@map("tipo_documento_tesis")
@@ -560,6 +567,12 @@ model Thesis {
   // Confirmación de voucher físico informe final por mesa de partes
   voucherInformeFisicoEntregado Boolean   @default(false) @map("voucher_informe_fisico_entregado")
   voucherInformeFisicoFecha     DateTime? @map("voucher_informe_fisico_fecha")
+
+  // Confirmaciones para sustentación
+  voucherSustentacionFisicoEntregado  Boolean   @default(false) @map("voucher_sustentacion_fisico_entregado")
+  voucherSustentacionFisicoFecha      DateTime? @map("voucher_sustentacion_fisico_fecha")
+  ejemplaresEntregados                Boolean   @default(false) @map("ejemplares_entregados")
+  ejemplaresEntregadosFecha           DateTime? @map("ejemplares_entregados_fecha")
 
   // Evaluación por jurados
   rondaActual              Int       @default(0) @map("ronda_actual")

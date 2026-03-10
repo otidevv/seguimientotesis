@@ -45,6 +45,7 @@ interface LoginCredentials {
   email: string
   password: string
   rememberMe?: boolean
+  redirectTo?: string
 }
 
 interface RegisterData {
@@ -263,8 +264,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Resetear flag de sesión expirada al hacer login exitoso
       sessionExpiredHandled.current = false
 
-      // Redirigir al dashboard
-      router.push('/dashboard')
+      // Redirigir al destino original o al dashboard
+      router.push(credentials.redirectTo || '/dashboard')
     } finally {
       setIsLoading(false)
     }

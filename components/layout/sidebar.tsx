@@ -26,6 +26,7 @@ import {
   Boxes,
   Inbox,
   ClipboardCheck,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -113,6 +114,12 @@ const mesaPartesNavItems: NavItem[] = [
     title: 'Mesa de Partes',
     href: '/mesa-partes',
     icon: Inbox,
+    moduleCode: 'mesa-partes',
+  },
+  {
+    title: 'Reportes MP',
+    href: '/mesa-partes/reportes',
+    icon: FileSpreadsheet,
     moduleCode: 'mesa-partes',
   },
 ]

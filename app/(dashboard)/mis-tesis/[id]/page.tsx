@@ -109,6 +109,10 @@ interface Tesis {
   }[]
   voucherFisicoEntregado: boolean
   voucherInformeFisicoEntregado: boolean
+  voucherSustentacionFisicoEntregado: boolean
+  voucherSustentacionFisicoFecha: string | null
+  ejemplaresEntregados: boolean
+  ejemplaresEntregadosFecha: string | null
   facultad: {
     id: string
     nombre: string
@@ -207,6 +211,12 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
     bgColor: 'bg-cyan-100 dark:bg-cyan-900/30',
     icon: <FileText className="w-4 h-4" />
   },
+  EN_REVISION_INFORME: {
+    label: 'Informe en Revisión',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+    icon: <Clock className="w-4 h-4" />
+  },
   EN_EVALUACION_INFORME: {
     label: 'Evaluando Informe',
     color: 'text-indigo-600',
@@ -263,6 +273,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [tesis, setTesis] = useState<Tesis | null>(null)
   const [loading, setLoading] = useState(true)
   const [enviando, setEnviando] = useState(false)
+  const [reenviando, setReenviando] = useState(false)
   const [subiendo, setSubiendo] = useState<string | null>(null)
   const [respondiendo, setRespondiendo] = useState(false)
   const [mostrarObsAnteriores, setMostrarObsAnteriores] = useState(false)
@@ -582,9 +593,15 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const docReporteTurnitin = tesis.documentos.find((d) => d.tipoDocumento === 'REPORTE_TURNITIN')
   const docActaVerificacion = tesis.documentos.find((d) => d.tipoDocumento === 'ACTA_VERIFICACION_ASESOR')
   const docResolucionAprobacion = tesis.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_APROBACION')
+  const docResolucionJuradoInforme = tesis.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_JURADO_INFORME')
+  const docVoucherSalaGrados = tesis.documentos.find((d) => d.tipoDocumento === 'VOUCHER_SALA_GRADOS')
+  const docVoucherSustentacion = tesis.documentos.find((d) => d.tipoDocumento === 'VOUCHER_SUSTENTACION')
+  const docConstanciaSunedu = tesis.documentos.find((d) => d.tipoDocumento === 'CONSTANCIA_SUNEDU')
+  const docResolucionSustentacion = tesis.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_SUSTENTACION')
 
   // Verificar si se subió documento corregido después de la observación (para estados observados por jurado)
-  const fechaObservacionActual = (tesis as any).historial?.findLast(
+  // historial viene ordenado DESC (más reciente primero), usar find para obtener la observación más reciente
+  const fechaObservacionActual = (tesis as any).historial?.find(
     (h: any) => h.estadoNuevo === tesis.estado
   )?.fecha
 
@@ -701,23 +718,83 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         </Card>
       )}
 
-      {tesis.estado === 'PROYECTO_OBSERVADO' && (
-        <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
-          <CardContent className="py-4">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="w-5 h-5 text-orange-600" />
+      {(tesis.estado === 'OBSERVADA' || tesis.estado === 'PROYECTO_OBSERVADO') && (() => {
+        const observacion = (tesis as any).historial?.find(
+          (h: any) => h.estadoNuevo === 'OBSERVADA' || h.estadoNuevo === 'PROYECTO_OBSERVADO'
+        )
+        return (
+          <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
+            <CardContent className="py-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-orange-600" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="font-semibold text-orange-800 dark:text-orange-200">Proyecto Observado</p>
+                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                      Tu proyecto tiene observaciones de mesa de partes. Realiza las correcciones necesarias y vuelve a enviar.
+                    </p>
+                  </div>
+                  {observacion?.comentario && (
+                    <div className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400 mb-1.5">
+                        Observaciones
+                      </p>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{observacion.comentario}</p>
+                      {observacion.realizadoPor && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Por: {observacion.realizadoPor.nombres} {observacion.realizadoPor.apellidoPaterno}
+                          {observacion.fecha && ` — ${new Date(observacion.fecha).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-orange-800 dark:text-orange-200">Proyecto observado</p>
-                <p className="text-sm text-orange-700 dark:text-orange-300">
-                  Tu proyecto tiene observaciones. Revisa los comentarios y realiza las correcciones necesarias.
-                </p>
+            </CardContent>
+          </Card>
+        )
+      })()}
+
+      {tesis.estado === 'RECHAZADA' && (() => {
+        const rechazo = (tesis as any).historial?.find(
+          (h: any) => h.estadoNuevo === 'RECHAZADA'
+        )
+        return (
+          <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
+            <CardContent className="py-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center flex-shrink-0">
+                  <X className="w-5 h-5 text-red-600" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="font-semibold text-red-800 dark:text-red-200">Proyecto Rechazado</p>
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      Tu proyecto de tesis ha sido rechazado por Mesa de Partes. Puedes registrar un nuevo proyecto si lo deseas.
+                    </p>
+                  </div>
+                  {rechazo?.comentario && (
+                    <div className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-red-200 dark:border-red-800">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400 mb-1.5">
+                        Motivo del Rechazo
+                      </p>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{rechazo.comentario}</p>
+                      {rechazo.realizadoPor && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Por: {rechazo.realizadoPor.nombres} {rechazo.realizadoPor.apellidoPaterno}
+                          {rechazo.fecha && ` — ${new Date(rechazo.fecha).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {tesis.estado === 'EN_REVISION' && (
         <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
@@ -729,7 +806,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               <div className="space-y-2">
                 <p className="font-semibold text-blue-800 dark:text-blue-200">Proyecto en revisión</p>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Tu proyecto está siendo revisado por el comité académico. Te notificaremos cuando haya novedades.
+                  Tu proyecto está siendo revisado por la {tesis.facultad.nombre}. Te notificaremos cuando haya novedades.
                 </p>
                 {tesis.voucherFisicoEntregado ? (
                   <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-1.5">
@@ -801,7 +878,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               <div className="ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
-                  className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors cursor-pointer"
                 >
                   <History className="w-4 h-4" />
                   Observaciones de rondas anteriores
@@ -949,7 +1026,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               <div className="ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
-                  className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors cursor-pointer"
                 >
                   <History className="w-4 h-4" />
                   Ver observaciones de rondas anteriores
@@ -1065,20 +1142,36 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
               <Button
                 onClick={async () => {
-                  const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
-                  const data = await res.json()
-                  if (data.success) {
-                    toast.success(data.message)
-                    window.location.reload()
-                  } else {
-                    toast.error(data.error)
+                  setReenviando(true)
+                  try {
+                    const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
+                    const data = await res.json()
+                    if (data.success) {
+                      toast.success(data.message)
+                      window.location.reload()
+                    } else {
+                      toast.error(data.error)
+                    }
+                  } catch {
+                    toast.error('Error de conexión')
+                  } finally {
+                    setReenviando(false)
                   }
                 }}
                 className="w-full bg-orange-600 hover:bg-orange-700"
-                disabled={subiendo === 'PROYECTO' || !docCorregidoProyectoSubido}
+                disabled={subiendo === 'PROYECTO' || !docCorregidoProyectoSubido || reenviando}
               >
-                <Send className="w-4 h-4 mr-2" />
-                Reenviar Proyecto Corregido
+                {reenviando ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Reenviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Reenviar Proyecto Corregido
+                  </>
+                )}
               </Button>
               {!docCorregidoProyectoSubido && (
                 <p className="text-xs text-orange-600 text-center">
@@ -1131,8 +1224,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
           { label: 'Reporte Turnitin firmado por asesor', cumplido: !!docReporteTurnitin },
           { label: 'Acta de verificación de similitud del asesor', cumplido: !!docActaVerificacion },
           { label: 'Resolución de aprobación del proyecto', cumplido: !!docResolucionAprobacion },
-          { label: 'Jurados asignados para informe final', cumplido: juradosCompletos },
-          { label: 'Voucher físico confirmado por mesa de partes', cumplido: tesis.voucherInformeFisicoEntregado },
         ]
         const cumplidos = requisitosInforme.filter((r) => r.cumplido).length
         const totalRequisitos = requisitosInforme.length
@@ -1279,8 +1370,45 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </div>
               )}
 
-              {/* 6. Estado de jurados para informe final */}
-              {juradosCompletos ? (
+              {/* 6. Resolución de conformación de jurado evaluador de informe final */}
+              {docResolucionJuradoInforme ? (
+                <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">Resolución de Conformación de Jurado Evaluador</p>
+                      <p className="text-xs text-muted-foreground">{docResolucionJuradoInforme.nombre}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <a href={docResolucionJuradoInforme.archivoUrl} target="_blank" rel="noopener noreferrer">
+                          <Button size="sm" variant="outline" className="h-7 text-xs">
+                            <Eye className="w-3 h-3 mr-1" />
+                            Ver
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Resolución de Conformación de Jurado Evaluador</p>
+                      <p className="text-xs text-orange-600 dark:text-orange-400">
+                        Pendiente: mesa de partes debe subir la resolución de conformación de jurado evaluador de informe final.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 7. Estado de jurados para informe final */}
+              {docResolucionJuradoInforme && juradosCompletos ? (
                 <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
@@ -1298,7 +1426,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : docResolucionJuradoInforme ? (
                 <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
@@ -1320,7 +1448,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Nota sobre entrega física del voucher del informe final */}
               {tesis.voucherInformeFisicoEntregado ? (
@@ -1347,25 +1475,41 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               {/* Botón Enviar */}
               <Button
                 onClick={async () => {
-                  const res = await fetch(`/api/tesis/${tesis.id}/enviar-informe`, { method: 'POST' })
-                  const data = await res.json()
-                  if (data.success) {
-                    toast.success(data.message)
-                    window.location.reload()
-                  } else {
-                    toast.error(data.error || 'Error al enviar')
-                    if (data.requisitos) {
-                      data.requisitos.filter((r: any) => !r.cumplido).forEach((r: any) => {
-                        toast.error(r.detalle)
-                      })
+                  setEnviando(true)
+                  try {
+                    const res = await fetch(`/api/tesis/${tesis.id}/enviar-informe`, { method: 'POST' })
+                    const data = await res.json()
+                    if (data.success) {
+                      toast.success(data.message)
+                      window.location.reload()
+                    } else {
+                      toast.error(data.error || 'Error al enviar')
+                      if (data.requisitos) {
+                        data.requisitos.filter((r: any) => !r.cumplido).forEach((r: any) => {
+                          toast.error(r.detalle)
+                        })
+                      }
                     }
+                  } catch {
+                    toast.error('Error de conexión')
+                  } finally {
+                    setEnviando(false)
                   }
                 }}
                 className="w-full bg-cyan-600 hover:bg-cyan-700"
-                disabled={!todosCompletos || subiendo !== null}
+                disabled={!todosCompletos || subiendo !== null || enviando}
               >
-                <Send className="w-4 h-4 mr-2" />
-                Enviar Informe Final para Evaluación
+                {enviando ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Enviar Informe Final para Evaluación
+                  </>
+                )}
               </Button>
               {!todosCompletos && (
                 <p className="text-xs text-muted-foreground text-center">
@@ -1376,6 +1520,44 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
           </Card>
         )
       })()}
+
+      {tesis.estado === 'EN_REVISION_INFORME' && (
+        <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="space-y-2">
+                <p className="font-semibold text-blue-800 dark:text-blue-200">Informe final en revisión</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  Tu informe final está siendo revisado por mesa de partes. Te notificaremos cuando haya novedades.
+                </p>
+                {tesis.voucherInformeFisicoEntregado ? (
+                  <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Voucher físico del informe recibido por mesa de partes
+                  </p>
+                ) : (
+                  <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
+                      <div>
+                        <p className="text-sm font-bold text-red-800 dark:text-red-200">
+                          Entrega de voucher original del informe pendiente
+                        </p>
+                        <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                          Si no entrega el voucher original de pago del informe final, <span className="font-semibold underline">no se aprobará su informe</span>. Diríjase a mesa de partes de su facultad lo antes posible.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {tesis.estado === 'EN_EVALUACION_INFORME' && (
         <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
@@ -1402,7 +1584,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               <div className="ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
-                  className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors cursor-pointer"
                 >
                   <History className="w-4 h-4" />
                   Observaciones de rondas anteriores
@@ -1541,7 +1723,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               <div className="ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
-                  className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors cursor-pointer"
                 >
                   <History className="w-4 h-4" />
                   Ver observaciones de rondas anteriores
@@ -1656,20 +1838,36 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
               <Button
                 onClick={async () => {
-                  const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
-                  const data = await res.json()
-                  if (data.success) {
-                    toast.success(data.message)
-                    window.location.reload()
-                  } else {
-                    toast.error(data.error)
+                  setReenviando(true)
+                  try {
+                    const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
+                    const data = await res.json()
+                    if (data.success) {
+                      toast.success(data.message)
+                      window.location.reload()
+                    } else {
+                      toast.error(data.error)
+                    }
+                  } catch {
+                    toast.error('Error de conexión')
+                  } finally {
+                    setReenviando(false)
                   }
                 }}
                 className="w-full bg-orange-600 hover:bg-orange-700"
-                disabled={subiendo === 'INFORME_FINAL_DOC' || !docCorregidoInformeSubido}
+                disabled={subiendo === 'INFORME_FINAL_DOC' || !docCorregidoInformeSubido || reenviando}
               >
-                <Send className="w-4 h-4 mr-2" />
-                Reenviar Informe Corregido
+                {reenviando ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Reenviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Reenviar Informe Corregido
+                  </>
+                )}
               </Button>
               {!docCorregidoInformeSubido && (
                 <p className="text-xs text-orange-600 text-center">
@@ -1781,6 +1979,191 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Requisitos de Sustentación */}
+      {tesis.estado === 'EN_SUSTENTACION' && (
+        <>
+          {/* Resolución de Sustentación - arriba de todo */}
+          {docResolucionSustentacion && (
+            <Card className="border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                    <FileCheck className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-lg font-bold text-green-800 dark:text-green-200">Resolución de Sustentación</p>
+                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                      La resolución de aprobación del informe final y programación de sustentación ha sido emitida.
+                    </p>
+                    <div className="flex gap-2 mt-3">
+                      <a href={docResolucionSustentacion.archivoUrl} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="outline" className="text-green-600 border-green-300">
+                          <Eye className="w-3 h-3 mr-1" /> Ver Resolución
+                        </Button>
+                      </a>
+                      <a href={docResolucionSustentacion.archivoUrl} download>
+                        <Button size="sm" variant="outline" className="text-green-600 border-green-300">
+                          <Download className="w-3 h-3 mr-1" /> Descargar
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Banner de estado */}
+          {!docResolucionSustentacion && (() => {
+            const todosDigitalesSubidos = !!docVoucherSalaGrados && !!docVoucherSustentacion && !!docConstanciaSunedu
+            const todasEntregasFisicas = tesis.voucherSustentacionFisicoEntregado && tesis.ejemplaresEntregados
+            const todoCompleto = todosDigitalesSubidos && todasEntregasFisicas
+
+            return todoCompleto ? (
+              <Card className="border-2 border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+                <CardContent className="py-4">
+                  <div className="flex items-start gap-3">
+                    <Loader2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin" />
+                    <div>
+                      <p className="text-sm font-bold text-blue-800 dark:text-blue-200">Se está elaborando su resolución de aprobación de informe final</p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                        Todos los documentos fueron entregados y confirmados. Mesa de partes está elaborando la resolución de aprobación del informe final y programación de sustentación.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-2 border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+                <CardContent className="py-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5 animate-pulse" />
+                    <div>
+                      <p className="text-sm font-bold text-amber-800 dark:text-amber-200">Documentos pendientes para sustentación</p>
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        Debe entregar los siguientes documentos lo antes posible en la Facultad de Ingeniería.
+                        En caso contrario, <span className="font-semibold underline">no se procederá a elaborar la resolución de sustentación</span>.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })()}
+
+          {/* Documentos digitales para sustentación */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Upload className="w-5 h-5 text-purple-600" />
+                Documentos para Sustentación
+              </CardTitle>
+              <CardDescription>Suba los siguientes documentos en formato PDF</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <DocumentUploadCard
+                titulo="Voucher Alquiler Sala de Grados (Cod. 384)"
+                descripcion="Voucher de pago de S/ 515.00 - Alquiler de Sala de Grados por 02 horas (PDF, máx. 25MB)"
+                tipoDocumento="VOUCHER_SALA_GRADOS"
+                documento={docVoucherSalaGrados}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'VOUCHER_SALA_GRADOS'}
+                accept=".pdf"
+                icon={<Receipt className="w-5 h-5" />}
+                iconColor="text-amber-600"
+                iconBg="bg-amber-100 dark:bg-amber-900/50"
+              />
+
+              <DocumentUploadCard
+                titulo="Voucher Sustentación por Tesista (Cod. 466)"
+                descripcion="Voucher de pago de S/ 36.00 - Sustentación de tesis por cada tesista (PDF, máx. 25MB)"
+                tipoDocumento="VOUCHER_SUSTENTACION"
+                documento={docVoucherSustentacion}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'VOUCHER_SUSTENTACION'}
+                accept=".pdf"
+                icon={<Receipt className="w-5 h-5" />}
+                iconColor="text-amber-600"
+                iconBg="bg-amber-100 dark:bg-amber-900/50"
+              />
+
+              <DocumentUploadCard
+                titulo="Constancia de Inscripción en SUNEDU"
+                descripcion="Constancia de inscripción en SUNEDU con grado bachiller (PDF, máx. 25MB)"
+                tipoDocumento="CONSTANCIA_SUNEDU"
+                documento={docConstanciaSunedu}
+                onUpload={handleFileUpload}
+                subiendo={subiendo === 'CONSTANCIA_SUNEDU'}
+                accept=".pdf"
+                icon={<ShieldCheck className="w-5 h-5" />}
+                iconColor="text-blue-600"
+                iconBg="bg-blue-100 dark:bg-blue-900/50"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Entregas físicas - checklist read-only */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-indigo-600" />
+                Entregas Físicas
+              </CardTitle>
+              <CardDescription>Estado de las entregas presenciales en la Facultad de Ingeniería</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className={cn(
+                'flex items-center gap-3 p-3 rounded-lg border',
+                tesis.voucherSustentacionFisicoEntregado
+                  ? 'bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-800'
+                  : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
+              )}>
+                {tesis.voucherSustentacionFisicoEntregado ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                ) : (
+                  <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p className={cn('text-sm font-medium', tesis.voucherSustentacionFisicoEntregado ? 'text-green-800 dark:text-green-200' : 'text-gray-600 dark:text-gray-400')}>
+                    Vouchers originales (Cod. 384 + 466)
+                  </p>
+                  {tesis.voucherSustentacionFisicoFecha && (
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      Confirmado el {new Date(tesis.voucherSustentacionFisicoFecha).toLocaleDateString('es-PE')}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className={cn(
+                'flex items-center gap-3 p-3 rounded-lg border',
+                tesis.ejemplaresEntregados
+                  ? 'bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-800'
+                  : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
+              )}>
+                {tesis.ejemplaresEntregados ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                ) : (
+                  <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                )}
+                <div className="flex-1">
+                  <p className={cn('text-sm font-medium', tesis.ejemplaresEntregados ? 'text-green-800 dark:text-green-200' : 'text-gray-600 dark:text-gray-400')}>
+                    4 ejemplares del informe final en folder manila
+                  </p>
+                  {tesis.ejemplaresEntregadosFecha && (
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      Confirmado el {new Date(tesis.ejemplaresEntregadosFecha).toLocaleDateString('es-PE')}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
+
+        </>
       )}
 
       {/* Banner de invitación pendiente para coautores */}
@@ -1925,7 +2308,14 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   iconColor="text-amber-600"
                   iconBg="bg-amber-100 dark:bg-amber-900/50"
                 />
-                {docVoucherPago && tesis.estado !== 'BORRADOR' ? (
+                {docVoucherPago && tesis.estado !== 'BORRADOR' && tesis.voucherFisicoEntregado ? (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border-2 border-green-300 dark:border-green-700 -mt-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-green-800 dark:text-green-200">Voucher físico recibido por mesa de partes</p>
+                    </div>
+                  </div>
+                ) : docVoucherPago && tesis.estado !== 'BORRADOR' ? (
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700 -mt-2">
                     <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
                     <div>
@@ -1947,7 +2337,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 {/* Mi Documento Sustentatorio */}
                 <DocumentUploadCard
                   titulo={otroAutor ? 'Tu Documento Sustentatorio' : 'Documento Sustentatorio'}
-                  descripcion="Documento que acredite su condición académica en formato PDF (máx. 25MB)"
+                  descripcion="Documento que acredite que se encuentra como mínimo en el VIII semestre o superior (PDF, máx. 25MB)"
                   tipoDocumento="DOCUMENTO_SUSTENTATORIO"
                   documento={miDocSustentatorio}
                   onUpload={handleFileUpload}
@@ -1961,9 +2351,10 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
                     <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                     <div className="text-xs text-muted-foreground">
+                      <p className="mb-1 font-semibold text-amber-600 dark:text-amber-400">El documento debe acreditar que el estudiante se encuentra como mínimo en el octavo semestre (VIII) o superior.</p>
                       <p className="mb-1">Suba <span className="font-semibold">uno</span> de los siguientes documentos según su condición:</p>
                       <ul className="list-disc list-inside space-y-0.5 ml-1">
-                        <li><span className="font-medium">Ficha de matrícula</span> — si está matriculado en el semestre actual</li>
+                        <li><span className="font-medium">Ficha de matrícula</span> — si está matriculado en el semestre actual (mínimo VIII ciclo)</li>
                         <li><span className="font-medium">Inscripción a SUNEDU</span> — si cuenta con registro en SUNEDU</li>
                         <li><span className="font-medium">Constancia de egresado</span> — si ya egresó de la carrera</li>
                       </ul>
@@ -2148,7 +2539,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               </Card>
 
               {/* Documentos de Informe Final (solo si la tesis ya pasó a esa fase) */}
-              {['INFORME_FINAL', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION'].includes(tesis.estado) && (
+              {['INFORME_FINAL', 'EN_REVISION_INFORME', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION'].includes(tesis.estado) && (
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">

@@ -8,6 +8,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { crearNotificacion } from '@/lib/notificaciones'
+import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 import path from 'path'
 import fs from 'fs'
 
@@ -42,6 +44,27 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       include: {
         asesores: {
           where: { userId: user.id },
+        },
+        autores: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
+              },
+            },
+            studentCareer: {
+              select: {
+                facultad: {
+                  select: { nombre: true, codigo: true },
+                },
+              },
+            },
+          },
+          orderBy: { orden: 'asc' },
         },
       },
     })
@@ -142,6 +165,58 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     console.log(`[Carta Aceptación] Carta registrada sin firma digital: ${destFileName}`)
+
+    // === NOTIFICACIONES ===
+    const asesorNombre = `${user.nombres} ${user.apellidoPaterno} ${(user as any).apellidoMaterno || ''}`.trim()
+    const tipoAsesorTexto = asesorRegistro.tipo === 'PRINCIPAL' ? 'asesor' : 'co-asesor'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const primerAutor = tesis.autores[0]
+    const facultad = primerAutor?.studentCareer?.facultad
+    const facultadCodigo = facultad?.codigo || 'FI'
+    const facultadNombre = facultad?.nombre || 'Facultad'
+
+    // Notificación in-app a cada autor
+    const autorIds = tesis.autores.map(a => a.user.id)
+    if (autorIds.length > 0) {
+      try {
+        await crearNotificacion({
+          userId: autorIds,
+          tipo: 'CARTA_ACEPTACION_REGISTRADA',
+          titulo: 'Carta de aceptacion registrada',
+          mensaje: `El ${tipoAsesorTexto} ${asesorNombre} ha registrado su carta de aceptacion para: "${tesis.titulo}"`,
+          enlace: `/mis-tesis/${tesisId}`,
+        })
+      } catch (notifError) {
+        console.error('[Notificacion] Error al notificar autores:', notifError)
+      }
+    }
+
+    // Email a cada autor
+    for (const autor of tesis.autores) {
+      if (autor.user?.email) {
+        try {
+          const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
+          const tesisUrl = `${appUrl}/mis-tesis/${tesisId}`
+          const template = emailTemplates.advisorLetterRegistered(
+            nombreAutor,
+            asesorNombre,
+            tipoAsesorTexto,
+            tesis.titulo,
+            facultadNombre,
+            tesisUrl
+          )
+          await sendEmailByFaculty(facultadCodigo, {
+            to: autor.user.email,
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
+          })
+          console.log(`[Email] Notificacion carta registrada enviada a: ${autor.user.email}`)
+        } catch (emailError) {
+          console.error(`[Email] Error al notificar ${autor.user.email}:`, emailError)
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
               faseActual: true,
               fechaLimiteEvaluacion: true,
               fechaLimiteCorreccion: true,
+              fechaSustentacion: true,
               autores: {
                 include: {
                   user: {
@@ -134,6 +135,7 @@ export async function GET(request: NextRequest) {
         rondaActual: j.thesis.rondaActual,
         faseActual: j.thesis.faseActual,
         fechaLimiteEvaluacion: faseTerminada ? null : j.thesis.fechaLimiteEvaluacion,
+        fechaSustentacion: j.thesis.fechaSustentacion,
         autores: j.thesis.autores.map((a) =>
           `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno}`
         ).join(', '),

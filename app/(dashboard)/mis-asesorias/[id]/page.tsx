@@ -117,13 +117,33 @@ interface AsesoriaDetalle {
   tesistas: Tesista[]
   asesores: Asesor[]
   documentos: Documento[]
+  historial: {
+    id: string
+    estadoAnterior: string
+    estadoNuevo: string
+    comentario: string | null
+    fecha: string
+    realizadoPor: string | null
+  }[]
 }
 
 const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
   BORRADOR: { label: 'Borrador', color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  EN_REVISION: { label: 'En Revision', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
   REGISTRO_PENDIENTE: { label: 'En Revisión', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
+  OBSERVADA: { label: 'Observada', color: 'text-orange-600', bgColor: 'bg-orange-100' },
   PROYECTO_OBSERVADO: { label: 'Observado', color: 'text-orange-600', bgColor: 'bg-orange-100' },
-  PROYECTO_APROBADO: { label: 'Aprobado', color: 'text-green-600', bgColor: 'bg-green-100' },
+  ASIGNANDO_JURADOS: { label: 'Asignando Jurados', color: 'text-indigo-600', bgColor: 'bg-indigo-100' },
+  EN_EVALUACION_JURADO: { label: 'En Evaluacion', color: 'text-purple-600', bgColor: 'bg-purple-100' },
+  OBSERVADA_JURADO: { label: 'Observada por Jurado', color: 'text-orange-600', bgColor: 'bg-orange-100' },
+  PROYECTO_APROBADO: { label: 'Proyecto Aprobado', color: 'text-green-600', bgColor: 'bg-green-100' },
+  INFORME_FINAL: { label: 'Informe Final', color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  EN_REVISION_INFORME: { label: 'Informe en Revisión', color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  EN_EVALUACION_INFORME: { label: 'Evaluando Informe', color: 'text-purple-600', bgColor: 'bg-purple-100' },
+  OBSERVADA_INFORME: { label: 'Informe Observado', color: 'text-orange-600', bgColor: 'bg-orange-100' },
+  APROBADA: { label: 'Aprobada', color: 'text-green-600', bgColor: 'bg-green-100' },
+  EN_SUSTENTACION: { label: 'En Sustentacion', color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  RECHAZADA: { label: 'Rechazada', color: 'text-red-600', bgColor: 'bg-red-100' },
   EN_DESARROLLO: { label: 'En Desarrollo', color: 'text-blue-600', bgColor: 'bg-blue-100' },
 }
 
@@ -592,6 +612,46 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
         </Card>
       )}
 
+      {/* Observación de mesa de partes */}
+      {data.tesis.estado === 'OBSERVADA' && (() => {
+        const observacion = data.historial?.find(
+          (h: any) => h.estadoNuevo === 'OBSERVADA'
+        )
+        return (
+          <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
+            <CardContent className="py-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-orange-600" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="font-semibold text-orange-800 dark:text-orange-200">Proyecto Observado por Mesa de Partes</p>
+                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                      El proyecto de tu asesorado tiene observaciones. El tesista debe realizar las correcciones y reenviar.
+                    </p>
+                  </div>
+                  {observacion?.comentario && (
+                    <div className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400 mb-1.5">
+                        Observaciones
+                      </p>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{observacion.comentario}</p>
+                      {observacion.realizadoPor && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Por: {observacion.realizadoPor}
+                          {observacion.fecha && ` — ${new Date(observacion.fecha).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })()}
+
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
@@ -766,7 +826,7 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                   <div className="flex items-center gap-3">
                     <File className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="font-medium text-sm">{miCartaFirmada.nombre}</p>
+                      <a href={miCartaFirmada.archivoUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-sm hover:underline cursor-pointer">{miCartaFirmada.nombre}</a>
                       <div className="flex items-center gap-2 mt-0.5">
                         <p className="text-xs text-muted-foreground">
                           {formatFileSize(miCartaFirmada.archivoTamano)} • {new Date(miCartaFirmada.createdAt).toLocaleDateString('es-PE')}
@@ -960,10 +1020,15 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                     key={d.id}
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
+                    <a
+                      href={d.archivoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 min-w-0 cursor-pointer hover:underline"
+                    >
                       <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       <span className="text-sm truncate">{d.nombre}</span>
-                    </div>
+                    </a>
                     <Button variant="ghost" size="icon" asChild>
                       <a href={d.archivoUrl} target="_blank" rel="noopener noreferrer">
                         <Eye className="w-4 h-4" />
@@ -979,37 +1044,75 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
 
       {/* Dialog de confirmación de firma */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Firma Digital</DialogTitle>
+        <DialogContent className="sm:max-w-md overflow-hidden">
+          <DialogHeader className="text-center sm:text-center">
+            <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
+              <PenTool className="w-7 h-7 text-white" />
+            </div>
+            <DialogTitle className="text-xl">Firma Digital con Firma Perú</DialogTitle>
             <DialogDescription>
-              Estás a punto de firmar tu carta de aceptación con Firma Perú. Asegúrate de tener
-              instalado el cliente de Firma Perú y tu certificado digital.
+              Vas a firmar digitalmente tu carta de aceptación como {tipoAsesorTexto.toLowerCase()}
             </DialogDescription>
           </DialogHeader>
-          <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-            <p className="text-sm">
-              <strong>Tesis:</strong> {data.tesis.titulo}
-            </p>
-            <p className="text-sm">
-              <strong>Código:</strong> {data.tesis.codigo}
-            </p>
-            <p className="text-sm">
-              <strong>Rol:</strong> {tipoAsesorTexto}
-            </p>
-            {cartaSubida && (
-              <p className="text-sm">
-                <strong>Archivo:</strong> {cartaSubida.fileName}
-              </p>
-            )}
+
+          <div className="space-y-3 overflow-hidden">
+            {/* Documento a firmar */}
+            <div className="rounded-xl border bg-muted/30 p-3 space-y-3 overflow-hidden">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documento a firmar</p>
+              {cartaSubida && (
+                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-white dark:bg-gray-900 border overflow-hidden">
+                  <div className="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-950/30 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-red-500" />
+                  </div>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <p className="text-sm font-medium truncate">{cartaSubida.fileName}</p>
+                    <p className="text-xs text-muted-foreground">Carta de Aceptación - {tipoAsesorTexto}</p>
+                  </div>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">Código</p>
+                  <p className="font-mono font-medium">{data.tesis.codigo}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Rol</p>
+                  <p className="font-medium">{tipoAsesorTexto}</p>
+                </div>
+              </div>
+              <div className="text-sm overflow-hidden">
+                <p className="text-xs text-muted-foreground">Tesis</p>
+                <p className="font-medium line-clamp-2">{data.tesis.titulo}</p>
+              </div>
+            </div>
+
+            {/* Requisitos */}
+            <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">Requisitos previos</p>
+              <ul className="space-y-1.5">
+                <li className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-300">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Cliente de <strong>Firma Perú</strong> instalado y en ejecución</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-300">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>Certificado digital <strong>(DNIe)</strong> conectado al equipo</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-300">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <span>PIN del certificado digital disponible</span>
+                </li>
+              </ul>
+            </div>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={iniciarFirma} className="bg-purple-600 hover:bg-purple-700">
+            <Button onClick={iniciarFirma} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-md shadow-purple-500/20">
               <PenTool className="w-4 h-4 mr-2" />
-              Confirmar y Firmar
+              Firmar Documento
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -181,6 +181,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       rondaActual: faseTerminada ? rondaParaProgreso : tesis.rondaActual,
       faseActual: tesis.faseActual,
       faseTerminada,
+      fechaSustentacion: tesis.fechaSustentacion,
+      lugarSustentacion: tesis.lugarSustentacion,
+      modalidadSustentacion: tesis.modalidadSustentacion,
       fechaLimiteEvaluacion: faseTerminada ? null : tesis.fechaLimiteEvaluacion,
       fechaLimiteCorreccion: faseTerminada ? null : tesis.fechaLimiteCorreccion,
       autores: tesis.autores.map((a) => ({
