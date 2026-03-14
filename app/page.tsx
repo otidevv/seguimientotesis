@@ -26,18 +26,19 @@ import {
   BookOpen,
   Target,
   Zap,
-  HeartHandshake
+  HeartHandshake,
+  Star
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background bg-grid">
+    <div id="top" className="min-h-screen bg-background bg-grid">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
+          <a href="#top" className="flex items-center gap-2 cursor-pointer">
             <Image
               src="/logo/logounamad.png"
               alt="UNAMAD Logo"
@@ -46,7 +47,7 @@ export default function Home() {
               className="rounded"
             />
             <span className="text-xl font-bold hidden sm:inline">Seguimiento de Tesis</span>
-          </div>
+          </a>
           <nav className="hidden md:flex items-center gap-6">
             <Link href="#caracteristicas" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               Características
@@ -86,31 +87,31 @@ export default function Home() {
         <div className="container mx-auto px-4 py-24 md:py-32 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="flex flex-col gap-8">
-              <Badge variant="secondary" className="w-fit px-4 py-1 animate-pulse">
+              <Badge variant="secondary" className="w-fit px-4 py-1 animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-backwards">
                 Plataforma de Gestión Académica
               </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight animate-in fade-in spin-in-12 zoom-in-90 duration-1000 delay-150 fill-mode-backwards">
                 Sistema de Seguimiento de{" "}
-                <span className="text-primary">Tesis Universitarias</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">Tesis Universitarias</span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-xl">
+              <p className="text-xl text-muted-foreground max-w-xl animate-in fade-in spin-in-6 zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
                 Gestiona, supervisa y da seguimiento al progreso de tesis de pregrado y posgrado.
                 Una plataforma integral para tesistas, asesores y revisores.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in duration-1000 delay-500 fill-mode-backwards">
                 <Link href="/login">
-                  <Button size="lg" className="gap-2 shadow-lg hover:shadow-xl transition-shadow w-full">
+                  <Button size="lg" className="gap-2 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full">
                     Iniciar Sesión <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href="/registrarse">
-                  <Button size="lg" variant="outline" className="hover:bg-primary/5 w-full">
+                  <Button size="lg" variant="outline" className="hover:bg-primary/5 transition-[box-shadow,background-color] duration-300 w-full">
                     Registrarse
                   </Button>
                 </Link>
               </div>
               {/* Trust indicators */}
-              <div className="flex items-center gap-6 pt-4">
+              <div className="flex items-center gap-6 pt-4 animate-in fade-in duration-1000 delay-700 fill-mode-backwards">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Shield className="h-4 w-4 text-primary" />
                   <span>Datos seguros</span>
@@ -125,7 +126,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="hidden lg:block">
+            <div className="hidden lg:block animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
               <HeroIllustration className="w-full h-auto max-w-md mx-auto drop-shadow-xl" />
             </div>
           </div>
@@ -139,29 +140,29 @@ export default function Home() {
       <section className="bg-muted/50">
         <div className="container mx-auto px-4 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
+            <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                 <BookOpen className="h-8 w-8 text-primary" />
               </div>
               <p className="text-3xl md:text-4xl font-bold text-primary">500+</p>
               <p className="text-sm text-muted-foreground mt-1">Tesis Registradas</p>
             </div>
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
+            <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                 <Users className="h-8 w-8 text-primary" />
               </div>
               <p className="text-3xl md:text-4xl font-bold text-primary">150+</p>
               <p className="text-sm text-muted-foreground mt-1">Asesores Activos</p>
             </div>
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
+            <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                 <GraduationCap className="h-8 w-8 text-primary" />
               </div>
               <p className="text-3xl md:text-4xl font-bold text-primary">12</p>
               <p className="text-sm text-muted-foreground mt-1">Facultades</p>
             </div>
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
+            <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                 <Target className="h-8 w-8 text-primary" />
               </div>
               <p className="text-3xl md:text-4xl font-bold text-primary">95%</p>
@@ -184,8 +185,8 @@ export default function Home() {
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center p-6 rounded-2xl hover:bg-muted/50 transition-colors">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+          <div className="text-center group p-6 rounded-2xl hover:bg-card hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-border transition-all duration-300">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:rotate-6 transition-all duration-300">
               <Zap className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Rápido y Eficiente</h3>
@@ -193,8 +194,8 @@ export default function Home() {
               Reduce el tiempo de gestión administrativa en un 70% con nuestra plataforma automatizada.
             </p>
           </div>
-          <div className="text-center p-6 rounded-2xl hover:bg-muted/50 transition-colors">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+          <div className="text-center group p-6 rounded-2xl hover:bg-card hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-border transition-all duration-300">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:rotate-6 transition-all duration-300">
               <Shield className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Seguro y Confiable</h3>
@@ -202,8 +203,8 @@ export default function Home() {
               Tus documentos y datos están protegidos con encriptación de nivel empresarial.
             </p>
           </div>
-          <div className="text-center p-6 rounded-2xl hover:bg-muted/50 transition-colors">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+          <div className="text-center group p-6 rounded-2xl hover:bg-card hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-border transition-all duration-300">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:rotate-6 transition-all duration-300">
               <HeartHandshake className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Soporte Dedicado</h3>
@@ -228,7 +229,7 @@ export default function Home() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
+            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <FileText className="h-6 w-6" />
@@ -239,7 +240,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
+            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <Users className="h-6 w-6" />
@@ -250,7 +251,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
+            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <Calendar className="h-6 w-6" />
@@ -261,7 +262,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
+            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <CheckCircle className="h-6 w-6" />
@@ -272,7 +273,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
+            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <ClipboardList className="h-6 w-6" />
@@ -283,7 +284,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
+            <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer">
               <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <BarChart3 className="h-6 w-6" />
@@ -374,6 +375,11 @@ export default function Home() {
             <Card className="relative hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
                 <Quote className="h-8 w-8 text-primary/20 absolute top-4 right-4" />
+                <div className="flex gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
                 <p className="text-muted-foreground mb-6">
                   "La plataforma me ayudó a organizar todo el proceso de mi tesis.
                   El seguimiento con mi asesor fue mucho más fluido y pude graduarme a tiempo."
@@ -392,6 +398,11 @@ export default function Home() {
             <Card className="relative hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
                 <Quote className="h-8 w-8 text-primary/20 absolute top-4 right-4" />
+                <div className="flex gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
                 <p className="text-muted-foreground mb-6">
                   "Como asesor, puedo dar seguimiento a múltiples tesistas de forma ordenada.
                   Las notificaciones y el calendario son muy útiles."
@@ -410,6 +421,11 @@ export default function Home() {
             <Card className="relative hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
                 <Quote className="h-8 w-8 text-primary/20 absolute top-4 right-4" />
+                <div className="flex gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
                 <p className="text-muted-foreground mb-6">
                   "Excelente sistema para gestionar los documentos y ver el progreso.
                   Recomiendo a todos los estudiantes que inicien su tesis aquí."
