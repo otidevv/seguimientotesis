@@ -7,6 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Header } from "@/components/layout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/auth-context";
@@ -35,6 +43,8 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
   const { login, isLoading, isAuthenticated, isLoading: isCheckingAuth } = useAuth();
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // Verificar si viene de un redirect del middleware (sesión inválida ya determinada)
   const isFromRedirect = searchParams.has('redirect') || searchParams.has('expired');
@@ -266,9 +276,9 @@ function LoginForm() {
                   <div className="mt-4 p-4 rounded-lg bg-muted/50 text-center lg:hidden">
                     <p className="text-xs text-muted-foreground">
                       Al iniciar sesión, aceptas nuestros{" "}
-                      <Link href="#" className="text-primary hover:underline">Términos</Link>
+                      <button type="button" onClick={() => setShowTerms(true)} className="text-primary hover:underline font-medium">Términos de Servicio</button>
                       {" "}y{" "}
-                      <Link href="#" className="text-primary hover:underline">Política de Privacidad</Link>
+                      <button type="button" onClick={() => setShowPrivacy(true)} className="text-primary hover:underline font-medium">Política de Privacidad</button>
                     </p>
                   </div>
                 </CardContent>
@@ -278,15 +288,200 @@ function LoginForm() {
               <div className="hidden lg:block mt-6 p-4 rounded-lg bg-muted/50 text-center">
                 <p className="text-xs text-muted-foreground">
                   Al iniciar sesión, aceptas nuestros{" "}
-                  <Link href="#" className="text-primary hover:underline">Términos de Servicio</Link>
+                  <button type="button" onClick={() => setShowTerms(true)} className="text-primary hover:underline font-medium">Términos de Servicio</button>
                   {" "}y{" "}
-                  <Link href="#" className="text-primary hover:underline">Política de Privacidad</Link>
+                  <button type="button" onClick={() => setShowPrivacy(true)} className="text-primary hover:underline font-medium">Política de Privacidad</button>
                 </p>
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Dialog: Términos y Condiciones */}
+      <Dialog open={showTerms} onOpenChange={setShowTerms}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Términos de Servicio</DialogTitle>
+            <DialogDescription>
+              Sistema de Seguimiento de Tesis - UNAMAD
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-[60vh] pr-4">
+            <div className="space-y-4 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Última actualización: Marzo 2026</p>
+
+              <h3 className="font-semibold text-foreground">1. Aceptación de los Términos</h3>
+              <p>
+                Al registrarse y utilizar el Sistema de Seguimiento de Tesis de la Universidad Nacional Amazónica de Madre de Dios (UNAMAD),
+                usted acepta cumplir con estos Términos y Condiciones. Si no está de acuerdo, no debe utilizar el sistema.
+              </p>
+
+              <h3 className="font-semibold text-foreground">2. Descripción del Servicio</h3>
+              <p>
+                El sistema permite gestionar el proceso de tesis universitarias, incluyendo: registro y seguimiento de proyectos de tesis,
+                asignación de asesores y jurados, gestión de trámites a través de mesa de partes, firma digital de documentos
+                y generación de reportes académicos.
+              </p>
+
+              <h3 className="font-semibold text-foreground">3. Registro y Cuenta de Usuario</h3>
+              <p>
+                El usuario se compromete a proporcionar información veraz y actualizada durante el registro. La cuenta es personal
+                e intransferible. El usuario es responsable de mantener la confidencialidad de su contraseña y de todas las actividades
+                realizadas con su cuenta.
+              </p>
+
+              <h3 className="font-semibold text-foreground">4. Uso Adecuado del Sistema</h3>
+              <p>El usuario se compromete a:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Utilizar el sistema únicamente para fines académicos relacionados con el proceso de tesis.</li>
+                <li>No intentar acceder a información de otros usuarios sin autorización.</li>
+                <li>No cargar contenido malicioso, ofensivo o que viole derechos de terceros.</li>
+                <li>No realizar acciones que comprometan la seguridad o el rendimiento del sistema.</li>
+                <li>Respetar los plazos y procedimientos establecidos por la universidad.</li>
+              </ul>
+
+              <h3 className="font-semibold text-foreground">5. Propiedad Intelectual</h3>
+              <p>
+                Los trabajos de tesis cargados en el sistema son propiedad intelectual de sus autores. La UNAMAD se reserva
+                el derecho de uso académico conforme a su reglamento institucional. El sistema y su código fuente son propiedad
+                de la UNAMAD.
+              </p>
+
+              <h3 className="font-semibold text-foreground">6. Firma Digital</h3>
+              <p>
+                Los documentos firmados digitalmente a través del sistema tienen validez legal conforme a la Ley de Firmas y
+                Certificados Digitales del Perú (Ley N° 27269). El usuario es responsable del uso de su firma digital.
+              </p>
+
+              <h3 className="font-semibold text-foreground">7. Disponibilidad del Servicio</h3>
+              <p>
+                La UNAMAD se esfuerza por mantener el sistema disponible, pero no garantiza un funcionamiento ininterrumpido.
+                Se podrán realizar mantenimientos programados con aviso previo.
+              </p>
+
+              <h3 className="font-semibold text-foreground">8. Limitación de Responsabilidad</h3>
+              <p>
+                La UNAMAD no será responsable por daños derivados del uso incorrecto del sistema, pérdida de datos por causas
+                ajenas a la institución, o interrupciones del servicio por fuerza mayor.
+              </p>
+
+              <h3 className="font-semibold text-foreground">9. Modificaciones</h3>
+              <p>
+                La UNAMAD se reserva el derecho de modificar estos términos en cualquier momento. Los cambios serán notificados
+                a través del sistema y entrarán en vigencia desde su publicación.
+              </p>
+
+              <h3 className="font-semibold text-foreground">10. Contacto</h3>
+              <p>
+                Para consultas sobre estos términos, puede comunicarse con la Oficina de Tecnologías de la Información
+                de la UNAMAD.
+              </p>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Política de Privacidad */}
+      <Dialog open={showPrivacy} onOpenChange={setShowPrivacy}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Política de Privacidad</DialogTitle>
+            <DialogDescription>
+              Sistema de Seguimiento de Tesis - UNAMAD
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-[60vh] pr-4">
+            <div className="space-y-4 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Última actualización: Marzo 2026</p>
+
+              <h3 className="font-semibold text-foreground">1. Información que Recopilamos</h3>
+              <p>El sistema recopila la siguiente información personal:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Datos de identidad:</strong> nombres, apellidos, número de documento de identidad (DNI, carnet de extranjería u otro).</li>
+                <li><strong>Datos académicos:</strong> código de estudiante/docente, facultad, escuela profesional, créditos aprobados.</li>
+                <li><strong>Datos de contacto:</strong> correo electrónico institucional y personal (opcional).</li>
+                <li><strong>Datos de uso:</strong> registros de actividad dentro del sistema (auditoría).</li>
+              </ul>
+
+              <h3 className="font-semibold text-foreground">2. Cómo Obtenemos la Información</h3>
+              <p>La información se obtiene de las siguientes fuentes:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Directamente del usuario al momento del registro.</li>
+                <li>Del sistema académico de la UNAMAD (validación de estudiantes y docentes).</li>
+                <li>De servicios externos de verificación de identidad (RENIEC) para usuarios externos.</li>
+              </ul>
+
+              <h3 className="font-semibold text-foreground">3. Uso de la Información</h3>
+              <p>Utilizamos su información para:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Verificar su identidad y vinculación con la universidad.</li>
+                <li>Gestionar el proceso de tesis (registro, seguimiento, evaluaciones).</li>
+                <li>Enviar notificaciones relacionadas con el estado de su tesis y trámites.</li>
+                <li>Generar reportes académicos y estadísticos.</li>
+                <li>Garantizar la seguridad del sistema mediante registros de auditoría.</li>
+              </ul>
+
+              <h3 className="font-semibold text-foreground">4. Protección de Datos</h3>
+              <p>
+                Implementamos medidas de seguridad técnicas y organizativas para proteger su información, incluyendo:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Cifrado de contraseñas mediante algoritmos seguros (bcrypt).</li>
+                <li>Autenticación mediante tokens JWT con expiración.</li>
+                <li>Control de acceso basado en roles y permisos.</li>
+                <li>Registro de auditoría de acciones sensibles.</li>
+                <li>Comunicaciones cifradas (HTTPS).</li>
+              </ul>
+
+              <h3 className="font-semibold text-foreground">5. Compartición de Datos</h3>
+              <p>
+                Su información personal no será compartida con terceros, salvo en los siguientes casos:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Cuando sea requerido por ley o autoridad competente.</li>
+                <li>Para el proceso de firma digital a través de Firma Perú (PCM).</li>
+                <li>Para fines académicos internos de la UNAMAD.</li>
+              </ul>
+
+              <h3 className="font-semibold text-foreground">6. Retención de Datos</h3>
+              <p>
+                Sus datos se conservarán mientras mantenga su cuenta activa y durante el tiempo necesario para cumplir
+                con obligaciones legales y académicas de la universidad.
+              </p>
+
+              <h3 className="font-semibold text-foreground">7. Derechos del Usuario</h3>
+              <p>Usted tiene derecho a:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Acceder a su información personal almacenada en el sistema.</li>
+                <li>Solicitar la corrección de datos inexactos.</li>
+                <li>Solicitar información sobre el uso de sus datos.</li>
+              </ul>
+              <p>
+                Estos derechos se ejercen conforme a la Ley N° 29733 (Ley de Protección de Datos Personales del Perú).
+              </p>
+
+              <h3 className="font-semibold text-foreground">8. Cookies y Almacenamiento Local</h3>
+              <p>
+                El sistema utiliza almacenamiento local del navegador para mantener la sesión del usuario. No se
+                utilizan cookies de terceros ni herramientas de rastreo.
+              </p>
+
+              <h3 className="font-semibold text-foreground">9. Cambios en la Política</h3>
+              <p>
+                Esta política puede ser actualizada periódicamente. Los cambios significativos serán notificados
+                a través del sistema.
+              </p>
+
+              <h3 className="font-semibold text-foreground">10. Contacto</h3>
+              <p>
+                Para consultas sobre privacidad y protección de datos, puede comunicarse con la Oficina de
+                Tecnologías de la Información de la UNAMAD.
+              </p>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

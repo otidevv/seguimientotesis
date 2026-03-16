@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
           where: {
             esVersionActual: true,
             tipo: {
-              in: ['RESOLUCION_JURADO', 'RESOLUCION_APROBACION', 'RESOLUCION_SUSTENTACION'],
+              in: ['RESOLUCION_JURADO', 'RESOLUCION_JURADO_INFORME', 'RESOLUCION_APROBACION', 'RESOLUCION_SUSTENTACION'],
             },
           },
           select: {
@@ -231,12 +231,8 @@ export async function GET(request: NextRequest) {
       // Informe final
       const histInformeFinal = t.historialEstados.find((h) => h.estadoNuevo === 'INFORME_FINAL')
 
-      // Resolución jurado informe final: buscar documentos RESOLUCION_JURADO posteriores
-      // Si hay múltiples, el primero es del proyecto y el segundo del informe
-      const docsResolucionJurado = t.documentos.filter((d) => d.tipo === 'RESOLUCION_JURADO')
-      const docResJuradoInforme = docsResolucionJurado.length > 1
-        ? docsResolucionJurado[docsResolucionJurado.length - 1]
-        : null
+      // Resolución jurado informe final
+      const docResJuradoInforme = t.documentos.find((d) => d.tipo === 'RESOLUCION_JURADO_INFORME')
 
       return {
         numero: idx + 1,

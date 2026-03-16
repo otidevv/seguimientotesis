@@ -486,7 +486,7 @@ async function main() {
   // ============================================
   console.log('Asignando permisos al Admin...')
 
-  const modulosAdmin = ['dashboard', 'tesis', 'usuarios', 'auditoria', 'reportes', 'firma-digital']
+  const modulosAdmin = ['dashboard', 'tesis', 'usuarios', 'auditoria', 'reportes', 'firma-digital', 'configuracion']
   for (const modulo of modulos) {
     const tieneAcceso = modulosAdmin.includes(modulo.codigo)
     await prisma.rolePermission.upsert({

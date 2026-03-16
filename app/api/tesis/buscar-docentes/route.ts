@@ -27,6 +27,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar docentes por nombre, apellido o número de documento
+    // Dividir el query en palabras para soportar búsquedas como "ralph miranda"
+    const palabras = q.trim().split(/\s+/).filter(Boolean)
+
     const docentes = await prisma.teacherInfo.findMany({
       where: {
         // Filtrar por facultad si se especifica
@@ -35,13 +38,16 @@ export async function GET(request: NextRequest) {
         user: {
           isActive: true,
           deletedAt: null,
-          OR: [
-            { nombres: { contains: q, mode: 'insensitive' } },
-            { apellidoPaterno: { contains: q, mode: 'insensitive' } },
-            { apellidoMaterno: { contains: q, mode: 'insensitive' } },
-            { numeroDocumento: { contains: q, mode: 'insensitive' } },
-            { email: { contains: q, mode: 'insensitive' } },
-          ],
+          // Cada palabra debe coincidir en al menos un campo
+          AND: palabras.map((palabra) => ({
+            OR: [
+              { nombres: { contains: palabra, mode: 'insensitive' as const } },
+              { apellidoPaterno: { contains: palabra, mode: 'insensitive' as const } },
+              { apellidoMaterno: { contains: palabra, mode: 'insensitive' as const } },
+              { numeroDocumento: { contains: palabra, mode: 'insensitive' as const } },
+              { email: { contains: palabra, mode: 'insensitive' as const } },
+            ],
+          })),
           // Verificar que tenga rol de docente
           roles: {
             some: {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -125,6 +126,7 @@ const ESTADO_ACEPTACION_CONFIG: Record<string, { label: string; icon: typeof Clo
 }
 
 export default function MisAsesoriasPage() {
+  const router = useRouter()
   const { user, isLoading: authLoading, hasRole } = useAuth()
   const [asesorias, setAsesorias] = useState<Asesoria[]>([])
   const [conteo, setConteo] = useState<Conteo>({ total: 0, pendientes: 0, aceptadas: 0, rechazadas: 0 })
@@ -242,7 +244,11 @@ export default function MisAsesoriasPage() {
       if (data.success) {
         toast.success(data.message)
         setDialogOpen(false)
-        loadAsesorias()
+        if (accion === 'ACEPTAR') {
+          router.push(`/mis-asesorias/${selectedAsesoria.tesis.id}`)
+        } else {
+          loadAsesorias()
+        }
       } else {
         toast.error(data.error || 'Error al procesar respuesta')
       }
