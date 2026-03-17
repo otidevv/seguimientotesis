@@ -149,6 +149,35 @@ html {
   background-size: 24px 24px;
 }
 
+/* Header shimmer animation */
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; transform: translateX(-100%); }
+  50% { opacity: 1; transform: translateX(100%); }
+}
+
+/* Header floating circles animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Hero photos: subtle breathe effect (scale + shadow pulse) */
+.hero-photo {
+  animation: hero-breathe 4s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes hero-breathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+  }
+}
+
 .dark .bg-grid {
   background-image:
     linear-gradient(to right, hsl(var(--primary) / 0.05) 1px, transparent 1px),

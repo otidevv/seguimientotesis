@@ -8,8 +8,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ModeToggle } from "@/components/mode-toggle";
 import { HeroIllustration, WaveDivider, BlobDecoration, GridPattern } from "@/components/decorative-svgs";
+import { LandingHeader } from "@/components/layout/landing-header";
+import { HeroPhoto } from "@/components/hero-photo";
 import {
   GraduationCap,
   FileText,
@@ -25,8 +26,6 @@ import {
   Award,
   BookOpen,
   Target,
-  Zap,
-  HeartHandshake,
   Star
 } from "lucide-react";
 import Link from "next/link";
@@ -36,51 +35,11 @@ export default function Home() {
   return (
     <div id="top" className="min-h-screen bg-background bg-grid">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <a href="#top" className="flex items-center gap-2 cursor-pointer">
-            <Image
-              src="/logo/logounamad.png"
-              alt="UNAMAD Logo"
-              width={40}
-              height={40}
-              className="rounded"
-            />
-            <span className="text-xl font-bold hidden sm:inline">Seguimiento de Tesis</span>
-          </a>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#caracteristicas" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              Características
-            </Link>
-            <Link href="#proceso" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              Proceso
-            </Link>
-            <Link href="#testimonios" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              Testimonios
-            </Link>
-            <Link href="#faq" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              FAQ
-            </Link>
-            <Link href="#contacto" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              Contacto
-            </Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <ModeToggle />
-            <Link href="/login">
-              <Button variant="ghost">Iniciar Sesión</Button>
-            </Link>
-            <Link href="/registrarse">
-              <Button>Registrarse</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <LandingHeader />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background decorations */}
-        <BlobDecoration className="absolute -top-20 -right-20 w-[600px] h-[600px] opacity-60" />
         <BlobDecoration className="absolute -bottom-40 -left-40 w-[500px] h-[500px] opacity-40 rotate-180" />
         <GridPattern className="absolute inset-0 opacity-40" />
 
@@ -126,8 +85,77 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="hidden lg:block animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
-              <HeroIllustration className="w-full h-auto max-w-md mx-auto drop-shadow-xl" />
+            <div className="hidden lg:block">
+              <div className="relative w-[520px] h-[500px] mx-auto">
+                {/* Central illustration */}
+                <div className="absolute inset-[70px] z-10 animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
+                  <HeroIllustration className="w-full h-full drop-shadow-xl" />
+                </div>
+
+                {/* Decorative ring behind illustration */}
+                <div className="absolute inset-[50px] rounded-full border border-primary/[0.07]" />
+                <div className="absolute inset-[30px] rounded-full border border-dashed border-primary/[0.05]" />
+
+                {/* University photos — interactive 3D tilt on hover */}
+
+                {/* Top-center: panoramic */}
+                <HeroPhoto
+                  src="/images/imagenesunamad/Copia de DJI_0011-Pano.jpg"
+                  alt="UNAMAD vista aérea"
+                  variant="wide"
+                  slideFrom="top"
+                  delay={0}
+                  sizes="140px"
+                  className="absolute -top-2 left-1/2 -translate-x-1/2 w-[140px] h-[80px] rounded-xl ring-1 ring-border/40"
+                />
+
+                {/* Right-top: circle */}
+                <HeroPhoto
+                  src="/images/imagenesunamad/Copia de DSC09076-Edit.jpg"
+                  alt="UNAMAD campus"
+                  slideFrom="right"
+                  delay={0.15}
+                  sizes="90px"
+                  className="absolute top-[18%] -right-3 w-[90px] h-[90px] rounded-full ring-2 ring-primary/10"
+                />
+
+                {/* Right-bottom: rounded square */}
+                <HeroPhoto
+                  src="/images/imagenesunamad/Copia de DSC09696 copia.jpg"
+                  slideFrom="right"
+                  delay={0.3}
+                  sizes="100px"
+                  className="absolute bottom-[15%] -right-1 w-[100px] h-[75px] rounded-lg ring-1 ring-border/40"
+                />
+
+                {/* Bottom-center: panoramic */}
+                <HeroPhoto
+                  src="/images/imagenesunamad/Copia de DSC09701 copia.jpg"
+                  variant="wide"
+                  slideFrom="bottom"
+                  delay={0.45}
+                  sizes="130px"
+                  className="absolute -bottom-3 left-[40%] -translate-x-1/2 w-[130px] h-[75px] rounded-xl ring-1 ring-border/40"
+                />
+
+                {/* Left-bottom: circle */}
+                <HeroPhoto
+                  src="/images/imagenesunamad/Copia de DSC09711 copia.jpg"
+                  slideFrom="left"
+                  delay={0.6}
+                  sizes="82px"
+                  className="absolute bottom-[20%] -left-4 w-[82px] h-[82px] rounded-full ring-2 ring-primary/10"
+                />
+
+                {/* Left-top: rounded square */}
+                <HeroPhoto
+                  src="/images/imagenesunamad/Copia de DSC09715 copia.jpg"
+                  slideFrom="left"
+                  delay={0.75}
+                  sizes="78px"
+                  className="absolute top-[12%] -left-2 w-[78px] h-[60px] rounded-lg ring-1 ring-border/40"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -171,52 +199,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Wave divider flipped */}
-      <WaveDivider className="w-full h-24 -mb-1" flip />
-
-      {/* Benefits Section */}
-      <section className="container mx-auto px-4 py-24">
-        <div className="text-center mb-16">
-          <Badge variant="outline" className="mb-4">Beneficios</Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">¿Por qué elegirnos?</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Nuestra plataforma está diseñada para simplificar tu proceso de tesis
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center group p-6 rounded-2xl hover:bg-card hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-border transition-all duration-300">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:rotate-6 transition-all duration-300">
-              <Zap className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Rápido y Eficiente</h3>
-            <p className="text-muted-foreground">
-              Reduce el tiempo de gestión administrativa en un 70% con nuestra plataforma automatizada.
-            </p>
-          </div>
-          <div className="text-center group p-6 rounded-2xl hover:bg-card hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-border transition-all duration-300">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:rotate-6 transition-all duration-300">
-              <Shield className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Seguro y Confiable</h3>
-            <p className="text-muted-foreground">
-              Tus documentos y datos están protegidos con encriptación de nivel empresarial.
-            </p>
-          </div>
-          <div className="text-center group p-6 rounded-2xl hover:bg-card hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-border transition-all duration-300">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:rotate-6 transition-all duration-300">
-              <HeartHandshake className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Soporte Dedicado</h3>
-            <p className="text-muted-foreground">
-              Equipo de soporte disponible para ayudarte en cada paso de tu investigación.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Wave divider */}
-      <WaveDivider className="w-full h-24 -mt-1" />
 
       {/* Features Section */}
       <section id="caracteristicas" className="bg-muted/50 py-24 relative">

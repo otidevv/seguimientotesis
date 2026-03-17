@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,8 +16,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Header } from "@/components/layout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ImageShowcase, ImageShowcaseMobile } from "@/components/auth/image-showcase";
 import { useAuth } from "@/contexts/auth-context";
 import {
   Mail,
@@ -33,6 +34,15 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 
+const formItemVariants = {
+  hidden: { opacity: 0, x: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { delay: 0.15 + i * 0.08, duration: 0.5, ease: "easeOut" as const },
+  }),
+};
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,6 +55,7 @@ function LoginForm() {
   const { login, isLoading, isAuthenticated, isLoading: isCheckingAuth } = useAuth();
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Verificar si viene de un redirect del middleware (sesión inválida ya determinada)
   const isFromRedirect = searchParams.has('redirect') || searchParams.has('expired');
@@ -60,6 +71,7 @@ function LoginForm() {
   // No redirigir si viene de un redirect del middleware (para evitar loops)
   useEffect(() => {
     if (isAuthenticated && !isCheckingAuth && !isFromRedirect) {
+      setIsRedirecting(true);
       const redirect = searchParams.get('redirect') || '/dashboard';
       router.replace(redirect);
     }
@@ -67,14 +79,24 @@ function LoginForm() {
 
   // Mostrar pantalla de carga SOLO si:
   // 1. Está verificando Y NO viene de un redirect del middleware
-  // Si viene de redirect, el middleware ya determinó que no hay sesión válida
-  // NUNCA mostrar loading si isFromRedirect es true
   if (isCheckingAuth && !isFromRedirect) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar pantalla limpia mientras redirige al dashboard
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Ingresando al sistema...</p>
         </div>
       </div>
     );
@@ -91,212 +113,243 @@ function LoginForm() {
 
     try {
       const redirectTo = searchParams.get('redirect') || undefined;
+      setIsRedirecting(true);
       await login({ email, password, rememberMe, redirectTo });
     } catch (err) {
+      setIsRedirecting(false);
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     }
   };
 
   return (
-    <div className="min-h-screen bg-background bg-grid">
-      <Header variant="auth" />
+    <div className="min-h-screen flex">
+      {/* Left side - Image showcase (desktop only) */}
+      <div className="hidden lg:block lg:w-1/2 xl:w-[55%] relative">
+        <ImageShowcase />
+      </div>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid lg:grid-cols-5 gap-8 items-center">
-            {/* Left side - Info */}
-            <div className="lg:col-span-2 hidden lg:block">
-              <div className="sticky top-24">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <GraduationCap className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-lg">Bienvenido de vuelta</h2>
-                    <p className="text-sm text-muted-foreground">UNAMAD - Sistema de Tesis</p>
-                  </div>
-                </div>
+      {/* Mobile: no background images, just plain bg */}
 
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Acceso Rápido</p>
-                      <p className="text-xs text-muted-foreground">Ingresa con tu correo institucional</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Panel Personalizado</p>
-                      <p className="text-xs text-muted-foreground">Accede a tu dashboard según tu rol</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Sesión Segura</p>
-                      <p className="text-xs text-muted-foreground">Tus datos están protegidos</p>
-                    </div>
-                  </div>
-                </div>
+      {/* Right side - Form */}
+      <div className="w-full lg:w-1/2 xl:w-[45%] flex flex-col min-h-screen relative">
+        {/* Header bar */}
+        <motion.div
+          className="flex items-center justify-between p-4 lg:p-6"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Image
+              src="/logo/logounamad.png"
+              alt="UNAMAD Logo"
+              width={32}
+              height={32}
+              className="rounded"
+            />
+            <span className="font-bold text-sm hidden sm:inline">Seguimiento de Tesis</span>
+          </Link>
+          <Link href="/registrarse" className="text-sm text-primary font-medium hover:underline">
+            Crear cuenta
+          </Link>
+        </motion.div>
 
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                  <p className="text-sm text-muted-foreground">
-                    ¿No tienes una cuenta?{" "}
-                    <Link href="/registrarse" className="text-primary font-medium hover:underline">
-                      Regístrate aquí
-                    </Link>
-                  </p>
+        {/* Form area */}
+        <div className="flex-1 flex items-center justify-center px-4 py-8 lg:px-12 xl:px-16">
+          <div className="w-full max-w-md">
+            {/* Welcome text */}
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <GraduationCap className="h-6 w-6 text-primary" />
                 </div>
               </div>
-            </div>
+              <h1 className="text-3xl font-bold tracking-tight mb-2">Bienvenido de vuelta</h1>
+              <p className="text-muted-foreground">
+                Ingresa tus credenciales para acceder al sistema
+              </p>
+            </motion.div>
 
-            {/* Right side - Form */}
-            <div className="lg:col-span-3">
-              <Card className="shadow-lg">
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-4">
-                    <Image
-                      src="/logo/logounamad.png"
-                      alt="UNAMAD Logo"
-                      width={64}
-                      height={64}
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-                  <CardDescription>
-                    Ingresa tus credenciales para acceder al sistema
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {sessionExpired && (
-                      <Alert className="border-yellow-500/50 bg-yellow-500/10">
-                        <Clock className="h-4 w-4 text-yellow-600" />
-                        <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-                          Tu sesión ha expirado. Por favor, inicia sesión nuevamente.
-                        </AlertDescription>
-                      </Alert>
-                    )}
+            {/* Alerts */}
+            {sessionExpired && (
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                <Alert className="border-yellow-500/50 bg-yellow-500/10 mb-4">
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-700 dark:text-yellow-400">
+                    Tu sesión ha expirado. Por favor, inicia sesión nuevamente.
+                  </AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
 
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
+            {error && (
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Correo Institucional</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="usuario@unamad.edu.pe"
-                          className="pl-10"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          disabled={isLoading}
-                        />
-                      </div>
-                    </div>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <motion.div
+                className="space-y-2"
+                custom={0}
+                initial="hidden"
+                animate="visible"
+                variants={formItemVariants}
+              >
+                <Label htmlFor="email">Correo Institucional</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="usuario@unamad.edu.pe"
+                    className="pl-10 h-11"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
+              </motion.div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="password">Contraseña</Label>
-                        <Link
-                          href="/recuperar-password"
-                          className="text-xs text-primary hover:underline"
-                        >
-                          ¿Olvidaste tu contraseña?
-                        </Link>
-                      </div>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          className="pl-10 pr-10"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          disabled={isLoading}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                          disabled={isLoading}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
+              <motion.div
+                className="space-y-2"
+                custom={1}
+                initial="hidden"
+                animate="visible"
+                variants={formItemVariants}
+              >
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Link
+                    href="/recuperar-password"
+                    className="text-xs text-primary hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    className="pl-10 pr-10 h-11"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </motion.div>
 
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="remember"
-                        className="accent-primary cursor-pointer"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        disabled={isLoading}
-                      />
-                      <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                        Recordar mi sesión
-                      </label>
-                    </div>
+              <motion.div
+                className="flex items-center gap-2"
+                custom={2}
+                initial="hidden"
+                animate="visible"
+                variants={formItemVariants}
+              >
+                <input
+                  type="checkbox"
+                  id="remember"
+                  className="accent-primary cursor-pointer"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={isLoading}
+                />
+                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                  Recordar mi sesión
+                </label>
+              </motion.div>
 
-                    <Button type="submit" className="w-full gap-2" disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Iniciando sesión...
-                        </>
-                      ) : (
-                        <>
-                          Iniciar Sesión <ArrowRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </Button>
-                  </form>
+              <motion.div
+                custom={3}
+                initial="hidden"
+                animate="visible"
+                variants={formItemVariants}
+              >
+                <Button type="submit" className="w-full gap-2 h-11" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Iniciando sesión...
+                    </>
+                  ) : (
+                    <>
+                      Iniciar Sesión <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </motion.div>
+            </form>
 
-                  <Separator className="my-6" />
+            {/* Features - compact row */}
+            <motion.div
+              className="mt-8 grid grid-cols-3 gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
+              {[
+                { icon: CheckCircle2, label: "Acceso Rápido" },
+                { icon: Lock, label: "Sesión Segura" },
+                { icon: GraduationCap, label: "Panel Personal" },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-muted/50 text-center">
+                  <Icon className="h-4 w-4 text-primary" />
+                  <span className="text-[11px] text-muted-foreground font-medium">{label}</span>
+                </div>
+              ))}
+            </motion.div>
 
-                  <p className="text-center text-sm text-muted-foreground lg:hidden">
-                    ¿No tienes una cuenta?{" "}
-                    <Link href="/registrarse" className="text-primary font-medium hover:underline">
-                      Regístrate aquí
-                    </Link>
-                  </p>
+            {/* Mobile register link */}
+            <motion.div
+              className="mt-6 text-center lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <p className="text-sm text-muted-foreground">
+                ¿No tienes una cuenta?{" "}
+                <Link href="/registrarse" className="text-primary font-medium hover:underline">
+                  Regístrate aquí
+                </Link>
+              </p>
+            </motion.div>
 
-                  <div className="mt-4 p-4 rounded-lg bg-muted/50 text-center lg:hidden">
-                    <p className="text-xs text-muted-foreground">
-                      Al iniciar sesión, aceptas nuestros{" "}
-                      <button type="button" onClick={() => setShowTerms(true)} className="text-primary hover:underline font-medium">Términos de Servicio</button>
-                      {" "}y{" "}
-                      <button type="button" onClick={() => setShowPrivacy(true)} className="text-primary hover:underline font-medium">Política de Privacidad</button>
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Additional info for desktop */}
-              <div className="hidden lg:block mt-6 p-4 rounded-lg bg-muted/50 text-center">
-                <p className="text-xs text-muted-foreground">
-                  Al iniciar sesión, aceptas nuestros{" "}
-                  <button type="button" onClick={() => setShowTerms(true)} className="text-primary hover:underline font-medium">Términos de Servicio</button>
-                  {" "}y{" "}
-                  <button type="button" onClick={() => setShowPrivacy(true)} className="text-primary hover:underline font-medium">Política de Privacidad</button>
-                </p>
-              </div>
-            </div>
+            {/* Terms */}
+            <motion.div
+              className="mt-6 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
+              <p className="text-xs text-muted-foreground">
+                Al iniciar sesión, aceptas nuestros{" "}
+                <button type="button" onClick={() => setShowTerms(true)} className="text-primary hover:underline font-medium">Términos de Servicio</button>
+                {" "}y{" "}
+                <button type="button" onClick={() => setShowPrivacy(true)} className="text-primary hover:underline font-medium">Política de Privacidad</button>
+              </p>
+            </motion.div>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Dialog: Términos y Condiciones */}
       <Dialog open={showTerms} onOpenChange={setShowTerms}>
