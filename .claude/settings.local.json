@@ -38,7 +38,8 @@
       "Bash(PGPASSWORD=954040025 \"/c/Program Files/PostgreSQL/17/bin/psql.exe\":*)",
       "Bash(xargs grep:*)",
       "Bash(grep:*)",
-      "Bash(npx dotenv:*)"
+      "Bash(npx dotenv:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }
