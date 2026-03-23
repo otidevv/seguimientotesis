@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
+import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import {
   Select,
   SelectContent,
@@ -106,6 +107,7 @@ export default function NuevoProyectoPage() {
 
   // Estado del wizard
   const [currentStep, setCurrentStep] = useState(1)
+  const [maxStepReached, setMaxStepReached] = useState(1)
   const [slideDirection, setSlideDirection] = useState<'right' | 'left'>('right')
 
   // Estados del formulario
@@ -155,20 +157,34 @@ export default function NuevoProyectoPage() {
     return Math.min(completed, currentStep === 4 ? 100 : completed - 25)
   }, [carreraSeleccionada, titulo, asesorSeleccionado, currentStep])
 
-  // Validación por paso
-  const canProceed = useMemo(() => {
-    switch (currentStep) {
-      case 1:
-        // Verificar que hay carrera seleccionada y que no tiene tesis activa
+  // Validación por paso específico
+  const isStepValid = useCallback((step: number): boolean => {
+    switch (step) {
+      case 1: {
         if (!carreraSeleccionada) return false
         const carreraSelec = carreras.find((c) => c.id === carreraSeleccionada)
-        return carreraSelec && !carreraSelec.tesisActiva
+        return !!carreraSelec && !carreraSelec.tesisActiva
+      }
       case 2: return titulo.trim().length >= 10
       case 3: return !!asesorSeleccionado
       case 4: return true
       default: return false
     }
-  }, [currentStep, carreraSeleccionada, carreras, titulo, asesorSeleccionado])
+  }, [carreraSeleccionada, carreras, titulo, asesorSeleccionado])
+
+  // Validación del paso actual
+  const canProceed = useMemo(() => isStepValid(currentStep), [isStepValid, currentStep])
+
+  // Verificar si se puede navegar a un paso: ya fue visitado O todos los pasos anteriores están válidos
+  const canNavigateToStep = useCallback((step: number): boolean => {
+    if (step === currentStep) return false
+    if (step <= maxStepReached) return true
+    // Permitir ir al siguiente paso si todos los anteriores están completos
+    for (let i = 1; i < step; i++) {
+      if (!isStepValid(i)) return false
+    }
+    return true
+  }, [currentStep, maxStepReached, isStepValid])
 
   // Cargar carreras del estudiante
   useEffect(() => {
@@ -313,7 +329,11 @@ export default function NuevoProyectoPage() {
       if (e.key === 'Enter' && currentStep < 4 && canProceed) {
         e.preventDefault()
         setSlideDirection('right')
-        setCurrentStep((s) => s + 1)
+        setCurrentStep((s) => {
+          const next = s + 1
+          setMaxStepReached((prev) => Math.max(prev, next))
+          return next
+        })
       } else if (e.key === 'Escape' && currentStep > 1) {
         e.preventDefault()
         setSlideDirection('left')
@@ -386,8 +406,10 @@ export default function NuevoProyectoPage() {
   // Navegación del wizard
   const nextStep = () => {
     if (canProceed && currentStep < 4) {
+      const next = currentStep + 1
       setSlideDirection('right')
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(next)
+      setMaxStepReached((prev) => Math.max(prev, next))
     }
   }
 
@@ -399,9 +421,10 @@ export default function NuevoProyectoPage() {
   }
 
   const goToStep = (step: number) => {
-    if (step >= 1 && step <= 4 && step !== currentStep) {
+    if (step >= 1 && step <= 4 && canNavigateToStep(step)) {
       setSlideDirection(step > currentStep ? 'right' : 'left')
       setCurrentStep(step)
+      setMaxStepReached((prev) => Math.max(prev, step))
     }
   }
 
@@ -455,6 +478,11 @@ export default function NuevoProyectoPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <FullscreenLoader
+        visible={guardando}
+        title="Creando tu proyecto"
+        description="Registrando la información y notificando al asesor..."
+      />
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
@@ -496,13 +524,14 @@ export default function NuevoProyectoPage() {
                   return (
                     <button
                       key={step.id}
-                      onClick={() => step.id < currentStep && setCurrentStep(step.id)}
-                      disabled={step.id > currentStep}
+                      onClick={() => goToStep(step.id)}
+                      disabled={!canNavigateToStep(step.id) && !isCurrent}
                       className={cn(
                         'flex-1 flex items-center gap-3 p-4 border-b-2 transition-all',
                         isCompleted && 'border-primary bg-primary/5 cursor-pointer hover:bg-primary/10',
                         isCurrent && 'border-primary bg-primary/10',
-                        !isCompleted && !isCurrent && 'border-transparent opacity-50',
+                        !isCompleted && !isCurrent && canNavigateToStep(step.id) && 'border-primary/40 cursor-pointer hover:bg-muted/50',
+                        !isCompleted && !isCurrent && !canNavigateToStep(step.id) && 'border-transparent opacity-50',
                         index > 0 && 'border-l'
                       )}
                     >
@@ -546,13 +575,24 @@ export default function NuevoProyectoPage() {
                   {STEPS.map((step) => {
                     const isActive = currentStep === step.id
                     const isDone = currentStep > step.id
+                    const navigable = canNavigateToStep(step.id)
                     return (
-                      <div key={step.id} className="flex flex-col items-center gap-1">
+                      <button
+                        key={step.id}
+                        type="button"
+                        disabled={!navigable && !isActive}
+                        onClick={() => goToStep(step.id)}
+                        className={cn(
+                          'flex flex-col items-center gap-1',
+                          navigable && !isActive && 'cursor-pointer'
+                        )}
+                      >
                         <div className={cn(
                           'w-2.5 h-2.5 rounded-full transition-all',
                           isDone && 'bg-primary',
                           isActive && 'bg-primary ring-2 ring-primary/30',
-                          !isDone && !isActive && 'bg-muted-foreground/30'
+                          !isDone && !isActive && navigable && 'bg-primary/40',
+                          !isDone && !isActive && !navigable && 'bg-muted-foreground/30'
                         )} />
                         <span className={cn(
                           'text-[10px]',
@@ -560,7 +600,7 @@ export default function NuevoProyectoPage() {
                         )}>
                           {step.title}
                         </span>
-                      </div>
+                      </button>
                     )
                   })}
                 </div>

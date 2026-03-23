@@ -178,6 +178,80 @@ html {
   }
 }
 
+/* CTA Arrow animations */
+@keyframes cta-draw-path {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes cta-fade-in {
+  to { opacity: 1; }
+}
+@keyframes cta-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.cta-arrow-path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: cta-draw-path 1.2s ease-out 1.5s forwards;
+}
+.cta-arrow-head {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: cta-draw-path 0.4s ease-out 2.5s forwards;
+}
+.cta-arrow-dot {
+  opacity: 0;
+  animation: cta-fade-in 0.3s ease-out 1.4s forwards;
+}
+.cta-arrow-container {
+  animation: cta-float 3s ease-in-out 3.5s infinite;
+}
+
+/* Gradient text shimmer */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-text {
+  background-size: 200% auto;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Section divider with animated gradient */
+.section-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.15;
+}
+
+/* Floating particles for hero */
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.4; }
+  25% { transform: translateY(-20px) translateX(10px) rotate(90deg); opacity: 0.8; }
+  50% { transform: translateY(-10px) translateX(-5px) rotate(180deg); opacity: 0.4; }
+  75% { transform: translateY(-25px) translateX(8px) rotate(270deg); opacity: 0.7; }
+}
+
+/* Smooth line connector for process steps */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+.process-connector {
+  stroke-dasharray: 8 6;
+  animation: dash-flow 1.5s linear infinite;
+}
+
+/* Subtle glow pulse for CTA card */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(var(--primary-rgb, 220 38 38), 0.1); }
+  50% { box-shadow: 0 0 40px rgba(var(--primary-rgb, 220 38 38), 0.2); }
+}
+
 .dark .bg-grid {
   background-image:
     linear-gradient(to right, hsl(var(--primary) / 0.05) 1px, transparent 1px),

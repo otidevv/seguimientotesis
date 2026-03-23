@@ -46,8 +46,8 @@ export function DashboardHeader() {
             <span className="sr-only">Abrir menú</span>
           </Button>
 
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-3">
+          {/* Logo - solo visible en móvil donde el sidebar está oculto */}
+          <Link href="/dashboard" className="flex items-center gap-3 lg:hidden">
             <Image
               src="/logo/logounamad.png"
               alt="UNAMAD"

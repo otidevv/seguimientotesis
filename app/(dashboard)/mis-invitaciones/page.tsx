@@ -32,6 +32,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
+import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import {
   Check,
   CheckCircle2,
@@ -278,9 +280,73 @@ export default function MisInvitacionesPage() {
 
   if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-muted-foreground">Cargando invitaciones...</p>
+      <div className="container mx-auto py-6 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-56" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-lg" />
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-7 w-10" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {/* Table skeleton */}
+          <Card>
+            <CardHeader className="pb-0">
+              <Skeleton className="h-5 w-32" />
+            </CardHeader>
+            <div className="flex flex-col sm:flex-row gap-3 p-4 border-b">
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 w-full sm:w-48" />
+            </div>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+                      <TableHead className="hidden md:table-cell"><Skeleton className="h-4 w-12" /></TableHead>
+                      <TableHead><Skeleton className="h-4 w-14" /></TableHead>
+                      <TableHead className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableHead>
+                      <TableHead className="hidden lg:table-cell"><Skeleton className="h-4 w-14" /></TableHead>
+                      <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <div className="space-y-1.5">
+                            <Skeleton className="h-4 w-48" />
+                            <Skeleton className="h-3 w-32" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
+                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-7 w-24" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -292,7 +358,7 @@ export default function MisInvitacionesPage() {
     <div className="container mx-auto py-6 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div>
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <h1 className="text-2xl font-bold">Mis Invitaciones</h1>
           <p className="text-muted-foreground">
             Invitaciones para participar como coautor, asesor o coasesor en proyectos de tesis
@@ -301,7 +367,7 @@ export default function MisInvitacionesPage() {
 
         {/* Estadisticas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '0ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
@@ -314,7 +380,7 @@ export default function MisInvitacionesPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '80ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center">
@@ -327,7 +393,7 @@ export default function MisInvitacionesPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '160ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
@@ -340,7 +406,7 @@ export default function MisInvitacionesPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '240ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
@@ -387,14 +453,46 @@ export default function MisInvitacionesPage() {
           </div>
 
           <CardContent className="p-0">
-            <div className={cn('relative', loading && 'opacity-50 pointer-events-none')}>
-              {loading && (
+            <div className="relative">
+              {loading && invitaciones.length === 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+                        <TableHead className="hidden md:table-cell"><Skeleton className="h-4 w-12" /></TableHead>
+                        <TableHead><Skeleton className="h-4 w-14" /></TableHead>
+                        <TableHead className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableHead>
+                        <TableHead className="hidden lg:table-cell"><Skeleton className="h-4 w-14" /></TableHead>
+                        <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <div className="space-y-1.5">
+                              <Skeleton className="h-4 w-48" />
+                              <Skeleton className="h-3 w-32" />
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                          <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
+                          <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-7 w-24" /></TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : loading ? (
                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/30">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
-              )}
+              ) : null}
 
-              {invitaciones.length === 0 ? (
+              {!loading && invitaciones.length === 0 ? (
                 <div className="py-16 text-center">
                   <Mail className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
                   <h3 className="text-base font-semibold mb-1">No hay invitaciones</h3>
@@ -406,9 +504,9 @@ export default function MisInvitacionesPage() {
                         : 'No tienes invitaciones de tesis'}
                   </p>
                 </div>
-              ) : (
+              ) : invitaciones.length > 0 ? (
                 <>
-                  <div className="overflow-x-auto">
+                  <div className={cn('overflow-x-auto', loading && 'opacity-50 pointer-events-none')}>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -421,7 +519,7 @@ export default function MisInvitacionesPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {invitaciones.map((inv) => {
+                        {invitaciones.map((inv, index) => {
                           const tipo = TIPO_CONFIG[inv.tipoInvitacion] || TIPO_CONFIG.COAUTOR
                           const TipoIcon = tipo.icon
                           const isExpanded = expandedId === inv.id
@@ -429,7 +527,8 @@ export default function MisInvitacionesPage() {
                           return (
                             <TableRow
                               key={inv.id}
-                              className="cursor-pointer"
+                              className="cursor-pointer animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards"
+                              style={{ animationDelay: `${index * 80}ms`, animationDuration: '500ms' }}
                               onClick={() => setExpandedId(isExpanded ? null : inv.id)}
                             >
                               <TableCell>
@@ -578,10 +677,17 @@ export default function MisInvitacionesPage() {
                     </div>
                   </div>
                 </>
-              )}
+              ) : null}
             </div>
           </CardContent>
         </Card>
+
+        {/* FullscreenLoader para cuando se procesa aceptar/rechazar */}
+        <FullscreenLoader
+          visible={procesando}
+          title={accion === 'ACEPTAR' ? 'Aceptando invitacion' : 'Rechazando invitacion'}
+          description="Por favor espera mientras se procesa tu respuesta..."
+        />
 
         {/* Dialogo de confirmacion */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -42,6 +42,7 @@ import {
   X,
 } from 'lucide-react'
 import Link from 'next/link'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 interface Proyecto {
@@ -228,8 +229,66 @@ export default function MesaPartesPage() {
 
   if (authLoading || initialLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="container mx-auto py-6 px-4">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+
+          {/* Counter cards skeleton */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-3 pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-6 w-8" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Table skeleton */}
+          <Card>
+            <div className="flex flex-col sm:flex-row gap-3 p-4 border-b">
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 w-full sm:w-56" />
+            </div>
+            <div className="p-0">
+              {/* Table header skeleton */}
+              <div className="flex items-center gap-4 px-4 py-3 bg-muted/40 border-b">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-4 w-[120px] hidden md:block" />
+                <Skeleton className="h-4 w-[60px] hidden lg:block" />
+                <Skeleton className="h-4 w-[80px] hidden sm:block" />
+                <Skeleton className="h-4 w-[80px]" />
+                <Skeleton className="h-4 w-[70px]" />
+              </div>
+              {/* Table rows skeleton */}
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-4 py-3 border-b last:border-b-0">
+                  <Skeleton className="h-4 w-[100px]" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-4 w-full max-w-[280px]" />
+                    <Skeleton className="h-3 w-[160px]" />
+                  </div>
+                  <Skeleton className="h-4 w-[120px] hidden md:block" />
+                  <Skeleton className="h-4 w-[60px] hidden lg:block" />
+                  <Skeleton className="h-4 w-[80px] hidden sm:block" />
+                  <Skeleton className="h-5 w-[80px] rounded-full" />
+                  <Skeleton className="h-8 w-[70px] rounded-md" />
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -254,7 +313,7 @@ export default function MesaPartesPage() {
     <div className="container mx-auto py-6 px-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div>
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Inbox className="w-7 h-7 text-primary" />
             Mesa de Partes
@@ -273,7 +332,7 @@ export default function MesaPartesPage() {
 
         {/* Contadores */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
-          {ESTADOS_PRINCIPALES.map((estado) => {
+          {ESTADOS_PRINCIPALES.map((estado, index) => {
             const config = ESTADO_CONFIG[estado]
             if (!config) return null
             const count = contadores[estado] || 0
@@ -281,9 +340,10 @@ export default function MesaPartesPage() {
               <Card
                 key={estado}
                 className={cn(
-                  'cursor-pointer transition-all hover:shadow-md',
+                  'cursor-pointer transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards',
                   filtroEstado === estado && 'ring-2 ring-primary'
                 )}
+                style={{ animationDelay: `${index * 80}ms`, animationDuration: '500ms' }}
                 onClick={() => handleFiltroEstado(estado)}
               >
                 <CardContent className="pt-3 pb-3">
@@ -361,10 +421,14 @@ export default function MesaPartesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {proyectosFiltrados.map((proyecto) => {
+                  {proyectosFiltrados.map((proyecto, index) => {
                     const estadoConfig = ESTADO_CONFIG[proyecto.estado] || ESTADO_CONFIG.EN_REVISION
                     return (
-                      <TableRow key={proyecto.id} className="group">
+                      <TableRow
+                        key={proyecto.id}
+                        className="group animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards"
+                        style={{ animationDelay: `${index * 80}ms`, animationDuration: '500ms' }}
+                      >
                         <TableCell>
                           <span className="font-mono text-xs font-medium text-muted-foreground">
                             {proyecto.codigo}

@@ -38,9 +38,19 @@ import {
   User,
   Users,
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 
 interface TesisEvaluacion {
   id: string
@@ -124,6 +134,9 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   const [tesis, setTesis] = useState<TesisEvaluacion | null>(null)
   const [loading, setLoading] = useState(true)
   const [enviando, setEnviando] = useState(false)
+
+  // Modal de espera de jurados
+  const [showEsperaModal, setShowEsperaModal] = useState(false)
 
   // Formulario de evaluacion
   const [resultado, setResultado] = useState<string>('')
@@ -232,6 +245,20 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
     }
   }
 
+  const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
+
+  const validarArchivo = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`El archivo "${file.name}" excede el límite de 25MB (${(file.size / 1024 / 1024).toFixed(1)}MB)`)
+      return false
+    }
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('Solo se permiten archivos PDF')
+      return false
+    }
+    return true
+  }
+
   const enviarEvaluacion = async () => {
     if (!resultado) {
       toast.error('Seleccione un resultado')
@@ -242,6 +269,8 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
       toast.error('Las observaciones son requeridas cuando el resultado es OBSERVADO')
       return
     }
+
+    if (archivoEval && !validarArchivo(archivoEval)) return
 
     setEnviando(true)
     try {
@@ -261,7 +290,11 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
 
       if (data.success) {
         toast.success(data.message)
-        loadTesis()
+        await loadTesis()
+        // Si es presidente y aún faltan jurados por votar, mostrar modal
+        if (esPresidente) {
+          setShowEsperaModal(true)
+        }
       } else {
         toast.error(data.error)
       }
@@ -277,6 +310,8 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
       toast.error('Debe subir el dictamen firmado en PDF')
       return
     }
+
+    if (!validarArchivo(archivoDictamen)) return
 
     setEnviando(true)
     try {
@@ -336,6 +371,11 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
 
   return (
     <div className="container mx-auto py-6 px-4">
+      <FullscreenLoader
+        visible={enviando}
+        title="Enviando evaluación"
+        description="Registrando tu evaluación y notificando al equipo..."
+      />
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -523,53 +563,156 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Columna principal */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Documentos para revisar */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary" />
-                  Documentos para Revisar
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {tesis.documentos.map((doc) => (
-                  <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg border">
-                    <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{doc.nombre}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {doc.tipo} - v{doc.version} - {formatFileSize(doc.tamano)}
+          <div className="lg:col-span-2 space-y-6 min-w-0">
+            <Tabs defaultValue={puedeEvaluar ? 'evaluar' : 'documentos'} className="w-full min-w-0">
+              <div className="overflow-x-auto -mx-1">
+                <TabsList className="w-full grid grid-cols-3 h-10 min-w-[280px]">
+                  <TabsTrigger value="documentos" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                    <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>Docs</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="evaluar" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                    <ClipboardCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>Evaluar</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="historial" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                    <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>Historial</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              {/* Tab: Documentos */}
+              <TabsContent value="documentos" className="space-y-6 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-primary shrink-0" />
+                      Documentos para Revisar
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {tesis.documentos.map((doc) => (
+                      <div key={doc.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-xs sm:text-sm truncate">{doc.nombre}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">
+                            {doc.tipo} - v{doc.version} - {formatFileSize(doc.tamano)}
+                          </p>
+                        </div>
+                        <div className="flex gap-0.5 shrink-0">
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 sm:p-2 hover:bg-muted rounded-md transition-colors"
+                            title="Ver"
+                          >
+                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </a>
+                          <a
+                            href={doc.url}
+                            download
+                            className="p-1.5 sm:p-2 hover:bg-muted rounded-md transition-colors"
+                            title="Descargar"
+                          >
+                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                    {tesis.documentos.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No hay documentos disponibles
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Detalles del proyecto en tab docs */}
+                {(tesis.resumen || tesis.lineaInvestigacion || tesis.palabrasClave.length > 0) && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base sm:text-lg">Detalles del Proyecto</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {tesis.lineaInvestigacion && (
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Línea de Investigación</p>
+                          <p className="text-sm">{tesis.lineaInvestigacion}</p>
+                        </div>
+                      )}
+                      {tesis.resumen && (
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Resumen</p>
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{tesis.resumen}</p>
+                        </div>
+                      )}
+                      {tesis.palabrasClave.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Palabras Clave</p>
+                          <div className="flex flex-wrap gap-2">
+                            {tesis.palabrasClave.map((p, i) => (
+                              <Badge key={i} variant="secondary">{p}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Tab: Evaluar */}
+              <TabsContent value="evaluar" className="space-y-6 mt-4 min-w-0" style={{ overflowX: 'hidden' }}>
+
+            {/* Mi evaluacion enviada */}
+            {tesis.miJurado.yaEvaluo && tesis.miJurado.miEvaluacion && (
+              <Card className="border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+                    Mi Evaluación Enviada
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Resultado:</span>
+                    <Badge className={cn(
+                      'text-xs',
+                      tesis.miJurado.miEvaluacion.resultado === 'APROBADO'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-orange-100 text-orange-700'
+                    )}>
+                      {tesis.miJurado.miEvaluacion.resultado === 'APROBADO' ? 'Aprobado' : 'Observado'}
+                    </Badge>
+                  </div>
+                  {tesis.miJurado.miEvaluacion.observaciones && (
+                    <div>
+                      <p className="text-sm font-medium mb-1">Observaciones:</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                        {tesis.miJurado.miEvaluacion.observaciones}
                       </p>
                     </div>
-                    <div className="flex gap-1">
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 hover:bg-muted rounded-md transition-colors"
-                        title="Ver"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </a>
-                      <a
-                        href={doc.url}
-                        download
-                        className="p-2 hover:bg-muted rounded-md transition-colors"
-                        title="Descargar"
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </div>
-                ))}
-                {tesis.documentos.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No hay documentos disponibles
+                  )}
+                  {tesis.miJurado.miEvaluacion.archivoUrl && (
+                    <a
+                      href={tesis.miJurado.miEvaluacion.archivoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:underline"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Ver archivo adjunto
+                    </a>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Enviada el {new Date(tesis.miJurado.miEvaluacion.fecha).toLocaleString('es-PE')}
                   </p>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Formulario de evaluacion */}
             {puedeEvaluar && (
@@ -613,7 +756,15 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                     <Input
                       type="file"
                       accept=".pdf"
-                      onChange={(e) => setArchivoEval(e.target.files?.[0] || null)}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null
+                        if (file && !validarArchivo(file)) {
+                          e.target.value = ''
+                          setArchivoEval(null)
+                          return
+                        }
+                        setArchivoEval(file)
+                      }}
                       className="mt-1 cursor-pointer file:cursor-pointer"
                     />
                   </div>
@@ -818,7 +969,15 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                     <Input
                       type="file"
                       accept=".pdf"
-                      onChange={(e) => setArchivoDictamen(e.target.files?.[0] || null)}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null
+                        if (file && !validarArchivo(file)) {
+                          e.target.value = ''
+                          setArchivoDictamen(null)
+                          return
+                        }
+                        setArchivoDictamen(file)
+                      }}
                       className="mt-1 cursor-pointer file:cursor-pointer"
                     />
                   </div>
@@ -849,77 +1008,30 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
               </Card>
             )}
 
-            {/* Mi evaluacion enviada */}
-            {tesis.miJurado.yaEvaluo && tesis.miJurado.miEvaluacion && (
-              <Card className="border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    Mi Evaluacion Enviada
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Resultado:</span>
-                    <Badge className={cn(
-                      'text-xs',
-                      tesis.miJurado.miEvaluacion.resultado === 'APROBADO'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-orange-100 text-orange-700'
-                    )}>
-                      {tesis.miJurado.miEvaluacion.resultado === 'APROBADO' ? 'Aprobado' : 'Observado'}
-                    </Badge>
-                  </div>
-                  {tesis.miJurado.miEvaluacion.observaciones && (
-                    <div>
-                      <p className="text-sm font-medium mb-1">Observaciones:</p>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {tesis.miJurado.miEvaluacion.observaciones}
-                      </p>
-                    </div>
-                  )}
-                  {tesis.miJurado.miEvaluacion.archivoUrl && (
-                    <a
-                      href={tesis.miJurado.miEvaluacion.archivoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:underline"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Ver archivo adjunto
-                    </a>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    Enviada el {new Date(tesis.miJurado.miEvaluacion.fecha).toLocaleString('es-PE')}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Evaluaciones de otros jurados */}
             {tesis.miJurado.yaEvaluo && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary shrink-0" />
                     Evaluaciones del Jurado
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {tesis.jurados.map((jurado) => (
-                    <div key={jurado.id} className="p-3 rounded-lg border">
-                      <div className="flex items-center gap-2 mb-2">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium text-sm">{jurado.nombre}</span>
-                        <Badge variant="outline" className="text-xs">
+                    <div key={jurado.id} className="p-2 sm:p-3 rounded-lg border">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap">
+                        <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium text-xs sm:text-sm">{jurado.nombre}</span>
+                        <Badge variant="outline" className="text-[10px] sm:text-xs">
                           {TIPO_JURADO_LABELS[jurado.tipo]}
                         </Badge>
                         {jurado.esMio && (
-                          <Badge variant="secondary" className="text-xs">Yo</Badge>
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs">Yo</Badge>
                         )}
                         {jurado.yaEvaluo && jurado.evaluacion ? (
                           <Badge className={cn(
-                            'text-xs',
+                            'text-[10px] sm:text-xs',
                             jurado.evaluacion.resultado === 'APROBADO'
                               ? 'bg-green-100 text-green-700'
                               : 'bg-orange-100 text-orange-700'
@@ -927,12 +1039,17 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                             {jurado.evaluacion.resultado === 'APROBADO' ? 'Aprobado' : 'Observado'}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-xs text-muted-foreground">Pendiente</Badge>
+                          <Badge variant="outline" className="text-[10px] sm:text-xs text-muted-foreground">Pendiente</Badge>
                         )}
                       </div>
                       {jurado.evaluacion?.observaciones && (
-                        <p className="text-sm text-muted-foreground ml-6 whitespace-pre-wrap">
+                        <p className="text-xs sm:text-sm text-muted-foreground ml-5 sm:ml-6 whitespace-pre-wrap break-words">
                           {jurado.evaluacion.observaciones}
+                        </p>
+                      )}
+                      {jurado.evaluacion?.fecha && (
+                        <p className="text-[10px] sm:text-xs text-muted-foreground ml-5 sm:ml-6 mt-1">
+                          Evaluado el {new Date(jurado.evaluacion.fecha).toLocaleString('es-PE')}
                         </p>
                       )}
                     </div>
@@ -940,26 +1057,29 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                 </CardContent>
               </Card>
             )}
+              </TabsContent>
 
+              {/* Tab: Historial */}
+              <TabsContent value="historial" className="space-y-6 mt-4">
             {/* Historial de rondas anteriores */}
-            {tesis.rondasAnteriores.length > 0 && (
+            {tesis.rondasAnteriores.length > 0 ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <History className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <History className="w-5 h-5 text-primary shrink-0" />
                     Rondas Anteriores
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {tesis.rondasAnteriores.map((eval_: any) => (
-                    <div key={eval_.id} className="p-3 rounded-lg border">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-xs">Ronda {eval_.ronda}</Badge>
-                        <span className="text-sm font-medium">
+                    <div key={eval_.id} className="p-2 sm:p-3 rounded-lg border">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                        <Badge variant="outline" className="text-[10px] sm:text-xs">Ronda {eval_.ronda}</Badge>
+                        <span className="text-xs sm:text-sm font-medium">
                           {eval_.juryMember?.user?.nombres} {eval_.juryMember?.user?.apellidoPaterno}
                         </span>
                         <Badge className={cn(
-                          'text-xs',
+                          'text-[10px] sm:text-xs',
                           eval_.resultado === 'APROBADO'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-orange-100 text-orange-700'
@@ -968,7 +1088,7 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                         </Badge>
                       </div>
                       {eval_.observaciones && (
-                        <p className="text-sm text-muted-foreground ml-6 whitespace-pre-wrap">
+                        <p className="text-xs sm:text-sm text-muted-foreground ml-5 sm:ml-6 whitespace-pre-wrap break-words">
                           {eval_.observaciones}
                         </p>
                       )}
@@ -976,11 +1096,20 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                   ))}
                 </CardContent>
               </Card>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <History className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+                  <p className="text-sm text-muted-foreground">No hay rondas anteriores</p>
+                </CardContent>
+              </Card>
             )}
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
             {/* Autores */}
             <Card>
               <CardHeader className="pb-3">
@@ -992,7 +1121,7 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
               <CardContent className="space-y-3">
                 {tesis.autores.map((autor, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <User className="w-4 h-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1015,7 +1144,7 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
               <CardContent className="space-y-3">
                 {tesis.asesores.map((asesor, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
                       <GraduationCap className="w-4 h-4 text-green-600" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -1026,36 +1155,40 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
                 ))}
               </CardContent>
             </Card>
-
-            {/* Detalles */}
-            {(tesis.resumen || tesis.lineaInvestigacion) && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Detalles</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {tesis.lineaInvestigacion && (
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                        Linea de Investigacion
-                      </p>
-                      <p className="text-sm">{tesis.lineaInvestigacion}</p>
-                    </div>
-                  )}
-                  {tesis.resumen && (
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                        Resumen
-                      </p>
-                      <p className="text-sm text-muted-foreground line-clamp-6">{tesis.resumen}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
       </div>
+
+      {/* Modal de espera de jurados (presidente) */}
+      <Dialog open={showEsperaModal} onOpenChange={setShowEsperaModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center sm:text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-3">
+              <Clock className="w-8 h-8 text-blue-600" />
+            </div>
+            <DialogTitle className="text-lg">Evaluación Enviada</DialogTitle>
+            <DialogDescription className="mt-2 text-sm">
+              {tesis && !tesis.progresoEvaluacion.todosEvaluaron ? (
+                <>
+                  Tu evaluación ha sido registrada exitosamente. Como <span className="font-semibold">presidente del jurado</span>, podrás subir el dictamen final una vez que <span className="font-semibold">todos los jurados</span> hayan emitido su voto.
+                  <span className="block mt-3 p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs">
+                    Faltan <span className="font-bold">{(tesis.progresoEvaluacion.total - tesis.progresoEvaluacion.evaluados)}</span> jurado(s) por evaluar. Te notificaremos cuando todos hayan votado.
+                  </span>
+                </>
+              ) : (
+                <>
+                  Tu evaluación ha sido registrada. Todos los jurados ya han evaluado. Ahora puedes subir el <span className="font-semibold">dictamen final</span>.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowEsperaModal(false)}>
+              Entendido
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

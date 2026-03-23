@@ -56,6 +56,7 @@ import {
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Tesista {
   id: string
@@ -261,8 +262,88 @@ export default function MisAsesoriasPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="container mx-auto py-6 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-lg" />
+                    <div>
+                      <Skeleton className="h-7 w-10 mb-1" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Table skeleton */}
+          <Card>
+            <CardHeader className="pb-0">
+              <Skeleton className="h-5 w-44" />
+            </CardHeader>
+            <div className="flex flex-col sm:flex-row gap-3 p-4 border-b">
+              <Skeleton className="h-9 flex-1" />
+              <div className="flex gap-3">
+                <Skeleton className="h-9 w-44" />
+                <Skeleton className="h-9 w-40" />
+              </div>
+            </div>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead><Skeleton className="h-4 w-16" /></TableHead>
+                      <TableHead className="hidden md:table-cell"><Skeleton className="h-4 w-16" /></TableHead>
+                      <TableHead><Skeleton className="h-4 w-10" /></TableHead>
+                      <TableHead className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableHead>
+                      <TableHead><Skeleton className="h-4 w-20" /></TableHead>
+                      <TableHead className="w-[120px]"><Skeleton className="h-4 w-16 ml-auto" /></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <div className="max-w-[320px] space-y-1.5">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-4 w-56" />
+                            <Skeleton className="h-3 w-36" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-36" />
+                            <Skeleton className="h-3 w-20" />
+                          </div>
+                        </TableCell>
+                        <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                        <TableCell>
+                          <div className="flex justify-end">
+                            <Skeleton className="h-7 w-14" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -285,7 +366,7 @@ export default function MisAsesoriasPage() {
     <div className="container mx-auto py-6 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div>
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <h1 className="text-2xl font-bold">Mis Asesorias</h1>
           <p className="text-muted-foreground">
             Gestiona las tesis donde eres asesor o coasesor
@@ -294,7 +375,7 @@ export default function MisAsesoriasPage() {
 
         {/* Estadisticas */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '0ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
@@ -307,7 +388,7 @@ export default function MisAsesoriasPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '80ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center">
@@ -320,7 +401,7 @@ export default function MisAsesoriasPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '160ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
@@ -333,7 +414,7 @@ export default function MisAsesoriasPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '240ms', animationDuration: '500ms' }}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
@@ -349,7 +430,7 @@ export default function MisAsesoriasPage() {
         </div>
 
         {/* Tabla */}
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '320ms', animationDuration: '500ms' }}>
           <CardHeader className="pb-0">
             <CardTitle className="text-lg">Asesorias Asignadas</CardTitle>
           </CardHeader>
@@ -391,13 +472,7 @@ export default function MisAsesoriasPage() {
           </div>
 
           <CardContent className="p-0">
-            <div className={cn('relative', loading && 'opacity-50 pointer-events-none')}>
-              {loading && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/30">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              )}
-
+            <div className="relative">
               {asesoriasFiltered.length === 0 ? (
                 <div className="py-16 text-center">
                   <GraduationCap className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
@@ -425,7 +500,7 @@ export default function MisAsesoriasPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {asesoriasPage.map((asesoria) => {
+                        {asesoriasPage.map((asesoria, index) => {
                           const estadoTesis = ESTADO_TESIS_CONFIG[asesoria.tesis.estado] || ESTADO_TESIS_CONFIG.BORRADOR
                           const estadoAceptacion = ESTADO_ACEPTACION_CONFIG[asesoria.estadoAceptacion]
                           const IconEstado = estadoAceptacion.icon
@@ -436,7 +511,11 @@ export default function MisAsesoriasPage() {
                           return (
                             <TableRow
                               key={asesoria.id}
-                              className={cn('cursor-pointer', isExpanded && 'bg-muted/30')}
+                              className={cn(
+                                'cursor-pointer animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards',
+                                isExpanded && 'bg-muted/30'
+                              )}
+                              style={{ animationDelay: `${index * 80}ms`, animationDuration: '500ms' }}
                               onClick={() => setExpandedId(isExpanded ? null : asesoria.id)}
                             >
                               <TableCell>

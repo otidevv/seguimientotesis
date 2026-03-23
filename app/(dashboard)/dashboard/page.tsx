@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
@@ -28,7 +29,6 @@ import {
   AlertCircle,
   ArrowUpRight,
   ArrowDownRight,
-  Loader2,
   Inbox,
   RefreshCw,
   Eye,
@@ -191,8 +191,86 @@ export default function DashboardPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="space-y-6 overflow-x-hidden">
+        {/* Header skeleton */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+            <div className="flex gap-2 mt-3">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="h-10 w-28" />
+        </div>
+
+        {/* Stats cards skeleton */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="border-l-4 border-l-muted">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-7 w-16 mb-2" />
+                <Skeleton className="h-3 w-32" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts skeleton */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-7 overflow-hidden">
+          <Card className="md:col-span-4 overflow-hidden">
+            <CardHeader className="pb-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-64 mt-1" />
+            </CardHeader>
+            <CardContent className="p-2 sm:p-6 pt-0">
+              <Skeleton className="h-[200px] sm:h-[300px] w-full rounded-md" />
+            </CardContent>
+          </Card>
+          <Card className="md:col-span-3 overflow-hidden">
+            <CardHeader className="pb-2">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-4 w-48 mt-1" />
+            </CardHeader>
+            <CardContent className="p-2 sm:p-6 pt-0">
+              <Skeleton className="h-[180px] sm:h-[200px] w-full rounded-md" />
+              <div className="space-y-3 mt-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <Skeleton className="h-3 w-28" />
+                    </div>
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabs skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full lg:w-[400px] rounded-md" />
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-56 mt-1" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-md" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -216,7 +294,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDuration: '500ms' }}>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Bienvenido, {user?.nombres}
@@ -248,71 +326,41 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Tesis
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <BookOpen className="h-4 w-4 text-blue-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTesis}</div>
-            <TendenciaIndicador valor={stats.tendencias.tesis} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Aprobadas
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.aprobadas}</div>
-            <TendenciaIndicador valor={stats.tendencias.aprobadas} />
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-yellow-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En Proceso
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center">
-              <Clock className="h-4 w-4 text-yellow-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.enProceso}</div>
-            <p className="text-xs text-muted-foreground mt-1">tesis activas en revision</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Documentos
-            </CardTitle>
-            <div className="h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center">
-              <FileCheck className="h-4 w-4 text-purple-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.documentos}</div>
-            <TendenciaIndicador valor={stats.tendencias.documentos} />
-          </CardContent>
-        </Card>
+        {[
+          { borderColor: 'border-l-blue-500', bgColor: 'bg-blue-500/10', iconColor: 'text-blue-500', icon: <BookOpen className="h-4 w-4 text-blue-500" />, title: 'Total Tesis', value: stats.totalTesis, tendencia: stats.tendencias.tesis },
+          { borderColor: 'border-l-green-500', bgColor: 'bg-green-500/10', iconColor: 'text-green-500', icon: <CheckCircle2 className="h-4 w-4 text-green-500" />, title: 'Aprobadas', value: stats.aprobadas, tendencia: stats.tendencias.aprobadas },
+          { borderColor: 'border-l-yellow-500', bgColor: 'bg-yellow-500/10', iconColor: 'text-yellow-500', icon: <Clock className="h-4 w-4 text-yellow-500" />, title: 'En Proceso', value: stats.enProceso, tendencia: null, subtexto: 'tesis activas en revision' },
+          { borderColor: 'border-l-purple-500', bgColor: 'bg-purple-500/10', iconColor: 'text-purple-500', icon: <FileCheck className="h-4 w-4 text-purple-500" />, title: 'Documentos', value: stats.documentos, tendencia: stats.tendencias.documentos },
+        ].map((card, index) => (
+          <Card
+            key={card.title}
+            className={cn('border-l-4 animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards', card.borderColor)}
+            style={{ animationDelay: `${index * 80}ms`, animationDuration: '500ms' }}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {card.title}
+              </CardTitle>
+              <div className={cn('h-8 w-8 rounded-full flex items-center justify-center', card.bgColor)}>
+                {card.icon}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{card.value}</div>
+              {card.tendencia !== null && card.tendencia !== undefined ? (
+                <TendenciaIndicador valor={card.tendencia} />
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1">{card.subtexto}</p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Graficos */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-7 overflow-hidden">
         {/* Grafico de barras */}
-        <Card className="md:col-span-4 overflow-hidden">
+        <Card className="md:col-span-4 overflow-hidden animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '320ms', animationDuration: '500ms' }}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
@@ -344,7 +392,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Grafico circular */}
-        <Card className="md:col-span-3 overflow-hidden">
+        <Card className="md:col-span-3 overflow-hidden animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '400ms', animationDuration: '500ms' }}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
@@ -407,7 +455,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="tesis" className="space-y-4">
+      <Tabs defaultValue="tesis" className="space-y-4 animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '480ms', animationDuration: '500ms' }}>
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="tesis">Tesis Recientes</TabsTrigger>
           <TabsTrigger value="actividad">Actividad</TabsTrigger>
@@ -659,41 +707,54 @@ export default function DashboardPage() {
       {/* Stats Footer */}
       <PermissionGuard moduleCode="reportes" action="view">
         <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Tasa de Aprobacion</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statsAvanzados.tasaAprobacion}%</div>
-              <Progress value={statsAvanzados.tasaAprobacion} className="mt-2" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Tiempo Promedio</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {statsAvanzados.tiempoPromedioMeses > 0
-                  ? `${statsAvanzados.tiempoPromedioMeses} meses`
-                  : 'Sin datos'}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Desde registro hasta aprobacion
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Tesis este Mes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{statsAvanzados.tesisEsteMes}</div>
-              <p className="text-xs text-muted-foreground mt-2">
-                nuevas tesis registradas
-              </p>
-            </CardContent>
-          </Card>
+          {[
+            {
+              title: 'Tasa de Aprobacion',
+              content: (
+                <>
+                  <div className="text-2xl font-bold">{statsAvanzados.tasaAprobacion}%</div>
+                  <Progress value={statsAvanzados.tasaAprobacion} className="mt-2" />
+                </>
+              ),
+            },
+            {
+              title: 'Tiempo Promedio',
+              content: (
+                <>
+                  <div className="text-2xl font-bold">
+                    {statsAvanzados.tiempoPromedioMeses > 0
+                      ? `${statsAvanzados.tiempoPromedioMeses} meses`
+                      : 'Sin datos'}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Desde registro hasta aprobacion
+                  </p>
+                </>
+              ),
+            },
+            {
+              title: 'Tesis este Mes',
+              content: (
+                <>
+                  <div className="text-2xl font-bold">{statsAvanzados.tesisEsteMes}</div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    nuevas tesis registradas
+                  </p>
+                </>
+              ),
+            },
+          ].map((card, index) => (
+            <Card
+              key={card.title}
+              className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards"
+              style={{ animationDelay: `${560 + index * 80}ms`, animationDuration: '500ms' }}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+              </CardHeader>
+              <CardContent>{card.content}</CardContent>
+            </Card>
+          ))}
         </div>
       </PermissionGuard>
     </div>

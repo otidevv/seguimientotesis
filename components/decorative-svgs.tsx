@@ -37,9 +37,9 @@ export function HeroIllustration({ className }: { className?: string }) {
       <circle cx="340" cy="180" r="6" className="fill-primary/25" />
       <circle cx="60" cy="240" r="10" className="fill-primary/10" />
 
-      {/* Sparkles */}
-      <path d="M350 70 L354 78 L362 75 L356 82 L360 90 L352 84 L345 90 L348 82 L340 78 L348 75 Z" className="fill-primary/40" />
-      <path d="M55 90 L58 96 L64 94 L60 99 L63 105 L56 100 L50 105 L52 99 L46 94 L52 96 Z" className="fill-primary/30" />
+      {/* Decorative small circles */}
+      <circle cx="350" cy="80" r="8" className="fill-primary/40" />
+      <circle cx="55" cy="97" r="6" className="fill-primary/30" />
     </svg>
   );
 }

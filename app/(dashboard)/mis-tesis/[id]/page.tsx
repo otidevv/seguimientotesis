@@ -52,6 +52,14 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 interface Documento {
   id: string
@@ -315,6 +323,16 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
   const handleFileUpload = async (tipoDocumento: string, file: File) => {
     if (!tesis) return
+
+    const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`El archivo "${file.name}" excede el límite de 25MB (${(file.size / 1024 / 1024).toFixed(1)}MB)`)
+      return
+    }
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('Solo se permiten archivos PDF')
+      return
+    }
 
     setSubiendo(tipoDocumento)
     const formData = new FormData()
@@ -598,6 +616,10 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const docVoucherSustentacion = tesis.documentos.find((d) => d.tipoDocumento === 'VOUCHER_SUSTENTACION')
   const docConstanciaSunedu = tesis.documentos.find((d) => d.tipoDocumento === 'CONSTANCIA_SUNEDU')
   const docResolucionSustentacion = tesis.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_SUSTENTACION')
+  const docResolucionJurado = tesis.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_JURADO')
+  const docDictamenProyecto = tesis.documentos.find((d) => d.tipoDocumento === 'DICTAMEN_JURADO_PROYECTO')
+  const docDictamenInforme = tesis.documentos.find((d) => d.tipoDocumento === 'DICTAMEN_JURADO_INFORME')
+  const docDictamen = tesis.documentos.find((d) => d.tipoDocumento === 'DICTAMEN_JURADO')
 
   // Verificar si se subió documento corregido después de la observación (para estados observados por jurado)
   // historial viene ordenado DESC (más reciente primero), usar find para obtener la observación más reciente
@@ -668,6 +690,17 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <FullscreenLoader
+        visible={enviando}
+        title="Enviando a revisión"
+        description="Registrando los documentos y notificando a mesa de partes..."
+      />
+      <FullscreenLoader
+        visible={reenviando}
+        title="Reenviando proyecto"
+        description="Enviando las correcciones al jurado evaluador..."
+      />
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/mis-tesis" className="hover:text-foreground transition-colors">
@@ -1231,248 +1264,237 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         const progreso = Math.round((cumplidos / totalRequisitos) * 100)
 
         return (
-          <Card>
-            <CardHeader>
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
-                  <FileUp className="w-5 h-5 text-cyan-600" />
+          <Card className="border-2 border-cyan-200 dark:border-cyan-800">
+            {/* Header con progreso - siempre visible */}
+            <CardContent className="pt-5 pb-4 bg-gradient-to-r from-cyan-50/80 to-blue-50/80 dark:from-cyan-950/30 dark:to-blue-950/30 border-b">
+              <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center shrink-0">
+                  <FileUp className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-600" />
                 </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg">Fase de Informe Final</CardTitle>
-                  <CardDescription className="mt-1">
-                    Sube los documentos requeridos para enviar tu informe final a evaluación por el jurado.
-                  </CardDescription>
-                </div>
-              </div>
-              {/* Barra de progreso */}
-              <div className="mt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">
-                    {cumplidos} de {totalRequisitos} requisitos completados
-                  </span>
-                  <span className="text-sm text-muted-foreground">{progreso}%</span>
-                </div>
-                <Progress value={progreso} className="h-2" />
-                {todosCompletos && (
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Todos los requisitos están listos
-                  </p>
-                )}
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              {/* 1. Informe Final de Tesis */}
-              <DocumentUploadCard
-                titulo="Informe Final de Tesis"
-                descripcion="Documento del informe final en formato PDF (máx. 25MB)"
-                tipoDocumento="INFORME_FINAL_DOC"
-                documento={docInformeFinal}
-                onUpload={handleFileUpload}
-                subiendo={subiendo === 'INFORME_FINAL_DOC'}
-                accept=".pdf"
-                icon={<FileText className="w-5 h-5" />}
-                iconColor="text-cyan-600"
-                iconBg="bg-cyan-100 dark:bg-cyan-900/50"
-              />
-
-              {/* 2. Voucher de Pago S/ 20.00 - Código 465 */}
-              <DocumentUploadCard
-                titulo="Voucher de Pago - Informe Final"
-                descripcion="Voucher de pago de S/. 20.00 al código 465 en formato PDF (máx. 25MB)"
-                tipoDocumento="VOUCHER_PAGO_INFORME"
-                documento={docVoucherInforme}
-                onUpload={handleFileUpload}
-                subiendo={subiendo === 'VOUCHER_PAGO_INFORME'}
-                accept=".pdf"
-                icon={<Receipt className="w-5 h-5" />}
-                iconColor="text-amber-600"
-                iconBg="bg-amber-100 dark:bg-amber-900/50"
-              />
-              {!docVoucherInforme && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
-                  <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground">
-                    Realice el pago de <span className="font-semibold">S/. 20.00</span> al <span className="font-semibold">código 465</span> y suba el voucher escaneado.
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base sm:text-lg font-bold">Fase de Informe Final</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Completa cada sección para enviar tu informe final a evaluación.
                   </p>
                 </div>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-medium">{cumplidos} de {totalRequisitos} requisitos</span>
+                <span className="text-xs sm:text-sm font-bold text-cyan-700 dark:text-cyan-400">{progreso}%</span>
+              </div>
+              <Progress value={progreso} className="h-2.5" />
+              {todosCompletos && (
+                <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Todos los requisitos están listos. ¡Puedes enviar!
+                </p>
               )}
+            </CardContent>
 
-              {/* 3. Reporte Turnitin firmado por asesor */}
-              <DocumentUploadCard
-                titulo="Reporte Turnitin"
-                descripcion="Reporte de similitud Turnitin firmado por el asesor en formato PDF (máx. 25MB)"
-                tipoDocumento="REPORTE_TURNITIN"
-                documento={docReporteTurnitin}
-                onUpload={handleFileUpload}
-                subiendo={subiendo === 'REPORTE_TURNITIN'}
-                accept=".pdf"
-                icon={<FileCheck className="w-5 h-5" />}
-                iconColor="text-teal-600"
-                iconBg="bg-teal-100 dark:bg-teal-900/50"
-              />
-
-              {/* 4. Acta de verificación de similitud del asesor */}
-              <DocumentUploadCard
-                titulo="Acta de Verificación de Similitud del Asesor"
-                descripcion="Acta firmada por el asesor verificando el porcentaje de similitud en formato PDF (máx. 25MB)"
-                tipoDocumento="ACTA_VERIFICACION_ASESOR"
-                documento={docActaVerificacion}
-                onUpload={handleFileUpload}
-                subiendo={subiendo === 'ACTA_VERIFICACION_ASESOR'}
-                accept=".pdf"
-                icon={<ShieldCheck className="w-5 h-5" />}
-                iconColor="text-violet-600"
-                iconBg="bg-violet-100 dark:bg-violet-900/50"
-              />
-
-              {/* 5. Resolución de Aprobación (solo lectura - subida por mesa de partes) */}
-              {docResolucionAprobacion ? (
-                <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+            {/* Secciones colapsables */}
+            <Accordion type="multiple" defaultValue={[todosCompletos ? '' : 'docs-tesista'].filter(Boolean)} className="px-4 sm:px-6">
+              {/* Sección 1: Tus Documentos */}
+              <AccordionItem value="docs-tesista">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center shrink-0">
+                      <Upload className="w-4 h-4 text-cyan-600" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">Resolución de Aprobación del Proyecto</p>
-                      <p className="text-xs text-muted-foreground">Subida por mesa de partes</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <a href={docResolucionAprobacion.archivoUrl} target="_blank" rel="noopener noreferrer">
-                          <Button size="sm" variant="outline" className="h-7 text-xs">
-                            <Eye className="w-3 h-3 mr-1" />
-                            Ver
-                          </Button>
-                        </a>
-                        <a href={docResolucionAprobacion.archivoUrl} download>
-                          <Button size="sm" variant="outline" className="h-7 text-xs">
-                            <Download className="w-3 h-3 mr-1" />
-                            Descargar
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Resolución de Aprobación del Proyecto</p>
-                      <p className="text-xs text-orange-600 dark:text-orange-400">
-                        Pendiente: este documento será subido por mesa de partes.
+                    <div className="text-left">
+                      <p className="font-semibold text-sm">Tus Documentos</p>
+                      <p className="text-xs text-muted-foreground font-normal">
+                        {[docInformeFinal, docVoucherInforme, docReporteTurnitin, docActaVerificacion].filter(Boolean).length}/4 subidos
                       </p>
                     </div>
                   </div>
-                </div>
-              )}
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                  <DocumentUploadCard
+                    titulo="Informe Final de Tesis"
+                    descripcion="Documento del informe final en formato PDF (máx. 25MB)"
+                    tipoDocumento="INFORME_FINAL_DOC"
+                    documento={docInformeFinal}
+                    onUpload={handleFileUpload}
+                    subiendo={subiendo === 'INFORME_FINAL_DOC'}
+                    accept=".pdf"
+                    icon={<FileText className="w-5 h-5" />}
+                    iconColor="text-cyan-600"
+                    iconBg="bg-cyan-100 dark:bg-cyan-900/50"
+                  />
+                  <DocumentUploadCard
+                    titulo="Voucher de Pago - Informe Final"
+                    descripcion="Voucher de pago de S/. 20.00 al código 465 en formato PDF (máx. 25MB)"
+                    tipoDocumento="VOUCHER_PAGO_INFORME"
+                    documento={docVoucherInforme}
+                    onUpload={handleFileUpload}
+                    subiendo={subiendo === 'VOUCHER_PAGO_INFORME'}
+                    accept=".pdf"
+                    icon={<Receipt className="w-5 h-5" />}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-100 dark:bg-amber-900/50"
+                  />
+                  {!docVoucherInforme && (
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 -mt-2">
+                      <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-700 dark:text-amber-400">
+                        Realice el pago de <span className="font-semibold">S/. 20.00</span> al <span className="font-semibold">código 465</span> y suba el voucher escaneado.
+                      </p>
+                    </div>
+                  )}
+                  <DocumentUploadCard
+                    titulo="Reporte Turnitin"
+                    descripcion="Reporte de similitud Turnitin firmado por el asesor en formato PDF (máx. 25MB)"
+                    tipoDocumento="REPORTE_TURNITIN"
+                    documento={docReporteTurnitin}
+                    onUpload={handleFileUpload}
+                    subiendo={subiendo === 'REPORTE_TURNITIN'}
+                    accept=".pdf"
+                    icon={<FileCheck className="w-5 h-5" />}
+                    iconColor="text-teal-600"
+                    iconBg="bg-teal-100 dark:bg-teal-900/50"
+                  />
+                  <DocumentUploadCard
+                    titulo="Acta de Verificación de Similitud del Asesor"
+                    descripcion="Acta firmada por el asesor verificando el porcentaje de similitud en formato PDF (máx. 25MB)"
+                    tipoDocumento="ACTA_VERIFICACION_ASESOR"
+                    documento={docActaVerificacion}
+                    onUpload={handleFileUpload}
+                    subiendo={subiendo === 'ACTA_VERIFICACION_ASESOR'}
+                    accept=".pdf"
+                    icon={<ShieldCheck className="w-5 h-5" />}
+                    iconColor="text-violet-600"
+                    iconBg="bg-violet-100 dark:bg-violet-900/50"
+                  />
+                </AccordionContent>
+              </AccordionItem>
 
-              {/* 6. Resolución de conformación de jurado evaluador de informe final */}
-              {docResolucionJuradoInforme ? (
-                <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+              {/* Sección 2: Voucher Físico */}
+              <AccordionItem value="voucher-fisico">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', tesis.voucherInformeFisicoEntregado ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50')}>
+                      {tesis.voucherInformeFisicoEntregado ? <Check className="w-4 h-4 text-green-600" /> : <AlertTriangle className="w-4 h-4 text-red-600" />}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">Resolución de Conformación de Jurado Evaluador</p>
-                      <p className="text-xs text-muted-foreground">{docResolucionJuradoInforme.nombre}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <a href={docResolucionJuradoInforme.archivoUrl} target="_blank" rel="noopener noreferrer">
-                          <Button size="sm" variant="outline" className="h-7 text-xs">
-                            <Eye className="w-3 h-3 mr-1" />
-                            Ver
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Resolución de Conformación de Jurado Evaluador</p>
-                      <p className="text-xs text-orange-600 dark:text-orange-400">
-                        Pendiente: mesa de partes debe subir la resolución de conformación de jurado evaluador de informe final.
+                    <div className="text-left">
+                      <p className="font-semibold text-sm">Voucher Físico</p>
+                      <p className={cn('text-xs font-normal', tesis.voucherInformeFisicoEntregado ? 'text-green-600' : 'text-red-600')}>
+                        {tesis.voucherInformeFisicoEntregado ? 'Recibido por mesa de partes' : 'Entrega presencial pendiente'}
                       </p>
                     </div>
                   </div>
-                </div>
-              )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  {tesis.voucherInformeFisicoEntregado ? (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-700">
+                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                      <p className="text-xs font-medium text-green-800 dark:text-green-200">Voucher físico del informe final recibido por mesa de partes</p>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-700">
+                      <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-bold text-red-800 dark:text-red-200">Entrega presencial obligatoria</p>
+                        <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
+                          Entregue el voucher original del informe final en mesa de partes de su facultad.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
 
-              {/* 7. Estado de jurados para informe final */}
-              {docResolucionJuradoInforme && juradosCompletos ? (
-                <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+              {/* Sección 3: Documentos de Mesa de Partes */}
+              <AccordionItem value="docs-mesa">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+                      <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-sm">Mesa de Partes y Jurados</p>
+                      <p className="text-xs text-muted-foreground font-normal">
+                        {[docResolucionAprobacion, docResolucionJuradoInforme].filter(Boolean).length}/2 resoluciones
+                        {juradosCompletos ? ' · Jurados completos' : ''}
+                      </p>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3">
+                  {/* Resolución de Aprobación */}
+                  <div className={cn(
+                    'flex items-start gap-3 p-3 rounded-lg border',
+                    docResolucionAprobacion ? 'border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/10' : 'border-dashed border-orange-200 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-950/10'
+                  )}>
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', docResolucionAprobacion ? 'bg-green-100 dark:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/50')}>
+                      {docResolucionAprobacion ? <Check className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-orange-600" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">Jurados Asignados para Informe Final</p>
-                      <div className="mt-1 space-y-1">
-                        {juradosInformeFinal.map((j: any) => (
-                          <p key={j.id} className="text-xs text-muted-foreground">
-                            {j.tipo === 'PRESIDENTE' ? 'Presidente' : j.tipo === 'VOCAL' ? 'Vocal' : j.tipo === 'SECRETARIO' ? 'Secretario' : 'Accesitario'}: {j.nombre}
-                          </p>
-                        ))}
-                      </div>
+                      <p className="font-medium text-xs sm:text-sm">Resolución de Aprobación</p>
+                      {docResolucionAprobacion ? (
+                        <a href={docResolucionAprobacion.archivoUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline mt-0.5 inline-block">Ver documento</a>
+                      ) : (
+                        <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">Pendiente de mesa de partes</p>
+                      )}
                     </div>
                   </div>
-                </div>
-              ) : docResolucionJuradoInforme ? (
-                <div className="rounded-xl border-2 border-dashed border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-5 h-5 text-orange-600" />
+
+                  {/* Resolución de Jurado */}
+                  <div className={cn(
+                    'flex items-start gap-3 p-3 rounded-lg border',
+                    docResolucionJuradoInforme ? 'border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/10' : 'border-dashed border-orange-200 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-950/10'
+                  )}>
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', docResolucionJuradoInforme ? 'bg-green-100 dark:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/50')}>
+                      {docResolucionJuradoInforme ? <Check className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-orange-600" />}
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">Jurados para Informe Final</p>
-                      <p className="text-xs text-orange-600 dark:text-orange-400 mb-1">
-                        Pendiente: mesa de partes debe asignar los jurados evaluadores.
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {['PRESIDENTE', 'VOCAL', 'SECRETARIO', 'ACCESITARIO'].map((tipo) => (
-                          <span key={tipo} className={`text-xs px-2 py-0.5 rounded-full ${tiposJurado.includes(tipo) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {tipo === 'PRESIDENTE' ? 'Presidente' : tipo === 'VOCAL' ? 'Vocal' : tipo === 'SECRETARIO' ? 'Secretario' : 'Accesitario'}
-                            {tiposJurado.includes(tipo) ? ' ✓' : ' (falta)'}
-                          </span>
-                        ))}
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-xs sm:text-sm">Resolución de Conformación de Jurado</p>
+                      {docResolucionJuradoInforme ? (
+                        <a href={docResolucionJuradoInforme.archivoUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline mt-0.5 inline-block">{docResolucionJuradoInforme.nombre}</a>
+                      ) : (
+                        <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">Pendiente de mesa de partes</p>
+                      )}
                     </div>
                   </div>
-                </div>
-              ) : null}
 
-              {/* Nota sobre entrega física del voucher del informe final */}
-              {tesis.voucherInformeFisicoEntregado ? (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border-2 border-green-300 dark:border-green-700">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-green-800 dark:text-green-200">Voucher fisico del informe final recibido por mesa de partes</p>
+                  {/* Jurados */}
+                  <div className={cn(
+                    'flex items-start gap-3 p-3 rounded-lg border',
+                    juradosCompletos ? 'border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/10' : 'border-dashed border-orange-200 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-950/10'
+                  )}>
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', juradosCompletos ? 'bg-green-100 dark:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/50')}>
+                      {juradosCompletos ? <Check className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-orange-600" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-xs sm:text-sm">Jurados para Informe Final</p>
+                      {juradosCompletos ? (
+                        <div className="mt-1 space-y-0.5">
+                          {juradosInformeFinal.map((j: any) => (
+                            <p key={j.id} className="text-[10px] sm:text-xs text-muted-foreground">
+                              {j.tipo === 'PRESIDENTE' ? 'Presidente' : j.tipo === 'VOCAL' ? 'Vocal' : j.tipo === 'SECRETARIO' ? 'Secretario' : 'Accesitario'}: {j.nombre}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="mt-1">
+                          <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400 mb-1">Pendiente de asignación</p>
+                          <div className="flex flex-wrap gap-1">
+                            {['PRESIDENTE', 'VOCAL', 'SECRETARIO', 'ACCESITARIO'].map((tipo) => (
+                              <span key={tipo} className={cn('text-[10px] px-1.5 py-0.5 rounded-full', tiposJurado.includes(tipo) ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground')}>
+                                {tipo === 'PRESIDENTE' ? 'Pres.' : tipo === 'VOCAL' ? 'Vocal' : tipo === 'SECRETARIO' ? 'Secr.' : 'Acces.'}
+                                {tiposJurado.includes(tipo) ? ' ✓' : ''}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700">
-                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
-                  <div>
-                    <p className="text-xs font-bold text-red-800 dark:text-red-200">Entrega presencial obligatoria</p>
-                    <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
-                      Si no entrega el voucher original del informe final, <span className="font-semibold underline">no se completara el tramite</span>. Dirijase a mesa de partes de su facultad.
-                    </p>
-                  </div>
-                </div>
-              )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
-              <Separator />
-
-              {/* Botón Enviar */}
+            {/* Botón Enviar - siempre visible al final */}
+            <CardContent className="pt-4 pb-5 border-t">
               <Button
                 onClick={async () => {
                   setEnviando(true)
@@ -1496,8 +1518,9 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     setEnviando(false)
                   }
                 }}
-                className="w-full bg-cyan-600 hover:bg-cyan-700"
+                className="w-full bg-cyan-600 hover:bg-cyan-700 h-11"
                 disabled={!todosCompletos || subiendo !== null || enviando}
+                size="lg"
               >
                 {enviando ? (
                   <>
@@ -1512,7 +1535,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 )}
               </Button>
               {!todosCompletos && (
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-xs text-muted-foreground text-center mt-2">
                   Completa todos los requisitos para poder enviar el informe final
                 </p>
               )}
@@ -1929,242 +1952,260 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         </Card>
       )}
 
-      {tesis.estado === 'EN_SUSTENTACION' && (
-        <Card className="border-2 border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
-          <CardContent className="py-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
-                <GraduationCap className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-lg font-bold text-purple-800 dark:text-purple-200">Sustentación Programada</p>
-                <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-                  El informe final ha sido aprobado. La sustentación ha sido programada.
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 ml-16 grid gap-3 sm:grid-cols-3">
-              {(tesis as any).fechaSustentacion && (() => {
-                const inicio = new Date((tesis as any).fechaSustentacion)
-                const fin = new Date(inicio.getTime() + 2 * 60 * 60 * 1000)
-                return (
-                  <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Fecha y Hora</p>
-                    <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-                      {inicio.toLocaleDateString('es-PE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                    </p>
-                    <p className="text-sm text-purple-700 dark:text-purple-300">
-                      {inicio.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })} - {fin.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                )
-              })()}
-              {(tesis as any).lugarSustentacion && (
-                <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Lugar</p>
-                  <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-                    {(tesis as any).lugarSustentacion}
-                  </p>
-                </div>
-              )}
-              {(tesis as any).modalidadSustentacion && (
-                <div className="p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-                  <p className="text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-1">Modalidad</p>
-                  <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
-                    {(tesis as any).modalidadSustentacion === 'PRESENCIAL' ? 'Presencial' :
-                     (tesis as any).modalidadSustentacion === 'VIRTUAL' ? 'Virtual' : 'Mixta'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {tesis.estado === 'EN_SUSTENTACION' && (() => {
+        const todosDigitalesSubidos = !!docVoucherSalaGrados && !!docVoucherSustentacion && !!docConstanciaSunedu
+        const todasEntregasFisicas = !!(tesis.voucherSustentacionFisicoEntregado && tesis.ejemplaresEntregados)
+        const todoCompleto = todosDigitalesSubidos && todasEntregasFisicas
+        const docsSubidos = [docVoucherSalaGrados, docVoucherSustentacion, docConstanciaSunedu].filter(Boolean).length
+        const entregasFisicas = [tesis.voucherSustentacionFisicoEntregado, tesis.ejemplaresEntregados].filter(Boolean).length
 
-      {/* Requisitos de Sustentación */}
-      {tesis.estado === 'EN_SUSTENTACION' && (
-        <>
-          {/* Resolución de Sustentación - arriba de todo */}
-          {docResolucionSustentacion && (
-            <Card className="border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
-              <CardContent className="py-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                    <FileCheck className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-lg font-bold text-green-800 dark:text-green-200">Resolución de Sustentación</p>
-                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                      La resolución de aprobación del informe final y programación de sustentación ha sido emitida.
-                    </p>
-                    <div className="flex gap-2 mt-3">
-                      <a href={docResolucionSustentacion.archivoUrl} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" variant="outline" className="text-green-600 border-green-300">
-                          <Eye className="w-3 h-3 mr-1" /> Ver Resolución
-                        </Button>
-                      </a>
-                      <a href={docResolucionSustentacion.archivoUrl} download>
-                        <Button size="sm" variant="outline" className="text-green-600 border-green-300">
-                          <Download className="w-3 h-3 mr-1" /> Descargar
-                        </Button>
-                      </a>
+        return (
+          <Card className="border-2 border-purple-300 dark:border-purple-800">
+            {/* Header - Siempre visible */}
+            <CardContent className="pt-5 pb-4 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 dark:from-purple-950/30 dark:to-indigo-950/30 border-b">
+              <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
+                  <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base sm:text-lg font-bold text-purple-800 dark:text-purple-200">Sustentación Programada</h2>
+                  <p className="text-xs sm:text-sm text-purple-700 dark:text-purple-300 mt-0.5">
+                    El informe final ha sido aprobado. Completa los requisitos para tu sustentación.
+                  </p>
+                </div>
+              </div>
+              {/* Datos de sustentación */}
+              {(tesis as any).fechaSustentacion && (
+                <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-3">
+                  {(() => {
+                    const inicio = new Date((tesis as any).fechaSustentacion)
+                    const fin = new Date(inicio.getTime() + 2 * 60 * 60 * 1000)
+                    return (
+                      <div className="p-2.5 sm:p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                        <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-0.5">Fecha y Hora</p>
+                        <p className="text-xs sm:text-sm font-semibold text-purple-800 dark:text-purple-200">
+                          {inicio.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+                        </p>
+                        <p className="text-xs text-purple-700 dark:text-purple-300">
+                          {inicio.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })} - {fin.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    )
+                  })()}
+                  {(tesis as any).lugarSustentacion && (
+                    <div className="p-2.5 sm:p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                      <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-0.5">Lugar</p>
+                      <p className="text-xs sm:text-sm font-semibold text-purple-800 dark:text-purple-200">{(tesis as any).lugarSustentacion}</p>
                     </div>
-                  </div>
+                  )}
+                  {(tesis as any).modalidadSustentacion && (
+                    <div className="p-2.5 sm:p-3 rounded-lg bg-purple-100/50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
+                      <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-400 font-medium uppercase tracking-wide mb-0.5">Modalidad</p>
+                      <p className="text-xs sm:text-sm font-semibold text-purple-800 dark:text-purple-200">
+                        {(tesis as any).modalidadSustentacion === 'PRESENCIAL' ? 'Presencial' : (tesis as any).modalidadSustentacion === 'VIRTUAL' ? 'Virtual' : 'Mixta'}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Banner de estado */}
-          {!docResolucionSustentacion && (() => {
-            const todosDigitalesSubidos = !!docVoucherSalaGrados && !!docVoucherSustentacion && !!docConstanciaSunedu
-            const todasEntregasFisicas = tesis.voucherSustentacionFisicoEntregado && tesis.ejemplaresEntregados
-            const todoCompleto = todosDigitalesSubidos && todasEntregasFisicas
-
-            return todoCompleto ? (
-              <Card className="border-2 border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
-                <CardContent className="py-4">
-                  <div className="flex items-start gap-3">
-                    <Loader2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 animate-spin" />
-                    <div>
-                      <p className="text-sm font-bold text-blue-800 dark:text-blue-200">Se está elaborando su resolución de aprobación de informe final</p>
-                      <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                        Todos los documentos fueron entregados y confirmados. Mesa de partes está elaborando la resolución de aprobación del informe final y programación de sustentación.
+              )}
+              {/* Banner: Listo para sustentar */}
+              {todoCompleto && docResolucionSustentacion && (
+                <div className="mt-3 p-4 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-950/40 dark:to-emerald-950/40 border-2 border-green-300 dark:border-green-700 animate-in fade-in zoom-in-95 duration-700">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="w-12 h-12 rounded-full bg-green-200 dark:bg-green-800/50 flex items-center justify-center">
+                        <GraduationCap className="w-6 h-6 text-green-700 dark:text-green-300" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center animate-bounce" style={{ animationDuration: '2s' }}>
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm sm:text-base text-green-800 dark:text-green-200">
+                        Todo listo para tu sustentación
+                      </p>
+                      <p className="text-xs sm:text-sm text-green-700 dark:text-green-300 mt-0.5">
+                        Todos los documentos y entregas fueron completados. La resolución de sustentación ha sido emitida. ¡Éxitos!
                       </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-2 border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
-                <CardContent className="py-4">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5 animate-pulse" />
-                    <div>
-                      <p className="text-sm font-bold text-amber-800 dark:text-amber-200">Documentos pendientes para sustentación</p>
-                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                        Debe entregar los siguientes documentos lo antes posible en la Facultad de Ingeniería.
-                        En caso contrario, <span className="font-semibold underline">no se procederá a elaborar la resolución de sustentación</span>.
-                      </p>
+                </div>
+              )}
+
+              {/* Estado banner */}
+              {!docResolucionSustentacion && (
+                <div className={cn('flex items-start gap-2 p-2.5 rounded-lg mt-3 border', todoCompleto ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200' : 'bg-amber-50 dark:bg-amber-950/20 border-amber-200')}>
+                  {todoCompleto ? (
+                    <>
+                      <Loader2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5 animate-spin" />
+                      <p className="text-xs text-blue-800 dark:text-blue-200"><span className="font-semibold">Mesa de partes</span> está elaborando la resolución de sustentación.</p>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-800 dark:text-amber-200">Completa los requisitos pendientes para que mesa de partes emita la resolución.</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </CardContent>
+
+            {/* Secciones colapsables */}
+            <Accordion type="multiple" defaultValue={docResolucionSustentacion ? ['resolucion'] : ['docs-sustentacion']} className="px-4 sm:px-6">
+              {/* Resolución de Sustentación */}
+              {docResolucionSustentacion && (
+                <AccordionItem value="resolucion">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
+                        <FileCheck className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-semibold text-sm">Resolución de Sustentación</p>
+                        <p className="text-xs text-green-600 font-normal">Emitida</p>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-700">
+                      <FileCheck className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-800 dark:text-green-200 truncate">{docResolucionSustentacion.nombre}</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <a href={docResolucionSustentacion.archivoUrl} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-300">
+                              <Eye className="w-3 h-3 mr-1" /> Ver
+                            </Button>
+                          </a>
+                          <a href={docResolucionSustentacion.archivoUrl} download>
+                            <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-300">
+                              <Download className="w-3 h-3 mr-1" /> Descargar
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+              {/* Documentos digitales */}
+              <AccordionItem value="docs-sustentacion">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
+                      <Upload className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-sm">Documentos Digitales</p>
+                      <p className={cn('text-xs font-normal', docsSubidos === 3 ? 'text-green-600' : 'text-muted-foreground')}>{docsSubidos}/3 subidos</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })()}
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                  <DocumentUploadCard
+                    titulo="Voucher Sala de Grados (Cod. 384)"
+                    descripcion="Voucher S/ 515.00 - Alquiler Sala de Grados por 02 horas (PDF, máx. 25MB)"
+                    tipoDocumento="VOUCHER_SALA_GRADOS"
+                    documento={docVoucherSalaGrados}
+                    onUpload={handleFileUpload}
+                    subiendo={subiendo === 'VOUCHER_SALA_GRADOS'}
+                    accept=".pdf"
+                    icon={<Receipt className="w-5 h-5" />}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-100 dark:bg-amber-900/50"
+                  />
+                  <DocumentUploadCard
+                    titulo="Voucher Sustentación por Tesista (Cod. 466)"
+                    descripcion="Voucher S/ 36.00 - Sustentación de tesis por cada tesista (PDF, máx. 25MB)"
+                    tipoDocumento="VOUCHER_SUSTENTACION"
+                    documento={docVoucherSustentacion}
+                    onUpload={handleFileUpload}
+                    subiendo={subiendo === 'VOUCHER_SUSTENTACION'}
+                    accept=".pdf"
+                    icon={<Receipt className="w-5 h-5" />}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-100 dark:bg-amber-900/50"
+                  />
+                  <DocumentUploadCard
+                    titulo="Constancia de Inscripción en SUNEDU"
+                    descripcion="Constancia de inscripción en SUNEDU con grado bachiller (PDF, máx. 25MB)"
+                    tipoDocumento="CONSTANCIA_SUNEDU"
+                    documento={docConstanciaSunedu}
+                    onUpload={handleFileUpload}
+                    subiendo={subiendo === 'CONSTANCIA_SUNEDU'}
+                    accept=".pdf"
+                    icon={<ShieldCheck className="w-5 h-5" />}
+                    iconColor="text-blue-600"
+                    iconBg="bg-blue-100 dark:bg-blue-900/50"
+                  />
+                </AccordionContent>
+              </AccordionItem>
 
-          {/* Documentos digitales para sustentación */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Upload className="w-5 h-5 text-purple-600" />
-                Documentos para Sustentación
-              </CardTitle>
-              <CardDescription>Suba los siguientes documentos en formato PDF</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <DocumentUploadCard
-                titulo="Voucher Alquiler Sala de Grados (Cod. 384)"
-                descripcion="Voucher de pago de S/ 515.00 - Alquiler de Sala de Grados por 02 horas (PDF, máx. 25MB)"
-                tipoDocumento="VOUCHER_SALA_GRADOS"
-                documento={docVoucherSalaGrados}
-                onUpload={handleFileUpload}
-                subiendo={subiendo === 'VOUCHER_SALA_GRADOS'}
-                accept=".pdf"
-                icon={<Receipt className="w-5 h-5" />}
-                iconColor="text-amber-600"
-                iconBg="bg-amber-100 dark:bg-amber-900/50"
-              />
-
-              <DocumentUploadCard
-                titulo="Voucher Sustentación por Tesista (Cod. 466)"
-                descripcion="Voucher de pago de S/ 36.00 - Sustentación de tesis por cada tesista (PDF, máx. 25MB)"
-                tipoDocumento="VOUCHER_SUSTENTACION"
-                documento={docVoucherSustentacion}
-                onUpload={handleFileUpload}
-                subiendo={subiendo === 'VOUCHER_SUSTENTACION'}
-                accept=".pdf"
-                icon={<Receipt className="w-5 h-5" />}
-                iconColor="text-amber-600"
-                iconBg="bg-amber-100 dark:bg-amber-900/50"
-              />
-
-              <DocumentUploadCard
-                titulo="Constancia de Inscripción en SUNEDU"
-                descripcion="Constancia de inscripción en SUNEDU con grado bachiller (PDF, máx. 25MB)"
-                tipoDocumento="CONSTANCIA_SUNEDU"
-                documento={docConstanciaSunedu}
-                onUpload={handleFileUpload}
-                subiendo={subiendo === 'CONSTANCIA_SUNEDU'}
-                accept=".pdf"
-                icon={<ShieldCheck className="w-5 h-5" />}
-                iconColor="text-blue-600"
-                iconBg="bg-blue-100 dark:bg-blue-900/50"
-              />
-            </CardContent>
+              {/* Entregas físicas */}
+              <AccordionItem value="entregas-fisicas">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', todasEntregasFisicas ? 'bg-green-100 dark:bg-green-900/50' : 'bg-indigo-100 dark:bg-indigo-900/50')}>
+                      {todasEntregasFisicas ? <Check className="w-4 h-4 text-green-600" /> : <FileCheck className="w-4 h-4 text-indigo-600" />}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-sm">Entregas Físicas</p>
+                      <p className={cn('text-xs font-normal', todasEntregasFisicas ? 'text-green-600' : 'text-muted-foreground')}>{entregasFisicas}/2 confirmadas</p>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3">
+                  <div className={cn(
+                    'flex items-center gap-3 p-3 rounded-lg border',
+                    tesis.voucherSustentacionFisicoEntregado
+                      ? 'bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-800'
+                      : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
+                  )}>
+                    {tesis.voucherSustentacionFisicoEntregado ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-gray-400 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className={cn('text-xs sm:text-sm font-medium', tesis.voucherSustentacionFisicoEntregado ? 'text-green-800 dark:text-green-200' : 'text-gray-600 dark:text-gray-400')}>
+                        Vouchers originales (Cod. 384 + 466)
+                      </p>
+                      {tesis.voucherSustentacionFisicoFecha && (
+                        <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
+                          Confirmado el {new Date(tesis.voucherSustentacionFisicoFecha).toLocaleDateString('es-PE')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className={cn(
+                    'flex items-center gap-3 p-3 rounded-lg border',
+                    tesis.ejemplaresEntregados
+                      ? 'bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-800'
+                      : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
+                  )}>
+                    {tesis.ejemplaresEntregados ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-gray-400 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className={cn('text-xs sm:text-sm font-medium', tesis.ejemplaresEntregados ? 'text-green-800 dark:text-green-200' : 'text-gray-600 dark:text-gray-400')}>
+                        4 ejemplares del informe final en folder manila
+                      </p>
+                      {tesis.ejemplaresEntregadosFecha && (
+                        <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
+                          Confirmado el {new Date(tesis.ejemplaresEntregadosFecha).toLocaleDateString('es-PE')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </Card>
-
-          {/* Entregas físicas - checklist read-only */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileCheck className="w-5 h-5 text-indigo-600" />
-                Entregas Físicas
-              </CardTitle>
-              <CardDescription>Estado de las entregas presenciales en la Facultad de Ingeniería</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className={cn(
-                'flex items-center gap-3 p-3 rounded-lg border',
-                tesis.voucherSustentacionFisicoEntregado
-                  ? 'bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-800'
-                  : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
-              )}>
-                {tesis.voucherSustentacionFisicoEntregado ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                ) : (
-                  <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                )}
-                <div className="flex-1">
-                  <p className={cn('text-sm font-medium', tesis.voucherSustentacionFisicoEntregado ? 'text-green-800 dark:text-green-200' : 'text-gray-600 dark:text-gray-400')}>
-                    Vouchers originales (Cod. 384 + 466)
-                  </p>
-                  {tesis.voucherSustentacionFisicoFecha && (
-                    <p className="text-xs text-green-600 dark:text-green-400">
-                      Confirmado el {new Date(tesis.voucherSustentacionFisicoFecha).toLocaleDateString('es-PE')}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className={cn(
-                'flex items-center gap-3 p-3 rounded-lg border',
-                tesis.ejemplaresEntregados
-                  ? 'bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-800'
-                  : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
-              )}>
-                {tesis.ejemplaresEntregados ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                ) : (
-                  <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                )}
-                <div className="flex-1">
-                  <p className={cn('text-sm font-medium', tesis.ejemplaresEntregados ? 'text-green-800 dark:text-green-200' : 'text-gray-600 dark:text-gray-400')}>
-                    4 ejemplares del informe final en folder manila
-                  </p>
-                  {tesis.ejemplaresEntregadosFecha && (
-                    <p className="text-xs text-green-600 dark:text-green-400">
-                      Confirmado el {new Date(tesis.ejemplaresEntregadosFecha).toLocaleDateString('es-PE')}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-            </CardContent>
-          </Card>
-
-        </>
-      )}
+        )
+      })()}
 
       {/* Banner de invitación pendiente para coautores */}
       {miInvitacionPendiente && miRegistroCoautor && (
@@ -2468,9 +2509,10 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
           )}
 
           {/* Documentos y Estado (solo lectura - cuando NO puede editar O coautor no aceptó) */}
-          {(!puedeEditar || miInvitacionPendiente) && (
-            <>
-              {/* Documentos de Aprobación de Proyecto */}
+          {(!puedeEditar || miInvitacionPendiente) && (() => {
+            const enFaseInforme = ['INFORME_FINAL', 'EN_REVISION_INFORME', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION'].includes(tesis.estado)
+
+            const docsProyectoContent = (
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-3">
@@ -2478,9 +2520,9 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                       <FileText className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="flex-1">
-                      <CardTitle className="text-lg">Documentos - Aprobacion de Proyecto</CardTitle>
+                      <CardTitle className="text-base sm:text-lg">Documentos - Aprobación de Proyecto</CardTitle>
                       <CardDescription>
-                        Documentos presentados para la aprobacion del proyecto de tesis
+                        Documentos presentados para la aprobación del proyecto de tesis
                       </CardDescription>
                     </div>
                   </div>
@@ -2535,105 +2577,209 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                       coautor={coautor}
                     />
                   )}
-                </CardContent>
-              </Card>
-
-              {/* Documentos de Informe Final (solo si la tesis ya pasó a esa fase) */}
-              {['INFORME_FINAL', 'EN_REVISION_INFORME', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME', 'APROBADA', 'EN_SUSTENTACION'].includes(tesis.estado) && (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
-                        <GraduationCap className="w-5 h-5 text-cyan-600" />
-                      </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">Documentos - Informe Final</CardTitle>
-                        <CardDescription>
-                          Documentos presentados para la evaluacion del informe final
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                  {docResolucionJurado && (
                     <ReadOnlyDocumentCard
-                      titulo="Informe Final de Tesis"
-                      documento={docInformeFinal}
-                      icon={<FileText className="w-5 h-5" />}
-                      iconColor="text-cyan-600"
-                      iconBg="bg-cyan-100 dark:bg-cyan-900/50"
-                    />
-                    <ReadOnlyDocumentCard
-                      titulo="Voucher de Pago - Informe Final (S/. 20 - Codigo 465)"
-                      documento={docVoucherInforme}
-                      icon={<Receipt className="w-5 h-5" />}
-                      iconColor="text-amber-600"
-                      iconBg="bg-amber-100 dark:bg-amber-900/50"
-                    />
-                    <ReadOnlyDocumentCard
-                      titulo="Reporte Turnitin firmado por asesor"
-                      documento={docReporteTurnitin}
+                      titulo="Resolución de Conformación de Jurado"
+                      documento={docResolucionJurado}
                       icon={<FileCheck className="w-5 h-5" />}
-                      iconColor="text-green-600"
-                      iconBg="bg-green-100 dark:bg-green-900/50"
-                    />
-                    <ReadOnlyDocumentCard
-                      titulo="Acta de Verificacion de Similitud del Asesor"
-                      documento={docActaVerificacion}
-                      icon={<ShieldCheck className="w-5 h-5" />}
                       iconColor="text-purple-600"
                       iconBg="bg-purple-100 dark:bg-purple-900/50"
                     />
+                  )}
+                  {(docDictamenProyecto || docDictamen) && (
                     <ReadOnlyDocumentCard
-                      titulo="Resolucion de Aprobacion del Proyecto"
-                      documento={docResolucionAprobacion}
+                      titulo="Dictamen de Jurado - Proyecto"
+                      documento={docDictamenProyecto || docDictamen}
                       icon={<FileCheck className="w-5 h-5" />}
                       iconColor="text-emerald-600"
                       iconBg="bg-emerald-100 dark:bg-emerald-900/50"
                     />
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
+                  )}
+                  {docResolucionAprobacion && (
+                    <ReadOnlyDocumentCard
+                      titulo="Resolución de Aprobación del Proyecto"
+                      documento={docResolucionAprobacion}
+                      icon={<FileCheck className="w-5 h-5" />}
+                      iconColor="text-green-600"
+                      iconBg="bg-green-100 dark:bg-green-900/50"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            )
 
-          {/* Detalles del proyecto */}
-          {(tesis.resumen || tesis.palabrasClave.length > 0 || tesis.lineaInvestigacion) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Detalles del Proyecto</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {tesis.lineaInvestigacion && (
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Línea de Investigación
-                    </p>
-                    <p className="text-sm">{tesis.lineaInvestigacion}</p>
-                  </div>
-                )}
-                {tesis.resumen && (
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                      Resumen
-                    </p>
-                    <p className="text-sm whitespace-pre-wrap text-muted-foreground">{tesis.resumen}</p>
-                  </div>
-                )}
-                {tesis.palabrasClave.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                      Palabras Clave
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {tesis.palabrasClave.map((p, i) => (
-                        <Badge key={i} variant="secondary">{p}</Badge>
-                      ))}
+            const docsInformeContent = (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-cyan-600" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-base sm:text-lg">Documentos - Informe Final</CardTitle>
+                      <CardDescription>
+                        Documentos presentados para la evaluación del informe final
+                      </CardDescription>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ReadOnlyDocumentCard
+                    titulo="Informe Final de Tesis"
+                    documento={docInformeFinal}
+                    icon={<FileText className="w-5 h-5" />}
+                    iconColor="text-cyan-600"
+                    iconBg="bg-cyan-100 dark:bg-cyan-900/50"
+                  />
+                  <ReadOnlyDocumentCard
+                    titulo="Voucher de Pago - Informe Final (S/. 20 - Código 465)"
+                    documento={docVoucherInforme}
+                    icon={<Receipt className="w-5 h-5" />}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-100 dark:bg-amber-900/50"
+                  />
+                  <ReadOnlyDocumentCard
+                    titulo="Reporte Turnitin firmado por asesor"
+                    documento={docReporteTurnitin}
+                    icon={<FileCheck className="w-5 h-5" />}
+                    iconColor="text-green-600"
+                    iconBg="bg-green-100 dark:bg-green-900/50"
+                  />
+                  <ReadOnlyDocumentCard
+                    titulo="Acta de Verificación de Similitud del Asesor"
+                    documento={docActaVerificacion}
+                    icon={<ShieldCheck className="w-5 h-5" />}
+                    iconColor="text-purple-600"
+                    iconBg="bg-purple-100 dark:bg-purple-900/50"
+                  />
+                  <ReadOnlyDocumentCard
+                    titulo="Resolución de Aprobación del Proyecto"
+                    documento={docResolucionAprobacion}
+                    icon={<FileCheck className="w-5 h-5" />}
+                    iconColor="text-emerald-600"
+                    iconBg="bg-emerald-100 dark:bg-emerald-900/50"
+                  />
+                  {docResolucionJuradoInforme && (
+                    <ReadOnlyDocumentCard
+                      titulo="Resolución de Conformación de Jurado - Informe"
+                      documento={docResolucionJuradoInforme}
+                      icon={<FileCheck className="w-5 h-5" />}
+                      iconColor="text-purple-600"
+                      iconBg="bg-purple-100 dark:bg-purple-900/50"
+                    />
+                  )}
+                  {(docDictamenInforme || (docDictamen && !docDictamenProyecto)) && (
+                    <ReadOnlyDocumentCard
+                      titulo="Dictamen de Jurado - Informe Final"
+                      documento={docDictamenInforme || docDictamen}
+                      icon={<FileCheck className="w-5 h-5" />}
+                      iconColor="text-green-600"
+                      iconBg="bg-green-100 dark:bg-green-900/50"
+                    />
+                  )}
+                  {docResolucionSustentacion && (
+                    <ReadOnlyDocumentCard
+                      titulo="Resolución de Sustentación"
+                      documento={docResolucionSustentacion}
+                      icon={<FileCheck className="w-5 h-5" />}
+                      iconColor="text-green-600"
+                      iconBg="bg-green-100 dark:bg-green-900/50"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            )
+
+            const historialItems = ((tesis as any).historial || []) as { id?: string; estadoNuevo: string; fecha: string; comentario?: string; realizadoPor?: any }[]
+
+            // Si estamos en fase de informe final, mostrar con Tabs
+            if (enFaseInforme) {
+              return (
+                <Tabs defaultValue="informe" className="w-full min-w-0">
+                  <div className="overflow-x-auto">
+                    <TabsList className="w-full grid grid-cols-3 h-10 min-w-[300px]">
+                      <TabsTrigger value="informe" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                        <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                        <span>Informe Final</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="proyecto" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                        <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                        <span>Proyecto</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="historial" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                        <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                        <span>Historial</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
+                  <TabsContent value="informe" className="mt-4 space-y-4">
+                    {docsInformeContent}
+                  </TabsContent>
+                  <TabsContent value="proyecto" className="mt-4 space-y-4">
+                    {docsProyectoContent}
+                  </TabsContent>
+                  <TabsContent value="historial" className="mt-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                          <History className="w-5 h-5 text-primary shrink-0" />
+                          Historial de la Tesis
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {historialItems.length > 0 ? (
+                          <div className="space-y-4">
+                            {historialItems.map((item, index) => {
+                              const config = ESTADO_CONFIG[item.estadoNuevo]
+                              return (
+                                <div key={item.id || index} className="flex gap-2 sm:gap-3">
+                                  <div className="flex flex-col items-center">
+                                    <div className={cn(
+                                      'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0',
+                                      config?.bgColor || 'bg-gray-100 dark:bg-gray-800'
+                                    )}>
+                                      {config?.icon || <Clock className="w-4 h-4" />}
+                                    </div>
+                                    {index < historialItems.length - 1 && (
+                                      <div className="w-0.5 flex-1 bg-border mt-2" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0 pb-4">
+                                    <p className="font-medium text-xs sm:text-sm">
+                                      {config?.label || item.estadoNuevo}
+                                    </p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                      {new Date(item.fecha).toLocaleString('es-PE')}
+                                    </p>
+                                    {item.comentario && (
+                                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words bg-muted/50 p-2 rounded-lg">{item.comentario}</p>
+                                    )}
+                                    {item.realizadoPor && (
+                                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                                        Por: {typeof item.realizadoPor === 'string' ? item.realizadoPor : `${item.realizadoPor.nombres || ''} ${item.realizadoPor.apellidoPaterno || ''}`.trim() || 'Sistema'}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <div className="py-8 text-center">
+                            <History className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+                            <p className="text-sm text-muted-foreground">No hay registros de historial</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              )
+            }
+
+            // Si NO estamos en fase de informe, mostrar sin tabs (como antes)
+            return docsProyectoContent
+          })()}
         </div>
 
         {/* Sidebar */}
@@ -3047,25 +3193,25 @@ function DocumentUploadCard({
   return (
     <div
       className={cn(
-        'relative rounded-xl border-2 border-dashed transition-all',
-        isDragging && 'border-primary bg-primary/5',
-        documento && !isDragging && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
-        !documento && !isDragging && 'border-border hover:border-primary/50 cursor-pointer'
+        'relative rounded-xl border-2 transition-all group',
+        isDragging && 'border-primary bg-primary/5 border-dashed',
+        documento && !isDragging && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 border-solid',
+        !documento && !isDragging && 'border-dashed border-border hover:border-primary/50 hover:bg-muted/30 cursor-pointer'
       )}
       onClick={handleCardClick}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="p-4">
-        <div className="flex items-start gap-4">
+      <div className="p-3 sm:p-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           {/* Icono */}
           <div className={cn(
-            'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
+            'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105',
             documento ? 'bg-green-100 dark:bg-green-900/50' : iconBg
           )}>
             {documento ? (
-              <FileCheck className="w-6 h-6 text-green-600" />
+              <FileCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             ) : (
               <span className={iconColor}>{icon}</span>
             )}
@@ -3073,42 +3219,46 @@ function DocumentUploadCard({
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <p className="font-semibold text-sm">{titulo}</p>
-              {!documento && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-destructive border-destructive">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <p className="font-semibold text-xs sm:text-sm">{titulo}</p>
+              {documento ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600 shrink-0">
+                  Subido
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-destructive border-destructive shrink-0">
                   Requerido
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mb-3">{descripcion}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-none">{descripcion}</p>
 
             {documento ? (
               <a
                 href={documento.archivoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border hover:bg-muted/50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg bg-white dark:bg-background border hover:bg-muted/50 transition-colors cursor-pointer"
                 title="Ver documento"
               >
-                <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm flex-1 truncate">{documento.nombre}</span>
-                <span className="text-xs text-muted-foreground">
+                <File className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
+                <span className="text-xs sm:text-sm flex-1 truncate">{documento.nombre}</span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline shrink-0">
                   {formatFileSize(documento.archivoTamano)}
                 </span>
-                <Eye className="w-4 h-4 text-muted-foreground" />
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
               </a>
             ) : (
-              <div className="text-center py-2">
-                <p className="text-xs text-muted-foreground">
-                  Arrastra un archivo aquí o
+              <div className="text-center py-1 sm:py-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                  Arrastra un archivo aquí o haz clic en subir
                 </p>
               </div>
             )}
           </div>
 
           {/* Botón */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <input
               ref={inputRef}
               type="file"
@@ -3122,18 +3272,19 @@ function DocumentUploadCard({
               size="sm"
               onClick={() => inputRef.current?.click()}
               disabled={subiendo}
+              className="h-8 sm:h-9 text-xs sm:text-sm"
             >
               {subiendo ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : documento ? (
                 <>
-                  <Upload className="w-4 h-4 mr-1" />
-                  Cambiar
+                  <RefreshCw className="w-3.5 h-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Cambiar</span>
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4 mr-1" />
-                  Subir
+                  <Upload className="w-3.5 h-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Subir</span>
                 </>
               )}
             </Button>
@@ -3143,7 +3294,7 @@ function DocumentUploadCard({
 
       {/* Overlay de carga */}
       {subiendo && (
-        <div className="absolute inset-0 bg-background/80 rounded-xl flex items-center justify-center">
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-xl flex items-center justify-center">
           <div className="flex items-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
             <span className="text-sm font-medium">Subiendo documento...</span>

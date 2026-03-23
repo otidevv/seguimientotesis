@@ -54,6 +54,8 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 interface Documento {
   id: string
@@ -367,6 +369,18 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
     }
   }
 
+  const validarArchivoPDF = (file: File, maxMB = 25): boolean => {
+    if (file.size > maxMB * 1024 * 1024) {
+      toast.error(`El archivo "${file.name}" excede el límite de ${maxMB}MB (${(file.size / 1024 / 1024).toFixed(1)}MB)`)
+      return false
+    }
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('Solo se permiten archivos PDF')
+      return false
+    }
+    return true
+  }
+
   const confirmarVoucher = async () => {
     setProcesando(true)
     try {
@@ -467,6 +481,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
       toast.error('Seleccione un archivo de resolución')
       return
     }
+    if (!validarArchivoPDF(archivoResolucionSustentacion)) return
     if (!nombreResolucionSustentacion.trim()) {
       toast.error('Ingrese el título de la resolución')
       return
@@ -628,6 +643,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
       toast.error('Seleccione un archivo de resolucion')
       return
     }
+    if (!validarArchivoPDF(archivoResolucion)) return
     if (!nombreResolucionAprobacion.trim()) {
       toast.error('Ingrese el título de la resolución')
       return
@@ -689,6 +705,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
       toast.error('Seleccione el archivo de resolucion')
       return
     }
+    if (!validarArchivoPDF(archivoResolucionJurado)) return
 
     setSubiendoResolucionJurado(true)
     try {
@@ -728,6 +745,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
       toast.error('Seleccione el archivo de resolucion')
       return
     }
+    if (!validarArchivoPDF(archivoResolucionJuradoInforme)) return
 
     setSubiendoResolucionJuradoInforme(true)
     try {
@@ -838,9 +856,22 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const tieneAccesitarioInforme = tiposJuradoInforme.includes('ACCESITARIO')
   const juradosInformeCompletos = tienePresidenteInforme && tieneVocalInforme && tieneSecretarioInforme && tieneAccesitarioInforme
 
+  const loaderMessages: Record<string, { title: string; description: string }> = {
+    APROBAR: { title: 'Aprobando proyecto', description: 'Registrando la aprobación y notificando al tesista...' },
+    OBSERVAR: { title: 'Registrando observaciones', description: 'Guardando las observaciones y notificando al tesista...' },
+    RECHAZAR: { title: 'Rechazando proyecto', description: 'Registrando el rechazo y notificando al tesista...' },
+  }
+  const loaderInfo = accionActual ? loaderMessages[accionActual] : null
+
   return (
     <div className="container mx-auto py-6 px-4">
-      <div className="max-w-5xl mx-auto space-y-6">
+      <FullscreenLoader
+        visible={procesando}
+        title={loaderInfo?.title ?? 'Procesando'}
+        description={loaderInfo?.description ?? 'Por favor espera un momento...'}
+      />
+
+      <div className="max-w-5xl mx-auto space-y-6" style={{ overflowX: 'hidden' }}>
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/mesa-partes" className="hover:text-foreground transition-colors">
@@ -907,10 +938,10 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     Revisa el proyecto y toma una decision
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
-                    className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                    className="border-orange-500 text-orange-600 hover:bg-orange-50 w-full sm:w-auto"
                     onClick={() => abrirDialogo('OBSERVAR')}
                   >
                     <AlertCircle className="w-4 h-4 mr-2" />
@@ -918,29 +949,22 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-red-500 text-red-600 hover:bg-red-50"
+                    className="border-red-500 text-red-600 hover:bg-red-50 w-full sm:w-auto"
                     onClick={() => abrirDialogo('RECHAZAR')}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
                     Rechazar
                   </Button>
-                  <div className="relative group">
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
-                      onClick={() => abrirDialogo('APROBAR')}
-                      disabled={!proyecto.voucherFisicoEntregado}
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Aprobar
-                    </Button>
-                    {!proyecto.voucherFisicoEntregado && (
-                      <span className="text-xs text-yellow-600 mt-1 block sm:hidden">
-                        Confirme el voucher fisico primero
-                      </span>
-                    )}
-                  </div>
+                  <Button
+                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 w-full sm:w-auto"
+                    onClick={() => abrirDialogo('APROBAR')}
+                    disabled={!proyecto.voucherFisicoEntregado}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Aprobar
+                  </Button>
                   {!proyecto.voucherFisicoEntregado && (
-                    <p className="text-xs text-yellow-600 hidden sm:block">
+                    <p className="text-xs text-yellow-600 text-center sm:text-left">
                       Debe confirmar el voucher fisico para aprobar
                     </p>
                   )}
@@ -961,32 +985,25 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     Revisa los documentos del informe final y toma una decisión
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
-                    className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                    className="border-orange-500 text-orange-600 hover:bg-orange-50 w-full sm:w-auto"
                     onClick={() => abrirDialogo('OBSERVAR')}
                   >
                     <AlertCircle className="w-4 h-4 mr-2" />
                     Observar
                   </Button>
-                  <div className="relative group">
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
-                      onClick={() => abrirDialogo('APROBAR')}
-                      disabled={!proyecto.voucherInformeFisicoEntregado}
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Aprobar Informe
-                    </Button>
-                    {!proyecto.voucherInformeFisicoEntregado && (
-                      <span className="text-xs text-yellow-600 mt-1 block sm:hidden">
-                        Confirme el voucher fisico del informe primero
-                      </span>
-                    )}
-                  </div>
+                  <Button
+                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 w-full sm:w-auto"
+                    onClick={() => abrirDialogo('APROBAR')}
+                    disabled={!proyecto.voucherInformeFisicoEntregado}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Aprobar Informe
+                  </Button>
                   {!proyecto.voucherInformeFisicoEntregado && (
-                    <p className="text-xs text-yellow-600 hidden sm:block">
+                    <p className="text-xs text-yellow-600 text-center sm:text-left">
                       Debe confirmar el voucher fisico del informe para aprobar
                     </p>
                   )}
@@ -997,47 +1014,114 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
         )}
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Columna principal */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Panel de Resolucion de Conformacion de Jurado - visible en toda la fase de proyecto */}
-            {(esAsignandoJurados || ['EN_EVALUACION_JURADO', 'OBSERVADA_JURADO', 'PROYECTO_APROBADO'].includes(proyecto.estado)) && (
+          {/* Columna principal con Tabs */}
+          <div className="lg:col-span-2 space-y-6 min-w-0">
+            <Tabs defaultValue="gestion" className="w-full min-w-0">
+              <div className="overflow-x-auto -mx-1">
+                <TabsList className="w-full grid grid-cols-3 h-10 min-w-[280px]">
+                  <TabsTrigger value="gestion" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                    <ClipboardCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>Gestión</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="documentos" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                    <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>Docs</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="historial" className="gap-1 sm:gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+                    <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>Historial</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              {/* Tab: Gestión */}
+              <TabsContent value="gestion" className="space-y-6 mt-4 min-w-0" style={{ overflowX: 'hidden' }}>
+
+            {/* Confirmación de Voucher Físico - Proyecto (solo en revisión) */}
+            {puedeGestionar && (
               <Card className={cn(
                 'border-2',
-                docResolucionJurado
+                proyecto.voucherFisicoEntregado
                   ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                  : 'border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20'
+                  : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
               )}>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileUp className={cn('w-5 h-5', docResolucionJurado ? 'text-green-600' : 'text-amber-600')} />
-                    Resolucion de Conformacion de Jurado
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                    <Receipt className={cn('w-5 h-5 shrink-0', proyecto.voucherFisicoEntregado ? 'text-green-600' : 'text-yellow-600')} />
+                    Voucher Físico
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {proyecto.voucherFisicoEntregado ? (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
+                      <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+                      <div>
+                        <p className="font-medium text-sm text-green-800 dark:text-green-200">Voucher físico recibido</p>
+                        {proyecto.voucherFisicoFecha && (
+                          <p className="text-xs text-green-600 dark:text-green-400">
+                            Confirmado el {new Date(proyecto.voucherFisicoFecha).toLocaleString('es-PE')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-sm text-yellow-800 dark:text-yellow-200">Voucher físico pendiente</p>
+                          <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-0.5">
+                            El estudiante debe entregar el voucher original en mesa de partes.
+                          </p>
+                          {docVoucher && (
+                            <a
+                              href={docVoucher.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-yellow-700 hover:text-yellow-900 hover:underline"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Ver Voucher Digital
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={confirmarVoucher}
+                        disabled={procesando}
+                        className="w-full bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        {procesando ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Confirmando...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Confirmar Entrega de Voucher Físico
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Panel de Resolucion de Conformacion de Jurado - solo si aún no se subió */}
+            {!docResolucionJurado && (esAsignandoJurados || ['EN_EVALUACION_JURADO', 'OBSERVADA_JURADO', 'PROYECTO_APROBADO'].includes(proyecto.estado)) && (
+              <Card className="border-2 border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+                <CardHeader>
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                    <FileUp className="w-5 h-5 text-amber-600 shrink-0" />
+                    Resolución de Conformación de Jurado
                   </CardTitle>
                   <CardDescription>
-                    {esAsignandoJurados && !docResolucionJurado
-                      ? 'Suba la resolucion de conformacion de jurado de revision de proyecto de tesis.'
-                      : 'Resolucion de conformacion de jurado de revision de proyecto de tesis.'}
+                    Suba la resolución de conformación de jurado de revisión de proyecto de tesis.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {docResolucionJurado ? (
-                    <div className="flex items-center gap-3 p-4 rounded-lg bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-green-800 dark:text-green-200">{docResolucionJurado.nombre}</p>
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
-                          Subido el {docResolucionJurado.fechaSubida ? new Date(docResolucionJurado.fechaSubida).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}
-                        </p>
-                      </div>
-                      <a
-                        href={docResolucionJurado.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium text-green-700 hover:text-green-900 hover:underline flex-shrink-0"
-                      >
-                        Ver PDF
-                      </a>
-                    </div>
-                  ) : esAsignandoJurados ? (
+                  {esAsignandoJurados ? (
                     <>
                       <div>
                         <Label htmlFor="resolucion-jurado">Archivo de Resolucion (PDF)</Label>
@@ -1100,8 +1184,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {esAsignandoJurados && (
               <Card className="border-2 border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Gavel className="w-5 h-5 text-purple-600" />
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Gavel className="w-5 h-5 text-purple-600 shrink-0" />
                     Asignar Jurados Evaluadores
                   </CardTitle>
                   <CardDescription>
@@ -1114,25 +1198,25 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     <div className="space-y-2">
                       <p className="text-sm font-medium">Jurados asignados:</p>
                       {juradosProyecto.map((jurado: any) => (
-                        <div key={jurado.id} className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-background">
-                          <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
-                            <User className="w-4 h-4 text-purple-600" />
+                        <div key={jurado.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border bg-white dark:bg-background">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
+                            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{jurado.nombre}</p>
-                            <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
+                            <p className="font-medium text-xs sm:text-sm truncate">{jurado.nombre}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{jurado.email}</p>
                           </div>
-                          <Badge className={cn('text-xs', TIPO_JURADO_COLORS[jurado.tipo])}>
+                          <Badge className={cn('text-[10px] sm:text-xs shrink-0', TIPO_JURADO_COLORS[jurado.tipo])}>
                             {TIPO_JURADO_LABELS[jurado.tipo]}
                           </Badge>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
                             onClick={() => removerJurado(jurado.id)}
                             disabled={procesando}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
                         </div>
                       ))}
@@ -1164,9 +1248,9 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   {/* Buscador */}
                   <div className="space-y-3">
                     <p className="text-sm font-medium">Buscar y agregar jurado:</p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Select value={tipoJurado} onValueChange={setTipoJurado}>
-                        <SelectTrigger className="w-[160px]">
+                        <SelectTrigger className="w-full sm:w-[160px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1211,7 +1295,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{resultado.nombreCompleto}</p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground truncate">
                                   DNI: {resultado.numeroDocumento} - {resultado.email}
                                 </p>
                                 {resultado.esDocente && (
@@ -1220,9 +1304,9 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                                   </p>
                                 )}
                               </div>
-                              <Button variant="outline" size="sm" disabled={procesando}>
-                                <UserPlus className="w-3 h-3 mr-1" />
-                                Asignar
+                              <Button variant="outline" size="sm" disabled={procesando} className="shrink-0">
+                                <UserPlus className="w-3 h-3 sm:mr-1" />
+                                <span className="hidden sm:inline">Asignar</span>
                               </Button>
                             </div>
                           ))
@@ -1269,8 +1353,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {esProyectoAprobado && (
               <Card className="border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileUp className="w-5 h-5 text-emerald-600" />
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                    <FileUp className="w-5 h-5 text-emerald-600 shrink-0" />
                     Subir Resolucion de Aprobacion
                   </CardTitle>
                   <CardDescription>
@@ -1324,8 +1408,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {esInformeFinal && !proyecto.documentos.find((d: any) => d.tipo === 'RESOLUCION_APROBACION') && (
               <Card className="border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileUp className="w-5 h-5 text-emerald-600" />
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                    <FileUp className="w-5 h-5 text-emerald-600 shrink-0" />
                     Subir Resolución de Aprobación
                   </CardTitle>
                   <CardDescription>
@@ -1361,6 +1445,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                         toast.error('Seleccione un archivo de resolución')
                         return
                       }
+                      if (!validarArchivoPDF(archivoResolucion)) return
                       if (!nombreResolucionAprobacion.trim()) {
                         toast.error('Ingrese el título de la resolución')
                         return
@@ -1412,8 +1497,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {esInformeFinal && (
               <Card className="border-2 border-purple-300 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Gavel className="w-5 h-5 text-purple-600" />
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                    <Gavel className="w-5 h-5 text-purple-600 shrink-0" />
                     Jurados para Informe Final
                   </CardTitle>
                   <CardDescription>
@@ -1426,25 +1511,25 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     <div className="space-y-2">
                       <p className="text-sm font-medium">Jurados asignados para informe final:</p>
                       {juradosInforme.map((jurado: any) => (
-                        <div key={jurado.id} className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-background">
-                          <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
-                            <User className="w-4 h-4 text-purple-600" />
+                        <div key={jurado.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border bg-white dark:bg-background">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
+                            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{jurado.nombre}</p>
-                            <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
+                            <p className="font-medium text-xs sm:text-sm truncate">{jurado.nombre}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{jurado.email}</p>
                           </div>
-                          <Badge className={cn('text-xs', TIPO_JURADO_COLORS[jurado.tipo])}>
+                          <Badge className={cn('text-[10px] sm:text-xs shrink-0', TIPO_JURADO_COLORS[jurado.tipo])}>
                             {TIPO_JURADO_LABELS[jurado.tipo]}
                           </Badge>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
                             onClick={() => removerJurado(jurado.id)}
                             disabled={procesando}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
                         </div>
                       ))}
@@ -1476,9 +1561,9 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   {/* Buscador para agregar/cambiar jurado */}
                   <div className="space-y-3">
                     <p className="text-sm font-medium">Buscar y agregar jurado:</p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Select value={tipoJurado} onValueChange={setTipoJurado}>
-                        <SelectTrigger className="w-[160px]">
+                        <SelectTrigger className="w-full sm:w-[160px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1523,7 +1608,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{resultado.nombreCompleto}</p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground truncate">
                                   DNI: {resultado.numeroDocumento} - {resultado.email}
                                 </p>
                                 {resultado.esDocente && (
@@ -1532,9 +1617,9 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                                   </p>
                                 )}
                               </div>
-                              <Button variant="outline" size="sm" disabled={procesando}>
-                                <UserPlus className="w-3 h-3 mr-1" />
-                                Asignar
+                              <Button variant="outline" size="sm" disabled={procesando} className="shrink-0">
+                                <UserPlus className="w-3 h-3 sm:mr-1" />
+                                <span className="hidden sm:inline">Asignar</span>
                               </Button>
                             </div>
                           ))
@@ -1551,84 +1636,65 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
 
                   <Separator />
 
-                  {/* Resolución de conformación de jurado evaluador de informe final */}
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <FileUp className={cn('w-4 h-4', docResolucionJuradoInforme ? 'text-green-600' : 'text-amber-600')} />
-                      Resolución de Conformación de Jurado Evaluador de Informe Final
-                    </p>
-                    {docResolucionJuradoInforme ? (
-                      <div className="flex items-center gap-3 p-4 rounded-lg bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
-                        <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-green-800 dark:text-green-200">{docResolucionJuradoInforme.nombre}</p>
-                          <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
-                            Subido el {docResolucionJuradoInforme.fechaSubida ? new Date(docResolucionJuradoInforme.fechaSubida).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}
-                          </p>
-                        </div>
-                        <a
-                          href={docResolucionJuradoInforme.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium text-green-700 hover:text-green-900 hover:underline flex-shrink-0"
-                        >
-                          Ver PDF
-                        </a>
+                  {/* Resolución de conformación de jurado evaluador de informe final - solo si aún no se subió */}
+                  {!docResolucionJuradoInforme && (
+                    <div className="space-y-3">
+                      <Separator />
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        <FileUp className="w-4 h-4 text-amber-600" />
+                        Resolución de Conformación de Jurado Evaluador de Informe Final
+                      </p>
+                      <div>
+                        <Label htmlFor="resolucion-jurado-informe">Archivo de Resolución (PDF)</Label>
+                        <Input
+                          id="resolucion-jurado-informe"
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null
+                            setArchivoResolucionJuradoInforme(file)
+                            if (file && !nombreResolucionJuradoInforme.trim()) {
+                              setNombreResolucionJuradoInforme(file.name.replace(/\.pdf$/i, ''))
+                            }
+                          }}
+                          className="mt-1 cursor-pointer file:cursor-pointer"
+                        />
                       </div>
-                    ) : (
-                      <>
+                      {archivoResolucionJuradoInforme && (
                         <div>
-                          <Label htmlFor="resolucion-jurado-informe">Archivo de Resolución (PDF)</Label>
+                          <Label htmlFor="nombre-resolucion-jurado-informe">Título / Número de Resolución</Label>
                           <Input
-                            id="resolucion-jurado-informe"
-                            type="file"
-                            accept=".pdf"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0] || null
-                              setArchivoResolucionJuradoInforme(file)
-                              if (file && !nombreResolucionJuradoInforme.trim()) {
-                                setNombreResolucionJuradoInforme(file.name.replace(/\.pdf$/i, ''))
-                              }
-                            }}
-                            className="mt-1 cursor-pointer file:cursor-pointer"
+                            id="nombre-resolucion-jurado-informe"
+                            type="text"
+                            placeholder="Ej: Resolución 090-2026-UNAMAD"
+                            value={nombreResolucionJuradoInforme}
+                            onChange={(e) => setNombreResolucionJuradoInforme(e.target.value)}
+                            className="mt-1"
                           />
+                          <span className="text-xs text-purple-700 dark:text-purple-400 mt-1 block">
+                            Ingrese el título de la resolución tal cual aparece en el documento.
+                          </span>
                         </div>
-                        {archivoResolucionJuradoInforme && (
-                          <div>
-                            <Label htmlFor="nombre-resolucion-jurado-informe">Título / Número de Resolución</Label>
-                            <Input
-                              id="nombre-resolucion-jurado-informe"
-                              type="text"
-                              placeholder="Ej: Resolución 090-2026-UNAMAD"
-                              value={nombreResolucionJuradoInforme}
-                              onChange={(e) => setNombreResolucionJuradoInforme(e.target.value)}
-                              className="mt-1"
-                            />
-                            <span className="text-xs text-purple-700 dark:text-purple-400 mt-1 block">
-                              Ingrese el título de la resolución tal cual aparece en el documento, este dato se usará para la generación de reportes.
-                            </span>
-                          </div>
+                      )}
+                      <Button
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        onClick={subirResolucionJuradoInforme}
+                        disabled={subiendoResolucionJuradoInforme || !archivoResolucionJuradoInforme || !nombreResolucionJuradoInforme.trim()}
+                      >
+                        {subiendoResolucionJuradoInforme ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Subiendo...
+                          </>
+                        ) : (
+                          <>
+                            <FileUp className="w-4 h-4 mr-2" />
+                            Subir Resolución
+                          </>
                         )}
-                        <Button
-                          className="w-full bg-purple-600 hover:bg-purple-700"
-                          onClick={subirResolucionJuradoInforme}
-                          disabled={subiendoResolucionJuradoInforme || !archivoResolucionJuradoInforme || !nombreResolucionJuradoInforme.trim()}
-                        >
-                          {subiendoResolucionJuradoInforme ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Subiendo...
-                            </>
-                          ) : (
-                            <>
-                              <FileUp className="w-4 h-4 mr-2" />
-                              Subir Resolución
-                            </>
-                          )}
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1637,8 +1703,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {['EN_EVALUACION_JURADO', 'OBSERVADA_JURADO', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(proyecto.estado) && (
               <Card className="border-2 border-indigo-300 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ClipboardCheck className="w-5 h-5 text-indigo-600" />
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                    <ClipboardCheck className="w-5 h-5 text-indigo-600 shrink-0" />
                     Estado de Evaluacion
                   </CardTitle>
                 </CardHeader>
@@ -1696,7 +1762,10 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   {/* Lista de jurados y sus evaluaciones (filtrados por fase actual) */}
                   {(() => {
                     const faseActual = ['EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(proyecto.estado) ? 'INFORME_FINAL' : 'PROYECTO'
-                    const juradosFase = (proyecto.jurados || []).filter((j: any) => j.fase === faseActual)
+                    const ordenTipos = ['PRESIDENTE', 'VOCAL', 'SECRETARIO', 'ACCESITARIO']
+                    const juradosFase = (proyecto.jurados || [])
+                      .filter((j: any) => j.fase === faseActual)
+                      .sort((a: any, b: any) => ordenTipos.indexOf(a.tipo) - ordenTipos.indexOf(b.tipo))
                     return juradosFase.length > 0 && (
                     <>
                       <Separator />
@@ -1705,26 +1774,26 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                         {juradosFase.map((jurado: any) => {
                           const evalActual = jurado.evaluaciones.find((e: any) => e.ronda === proyecto.rondaActual)
                           return (
-                            <div key={jurado.id} className="flex items-center gap-3 p-3 rounded-lg border bg-white dark:bg-background">
-                              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
-                                <User className="w-4 h-4 text-indigo-600" />
+                            <div key={jurado.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border bg-white dark:bg-background">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+                                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">{jurado.nombre}</p>
-                                <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
+                                <p className="font-medium text-xs sm:text-sm truncate">{jurado.nombre}</p>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground truncate hidden sm:block">{jurado.email}</p>
                               </div>
-                              <Badge className={cn('text-xs', TIPO_JURADO_COLORS[jurado.tipo])}>
+                              <Badge className={cn('text-[10px] sm:text-xs shrink-0', TIPO_JURADO_COLORS[jurado.tipo])}>
                                 {TIPO_JURADO_LABELS[jurado.tipo]}
                               </Badge>
                               {evalActual ? (
                                 <Badge variant="outline" className={cn(
-                                  'text-xs',
+                                  'text-[10px] sm:text-xs shrink-0',
                                   evalActual.resultado === 'APROBADO' ? 'border-green-500 text-green-600' : 'border-orange-500 text-orange-600'
                                 )}>
                                   {evalActual.resultado === 'APROBADO' ? 'Aprobado' : 'Observado'}
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="text-xs text-muted-foreground">
+                                <Badge variant="outline" className="text-[10px] sm:text-xs text-muted-foreground shrink-0">
                                   Pendiente
                                 </Badge>
                               )}
@@ -1777,7 +1846,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 ml-[4.5rem] grid gap-3 sm:grid-cols-3">
+                  <div className="mt-4 sm:ml-[4.5rem] grid gap-3 sm:grid-cols-3">
                     {proyecto.fechaSustentacion && (() => {
                       const inicio = new Date(proyecto.fechaSustentacion)
                       const fin = new Date(inicio.getTime() + 2 * 60 * 60 * 1000)
@@ -1818,38 +1887,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {/* Requisitos de Sustentación - Solo en EN_SUSTENTACION */}
             {esEnSustentacion && (
               <>
-                {/* Documentos digitales subidos por el estudiante */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-purple-600" />
-                      Documentos Digitales - Sustentación
-                    </CardTitle>
-                    <CardDescription>Documentos subidos por el estudiante para la sustentación</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <DocumentoCard
-                      titulo="Voucher Alquiler Sala de Grados (Cod. 384)"
-                      documento={docVoucherSalaGrados}
-                      iconColor="text-amber-600"
-                      iconBg="bg-amber-100 dark:bg-amber-900/50"
-                    />
-                    <DocumentoCard
-                      titulo="Voucher Sustentación por Tesista (Cod. 466)"
-                      documento={docVoucherSustentacion}
-                      iconColor="text-amber-600"
-                      iconBg="bg-amber-100 dark:bg-amber-900/50"
-                    />
-                    <DocumentoCard
-                      titulo="Constancia de Inscripción en SUNEDU"
-                      documento={docConstanciaSunedu}
-                      iconColor="text-blue-600"
-                      iconBg="bg-blue-100 dark:bg-blue-900/50"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Confirmación de vouchers físicos sustentación */}
+                {/* Confirmación de vouchers físicos sustentación - solo si no confirmado */}
+                {!proyecto.voucherSustentacionFisicoEntregado && (
                 <Card className={cn(
                   'border-2',
                   proyecto.voucherSustentacionFisicoEntregado
@@ -1857,7 +1896,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
                 )}>
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
+                    <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
                       <Receipt className={cn(
                         'w-5 h-5',
                         proyecto.voucherSustentacionFisicoEntregado ? 'text-green-600' : 'text-yellow-600'
@@ -1918,8 +1957,10 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     )}
                   </CardContent>
                 </Card>
+                )}
 
-                {/* Confirmación de 4 ejemplares */}
+                {/* Confirmación de 4 ejemplares - solo si no confirmado */}
+                {!proyecto.ejemplaresEntregados && (
                 <Card className={cn(
                   'border-2',
                   proyecto.ejemplaresEntregados
@@ -1927,7 +1968,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
                 )}>
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
+                    <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
                       <FileCheck className={cn(
                         'w-5 h-5',
                         proyecto.ejemplaresEntregados ? 'text-green-600' : 'text-yellow-600'
@@ -1988,112 +2029,82 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     )}
                   </CardContent>
                 </Card>
+                )}
 
-                {/* Resolución de Sustentación */}
-                {(() => {
+                {/* Resolución de Sustentación - solo si aún no se subió */}
+                {!docResolucionSustentacion && (() => {
                   const todasConfirmaciones = proyecto.voucherSustentacionFisicoEntregado &&
                     proyecto.ejemplaresEntregados
 
                   return (
                     <Card className={cn(
                       'border-2',
-                      docResolucionSustentacion
-                        ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                        : todasConfirmaciones
-                          ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20'
-                          : 'border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20'
+                      todasConfirmaciones
+                        ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20'
+                        : 'border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20'
                     )}>
                       <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <FileUp className={cn(
-                            'w-5 h-5',
-                            docResolucionSustentacion ? 'text-green-600' : todasConfirmaciones ? 'text-emerald-600' : 'text-gray-400'
-                          )} />
+                        <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                          <FileUp className={cn('w-5 h-5 shrink-0', todasConfirmaciones ? 'text-emerald-600' : 'text-gray-400')} />
                           Resolución de Sustentación
                         </CardTitle>
                         <CardDescription>
-                          {docResolucionSustentacion
-                            ? 'Resolución ya subida al sistema'
-                            : todasConfirmaciones
-                              ? 'Todos los requisitos cumplidos. Puede subir la resolución.'
-                              : 'Debe confirmar las entregas físicas (vouchers + ejemplares) antes de subir la resolución'}
+                          {todasConfirmaciones
+                            ? 'Todos los requisitos cumplidos. Puede subir la resolución.'
+                            : 'Debe confirmar las entregas físicas (vouchers + ejemplares) antes de subir la resolución'}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        {docResolucionSustentacion ? (
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                              <CheckCircle className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-green-800 dark:text-green-200">
-                                {docResolucionSustentacion.nombre}
-                              </p>
-                              <p className="text-sm text-green-700 dark:text-green-300">
-                                Subido el {docResolucionSustentacion.fechaSubida ? new Date(docResolucionSustentacion.fechaSubida).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}
-                              </p>
-                              <a
-                                href={docResolucionSustentacion.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 mt-2 text-sm text-green-600 hover:underline"
-                              >
-                                <Eye className="w-4 h-4" /> Ver Resolución
-                              </a>
-                            </div>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="nombre-resolucion-sustentacion">Título de la Resolución</Label>
+                            <Input
+                              id="nombre-resolucion-sustentacion"
+                              type="text"
+                              placeholder="Ej: Resolución N° 001-2026-UNAMAD-FI"
+                              disabled={!todasConfirmaciones || subiendoResolucionSustentacion}
+                              value={nombreResolucionSustentacion}
+                              onChange={(e) => setNombreResolucionSustentacion(e.target.value)}
+                            />
                           </div>
-                        ) : (
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="nombre-resolucion-sustentacion">Título de la Resolución</Label>
-                              <Input
-                                id="nombre-resolucion-sustentacion"
-                                type="text"
-                                placeholder="Ej: Resolución N° 001-2026-UNAMAD-FI"
-                                disabled={!todasConfirmaciones || subiendoResolucionSustentacion}
-                                value={nombreResolucionSustentacion}
-                                onChange={(e) => setNombreResolucionSustentacion(e.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="archivo-resolucion-sustentacion">Archivo PDF de la Resolución</Label>
-                              <Input
-                                id="archivo-resolucion-sustentacion"
-                                type="file"
-                                accept=".pdf"
-                                disabled={!todasConfirmaciones || subiendoResolucionSustentacion}
-                                onChange={(e) => setArchivoResolucionSustentacion(e.target.files?.[0] || null)}
-                              />
-                            </div>
-                            <Button
-                              onClick={subirResolucionSustentacion}
-                              disabled={!todasConfirmaciones || !archivoResolucionSustentacion || !nombreResolucionSustentacion.trim() || subiendoResolucionSustentacion}
-                              className={cn(
-                                'w-full',
-                                todasConfirmaciones
-                                  ? 'bg-emerald-600 hover:bg-emerald-700'
-                                  : 'bg-gray-400 cursor-not-allowed'
-                              )}
-                            >
-                              {subiendoResolucionSustentacion ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  Subiendo...
-                                </>
-                              ) : (
-                                <>
-                                  <Upload className="w-4 h-4 mr-2" />
-                                  Subir Resolución de Sustentación
-                                </>
-                              )}
-                            </Button>
-                            {!todasConfirmaciones && (
-                              <p className="text-xs text-muted-foreground text-center">
-                                Confirme las entregas físicas (vouchers + ejemplares) para habilitar esta opción
-                              </p>
+                          <div className="space-y-2">
+                            <Label htmlFor="archivo-resolucion-sustentacion">Archivo PDF de la Resolución</Label>
+                            <Input
+                              id="archivo-resolucion-sustentacion"
+                              type="file"
+                              accept=".pdf"
+                              disabled={!todasConfirmaciones || subiendoResolucionSustentacion}
+                              onChange={(e) => setArchivoResolucionSustentacion(e.target.files?.[0] || null)}
+                            />
+                          </div>
+                          <Button
+                            onClick={subirResolucionSustentacion}
+                            disabled={!todasConfirmaciones || !archivoResolucionSustentacion || !nombreResolucionSustentacion.trim() || subiendoResolucionSustentacion}
+                            className={cn(
+                              'w-full',
+                              todasConfirmaciones
+                                ? 'bg-emerald-600 hover:bg-emerald-700'
+                                : 'bg-gray-400 cursor-not-allowed'
                             )}
-                          </div>
-                        )}
+                          >
+                            {subiendoResolucionSustentacion ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Subiendo...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4 mr-2" />
+                                Subir Resolución de Sustentación
+                              </>
+                            )}
+                          </Button>
+                          {!todasConfirmaciones && (
+                            <p className="text-xs text-muted-foreground text-center">
+                              Confirme las entregas físicas (vouchers + ejemplares) para habilitar esta opción
+                            </p>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   )
@@ -2101,8 +2112,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               </>
             )}
 
-            {/* Confirmacion de Voucher Fisico - Informe Final */}
-            {mostrarDocsInforme && (
+            {/* Confirmacion de Voucher Fisico - Informe Final (solo si aún no fue confirmado) */}
+            {mostrarDocsInforme && !proyecto.voucherInformeFisicoEntregado && (
               <Card className={cn(
                 'border-2',
                 proyecto.voucherInformeFisicoEntregado
@@ -2110,7 +2121,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
               )}>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
                     <Receipt className={cn(
                       'w-5 h-5',
                       proyecto.voucherInformeFisicoEntregado ? 'text-green-600' : 'text-yellow-600'
@@ -2185,12 +2196,16 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               </Card>
             )}
 
+              </TabsContent>
+
+              {/* Tab: Documentos */}
+              <TabsContent value="documentos" className="space-y-6 mt-4">
             {/* Documentos - Informe Final */}
             {mostrarDocsInforme && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-cyan-600" />
+                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                    <FileText className="w-5 h-5 text-cyan-600 shrink-0" />
                     Documentos - Informe Final
                   </CardTitle>
                 </CardHeader>
@@ -2233,129 +2248,101 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       iconBg="bg-green-100 dark:bg-green-900/50"
                     />
                   )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Sección: Documentos de Aprobación de Proyecto de Investigación */}
-            {mostrarDocsInforme && (
-              <div className="relative my-6">
-                <Separator />
-                <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-background px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Documentos de Aprobación de Proyecto de Investigación
-                </span>
-              </div>
-            )}
-
-            {/* Resolución de Conformación de Jurado */}
-            {mostrarDocsInforme && docResolucionJurado && (
-              <Card className="border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileCheck className="w-5 h-5 text-green-600" />
-                    Resolución de Conformación de Jurado
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-3 p-4 rounded-lg bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
-                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-green-800 dark:text-green-200">{docResolucionJurado.nombre}</p>
-                      <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">
-                        Subido el {docResolucionJurado.fechaSubida ? new Date(docResolucionJurado.fechaSubida).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}
-                      </p>
-                    </div>
-                    <a
-                      href={docResolucionJurado.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:text-green-900 hover:underline flex-shrink-0"
-                    >
-                      <Eye className="w-4 h-4" /> Ver PDF
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Confirmacion de Voucher Fisico */}
-            {(puedeGestionar || proyecto.voucherFisicoEntregado) && (
-              <Card className={cn(
-                'border-2',
-                proyecto.voucherFisicoEntregado
-                  ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                  : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
-              )}>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Receipt className={cn(
-                      'w-5 h-5',
-                      proyecto.voucherFisicoEntregado ? 'text-green-600' : 'text-yellow-600'
-                    )} />
-                    Voucher Fisico
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {proyecto.voucherFisicoEntregado ? (
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
+                  <DocumentoCard
+                    titulo="Resolución de Conformación de Jurado - Informe"
+                    documento={docResolucionJuradoInforme}
+                    iconColor="text-purple-600"
+                    iconBg="bg-purple-100 dark:bg-purple-900/50"
+                  />
+                  {/* Voucher físico informe */}
+                  <div className={cn(
+                    'rounded-xl border-2 p-3 sm:p-4',
+                    proyecto.voucherInformeFisicoEntregado
+                      ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
+                      : 'border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 border-dashed'
+                  )}>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className={cn(
+                        'w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
+                        proyecto.voucherInformeFisicoEntregado ? 'bg-green-100 dark:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/50'
+                      )}>
+                        {proyecto.voucherInformeFisicoEntregado
+                          ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                          : <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                        }
                       </div>
-                      <div>
-                        <p className="font-semibold text-green-800 dark:text-green-200">
-                          Voucher fisico recibido
-                        </p>
-                        <p className="text-sm text-green-700 dark:text-green-300">
-                          Confirmado el {proyecto.voucherFisicoFecha
-                            ? new Date(proyecto.voucherFisicoFecha).toLocaleString('es-PE')
-                            : ''}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center flex-shrink-0">
-                          <AlertCircle className="w-5 h-5 text-yellow-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-yellow-800 dark:text-yellow-200">
-                            Voucher fisico pendiente
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-xs sm:text-sm">Voucher Físico - Informe Final</p>
+                        {proyecto.voucherInformeFisicoEntregado ? (
+                          <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
+                            Recibido{proyecto.voucherInformeFisicoFecha ? ` el ${new Date(proyecto.voucherInformeFisicoFecha).toLocaleDateString('es-PE')}` : ''}
                           </p>
-                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                            El estudiante debe entregar el voucher original en mesa de partes.
-                            {docVoucher && ' El voucher digital ya fue subido al sistema.'}
-                          </p>
-                          {docVoucher && (
-                            <a
-                              href={docVoucher.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 mt-2 px-3 py-2 text-sm font-medium rounded-lg bg-yellow-100 dark:bg-yellow-900/40 border border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-900/60 transition-colors"
-                            >
-                              <Eye className="w-4 h-4" />
-                              Ver Voucher Digital
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        onClick={confirmarVoucher}
-                        disabled={procesando}
-                        className="w-full bg-yellow-600 hover:bg-yellow-700"
-                      >
-                        {procesando ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Confirmando...
-                          </>
                         ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Confirmar Entrega de Voucher Fisico
-                          </>
+                          <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">Pendiente de entrega presencial</p>
                         )}
-                      </Button>
+                      </div>
+                    </div>
+                  </div>
+                  {docResolucionSustentacion && (
+                    <DocumentoCard
+                      titulo="Resolución de Sustentación"
+                      documento={docResolucionSustentacion}
+                      iconColor="text-green-600"
+                      iconBg="bg-green-100 dark:bg-green-900/50"
+                    />
+                  )}
+                  {/* Documentos de sustentación */}
+                  {esEnSustentacion && (
+                    <>
+                      <DocumentoCard
+                        titulo="Voucher Alquiler Sala de Grados (Cod. 384)"
+                        documento={docVoucherSalaGrados}
+                        iconColor="text-amber-600"
+                        iconBg="bg-amber-100 dark:bg-amber-900/50"
+                      />
+                      <DocumentoCard
+                        titulo="Voucher Sustentación por Tesista (Cod. 466)"
+                        documento={docVoucherSustentacion}
+                        iconColor="text-amber-600"
+                        iconBg="bg-amber-100 dark:bg-amber-900/50"
+                      />
+                      <DocumentoCard
+                        titulo="Constancia de Inscripción en SUNEDU"
+                        documento={docConstanciaSunedu}
+                        iconColor="text-blue-600"
+                        iconBg="bg-blue-100 dark:bg-blue-900/50"
+                      />
+                    </>
+                  )}
+                  {/* Confirmaciones físicas de sustentación */}
+                  {proyecto.voucherSustentacionFisicoEntregado && (
+                    <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-3 sm:p-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-xs sm:text-sm">Vouchers Físicos Sustentación (Cod. 384 + 466)</p>
+                          <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
+                            Recibidos{proyecto.voucherSustentacionFisicoFecha ? ` el ${new Date(proyecto.voucherSustentacionFisicoFecha).toLocaleDateString('es-PE')}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {proyecto.ejemplaresEntregados && (
+                    <div className="rounded-xl border-2 border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-3 sm:p-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center shrink-0">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-xs sm:text-sm">4 Ejemplares del Informe Final</p>
+                          <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
+                            Recibidos{proyecto.ejemplaresEntregadosFecha ? ` el ${new Date(proyecto.ejemplaresEntregadosFecha).toLocaleDateString('es-PE')}` : ''}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -2365,9 +2352,9 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {/* Documentos - Aprobacion de Proyecto */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary" />
-                  Documentos - Aprobacion de Proyecto
+                <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary shrink-0" />
+                  Documentos - Aprobación de Proyecto
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -2423,6 +2410,43 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     iconBg="bg-emerald-100 dark:bg-emerald-900/50"
                   />
                 )}
+                {docResolucionJurado && (
+                  <DocumentoCard
+                    titulo="Resolución de Conformación de Jurado"
+                    documento={docResolucionJurado}
+                    iconColor="text-purple-600"
+                    iconBg="bg-purple-100 dark:bg-purple-900/50"
+                  />
+                )}
+                {/* Voucher físico */}
+                <div className={cn(
+                  'rounded-xl border-2 p-3 sm:p-4',
+                  proyecto.voucherFisicoEntregado
+                    ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
+                    : 'border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 border-dashed'
+                )}>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={cn(
+                      'w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
+                      proyecto.voucherFisicoEntregado ? 'bg-green-100 dark:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/50'
+                    )}>
+                      {proyecto.voucherFisicoEntregado
+                        ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                        : <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-xs sm:text-sm">Voucher Físico</p>
+                      {proyecto.voucherFisicoEntregado ? (
+                        <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
+                          Recibido{proyecto.voucherFisicoFecha ? ` el ${new Date(proyecto.voucherFisicoFecha).toLocaleDateString('es-PE')}` : ''}
+                        </p>
+                      ) : (
+                        <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">Pendiente de entrega presencial</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -2430,7 +2454,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {(proyecto.resumen || proyecto.lineaInvestigacion || proyecto.palabrasClave.length > 0) && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Detalles del Proyecto</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Detalles del Proyecto</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {proyecto.lineaInvestigacion && (
@@ -2467,21 +2491,25 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               </Card>
             )}
 
+              </TabsContent>
+
+              {/* Tab: Historial */}
+              <TabsContent value="historial" className="space-y-6 mt-4">
             {/* Historial */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <History className="w-5 h-5 text-primary" />
+                <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
+                  <History className="w-5 h-5 text-primary shrink-0" />
                   Historial
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 sm:px-6">
                 <div className="space-y-4">
                   {proyecto.historial.map((item, index) => (
-                    <div key={item.id} className="flex gap-4">
+                    <div key={item.id} className="flex gap-2 sm:gap-4">
                       <div className="flex flex-col items-center">
                         <div className={cn(
-                          'w-8 h-8 rounded-full flex items-center justify-center',
+                          'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0',
                           ESTADO_CONFIG[item.estadoNuevo]?.bgColor || 'bg-gray-100'
                         )}>
                           {ESTADO_CONFIG[item.estadoNuevo]?.icon || <Clock className="w-4 h-4" />}
@@ -2490,19 +2518,17 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                           <div className="w-0.5 flex-1 bg-border mt-2" />
                         )}
                       </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">
-                            {ESTADO_CONFIG[item.estadoNuevo]?.label || item.estadoNuevo}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(item.fecha).toLocaleString('es-PE')}
-                          </span>
-                        </div>
+                      <div className="flex-1 min-w-0 pb-4">
+                        <p className="font-medium text-xs sm:text-sm">
+                          {ESTADO_CONFIG[item.estadoNuevo]?.label || item.estadoNuevo}
+                        </p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">
+                          {new Date(item.fecha).toLocaleString('es-PE')}
+                        </p>
                         {item.comentario && (
-                          <p className="text-sm text-muted-foreground">{item.comentario}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">{item.comentario}</p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                           Por: {item.realizadoPor}
                         </p>
                       </div>
@@ -2511,10 +2537,12 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                 </div>
               </CardContent>
             </Card>
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
             {/* Autores */}
             <Card>
               <CardHeader className="pb-3">
@@ -2789,60 +2817,60 @@ function DocumentoCard({
 
   return (
     <div className={cn(
-      'rounded-xl border-2 p-4',
+      'rounded-xl border-2 p-3 sm:p-4 overflow-hidden',
       documento ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20' : 'border-muted'
     )}>
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-2 sm:gap-3">
         <div className={cn(
-          'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
+          'w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
           documento ? 'bg-green-100 dark:bg-green-900/50' : iconBg
         )}>
           {documento ? (
-            <FileCheck className="w-5 h-5 text-green-600" />
+            <FileCheck className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
           ) : (
-            <FileText className={cn('w-5 h-5', iconColor)} />
+            <FileText className={cn('w-4 h-4 sm:w-5 sm:h-5', iconColor)} />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <p className="font-semibold text-sm">{titulo}</p>
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+            <p className="font-semibold text-xs sm:text-sm leading-tight">{titulo}</p>
             {documento ? (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600 shrink-0">
                 {documento.firmado ? 'Firmado' : 'Subido'}
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground shrink-0">
                 No subido
               </Badge>
             )}
           </div>
           {documento ? (
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border mt-2">
-              <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-sm flex-1 truncate">{documento.nombre}</span>
-              <span className="text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 rounded-lg bg-white dark:bg-background border mt-1.5 sm:mt-2 min-w-0">
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
+              <span className="text-xs sm:text-sm flex-1 truncate">{documento.nombre}</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline shrink-0">
                 {formatFileSize(documento.tamano)}
               </span>
               <a
                 href={documento.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 hover:bg-muted rounded-md transition-colors"
+                className="p-1 sm:p-1.5 hover:bg-muted rounded-md transition-colors shrink-0"
                 title="Ver documento"
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </a>
               <a
                 href={documento.url}
                 download
-                className="p-1.5 hover:bg-muted rounded-md transition-colors"
+                className="p-1 sm:p-1.5 hover:bg-muted rounded-md transition-colors shrink-0"
                 title="Descargar"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </a>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">El documento no ha sido subido</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">El documento no ha sido subido</p>
           )}
         </div>
       </div>

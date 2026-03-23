@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FirmaPeruScripts } from "@/components/firma-peru";
+import { WhatsAppFloat } from "@/components/whatsapp-float";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -74,6 +75,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
+            <WhatsAppFloat />
           </AuthProvider>
         </ThemeProvider>
         {/* Scripts adicionales de Firma Perú (PCM) */}

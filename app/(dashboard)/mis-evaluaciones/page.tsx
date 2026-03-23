@@ -28,11 +28,11 @@ import {
   ClipboardCheck,
   Clock,
   Eye,
-  Loader2,
   Search,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface EvaluacionItem {
   id: string
@@ -164,8 +164,73 @@ export default function MisEvaluacionesPage() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="container mx-auto py-6 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-56" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+          {/* Counter cards skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[0, 1, 2].map((i) => (
+              <Card key={i}>
+                <CardContent className="pt-4 flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-7 w-10" />
+                    <Skeleton className="h-3 w-28" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {/* Table skeleton */}
+          <Card>
+            <CardHeader className="pb-0">
+              <Skeleton className="h-5 w-36" />
+            </CardHeader>
+            <div className="flex flex-col sm:flex-row gap-3 p-4 border-b">
+              <Skeleton className="h-9 flex-1" />
+              <Skeleton className="h-9 w-full sm:w-48" />
+            </div>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tesis</TableHead>
+                      <TableHead className="hidden md:table-cell">Mi Rol</TableHead>
+                      <TableHead className="hidden md:table-cell">Fase</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="hidden lg:table-cell">Fecha</TableHead>
+                      <TableHead>Mi Evaluacion</TableHead>
+                      <TableHead className="w-[80px]">Accion</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <div className="space-y-1.5">
+                            <Skeleton className="h-4 w-52" />
+                            <Skeleton className="h-3 w-36" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-16" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -176,7 +241,7 @@ export default function MisEvaluacionesPage() {
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div>
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <h1 className="text-2xl font-bold">Mis Evaluaciones</h1>
           <p className="text-muted-foreground">
             Tesis asignadas para evaluacion como jurado
@@ -252,14 +317,42 @@ export default function MisEvaluacionesPage() {
           </div>
 
           <CardContent className="p-0">
-            <div className={cn('relative', loading && 'opacity-50 pointer-events-none')}>
-              {loading && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/30">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <div className="relative">
+              {loading ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tesis</TableHead>
+                        <TableHead className="hidden md:table-cell">Mi Rol</TableHead>
+                        <TableHead className="hidden md:table-cell">Fase</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="hidden lg:table-cell">Fecha</TableHead>
+                        <TableHead>Mi Evaluacion</TableHead>
+                        <TableHead className="w-[80px]">Accion</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Array.from({ length: itemsPerPage > 5 ? 5 : itemsPerPage }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <div className="space-y-1.5">
+                              <Skeleton className="h-4 w-52" />
+                              <Skeleton className="h-3 w-36" />
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20" /></TableCell>
+                          <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                          <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-8 w-16" /></TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-
-              {evaluaciones.length === 0 ? (
+              ) : evaluaciones.length === 0 ? (
                 <div className="py-16 text-center">
                   <ClipboardCheck className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
                   <h3 className="text-base font-semibold mb-1">No hay evaluaciones</h3>
@@ -285,11 +378,15 @@ export default function MisEvaluacionesPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {evaluaciones.map((item) => {
+                        {evaluaciones.map((item, index) => {
                           const estadoConfig = ESTADO_LABELS[item.estado]
                           const puedeEvaluar = !item.faseTerminada && ['EN_EVALUACION_JURADO', 'EN_EVALUACION_INFORME'].includes(item.estado) && !item.yaEvaluo
                           return (
-                            <TableRow key={item.id}>
+                            <TableRow
+                              key={item.id}
+                              className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards"
+                              style={{ animationDelay: `${index * 80}ms`, animationDuration: '500ms' }}
+                            >
                               <TableCell>
                                 <div className="max-w-[300px]">
                                   <p className="font-medium text-sm truncate">{item.titulo}</p>
