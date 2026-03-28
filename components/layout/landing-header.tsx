@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/mode-toggle";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -20,7 +20,12 @@ const navItems = [
 export function LandingHeader() {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,13 +39,13 @@ export function LandingHeader() {
   }, []);
 
   return (
-    <header className={`sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 overflow-hidden transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"}`}>
+    <header className={`sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"}`}>
       {/* Gradient shimmer line at bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-[shimmer_3s_ease-in-out_infinite] pointer-events-none" />
 
       <div className="container mx-auto flex h-16 items-center justify-between px-4 relative z-10">
         {/* Logo */}
-        <a href="#top" className="flex items-center gap-2 cursor-pointer group">
+        <a href="#top" className="flex items-center gap-2 group">
           <div className="relative">
             <Image
               src="/logo/logounamad.png"
@@ -73,65 +78,67 @@ export function LandingHeader() {
         {/* Desktop buttons */}
         <div className="hidden md:flex items-center gap-2">
           <ModeToggle />
-          <Link href="/login">
-            <Button variant="ghost" className="hover:bg-primary/10">Iniciar Sesión</Button>
-          </Link>
-          <Link href="/registrarse">
-            <Button className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow duration-300">Registrarse</Button>
-          </Link>
+          <Button asChild variant="ghost" className="hover:bg-primary/10">
+            <Link href="/login">Iniciar Sesión</Link>
+          </Button>
+          <Button asChild className="shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
+            <Link href="/registrarse">Registrarse</Link>
+          </Button>
         </div>
 
         {/* Mobile: theme toggle + hamburger */}
         <div className="flex md:hidden items-center gap-2">
           <ModeToggle />
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Abrir menú</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] p-0">
-              <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
-              <div className="flex flex-col h-full">
-                {/* Mobile menu header */}
-                <div className="flex items-center gap-2 p-4 border-b">
-                  <Image
-                    src="/logo/logounamad.png"
-                    alt="UNAMAD Logo"
-                    width={32}
-                    height={32}
-                    className="rounded"
-                  />
-                  <span className="font-bold text-sm">Seguimiento de Tesis</span>
-                </div>
+          {mounted && (
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Abrir menú</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-0">
+                <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+                <div className="flex flex-col h-full">
+                  {/* Mobile menu header */}
+                  <div className="flex items-center gap-2 p-4 border-b">
+                    <Image
+                      src="/logo/logounamad.png"
+                      alt="UNAMAD Logo"
+                      width={32}
+                      height={32}
+                      className="rounded"
+                    />
+                    <span className="font-bold text-sm">Seguimiento de Tesis</span>
+                  </div>
 
-                {/* Mobile nav links */}
-                <nav className="flex flex-col p-4 gap-1 flex-1">
-                  {navItems.map((item) => (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </nav>
+                  {/* Mobile nav links */}
+                  <nav className="flex flex-col p-4 gap-1 flex-1">
+                    {navItems.map((item) => (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </nav>
 
-                {/* Mobile action buttons */}
-                <div className="p-4 border-t flex flex-col gap-2">
-                  <Link href="/login" onClick={() => setOpen(false)}>
-                    <Button variant="outline" className="w-full">Iniciar Sesión</Button>
-                  </Link>
-                  <Link href="/registrarse" onClick={() => setOpen(false)}>
-                    <Button className="w-full">Registrarse</Button>
-                  </Link>
+                  {/* Mobile action buttons */}
+                  <div className="p-4 border-t flex flex-col gap-2">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href="/login" onClick={() => setOpen(false)}>Iniciar Sesión</Link>
+                    </Button>
+                    <Button asChild className="w-full">
+                      <Link href="/registrarse" onClick={() => setOpen(false)}>Registrarse</Link>
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>
