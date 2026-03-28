@@ -7,6 +7,7 @@ import { SplitText } from "gsap/SplitText";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, SplitText);
+  gsap.config({ force3D: true });
 }
 
 /**
@@ -31,11 +32,15 @@ export function GsapLanding() {
     // Small delay to ensure SSR hydration is complete and DOM is settled
     const timeout = setTimeout(() => {
       ctxRef.current = gsap.context(() => {
-        // ─── 0. HERO TITLE — SplitText char reveal + revert ───
-        const heroTitle = document.querySelector<HTMLElement>("[data-gsap='hero-title']");
-        if (heroTitle) {
-          gsap.set(heroTitle, { opacity: 1 });
-          const split = SplitText.create(heroTitle, { type: "chars, words", charsClass: "char" });
+        // ─── 0. HERO TITLE — SplitText char reveal per line ───
+        const heroLines = gsap.utils.toArray<HTMLElement>("[data-gsap='hero-line']");
+        const splits: InstanceType<typeof SplitText>[] = [];
+        let charIndex = 0;
+
+        heroLines.forEach((line) => {
+          gsap.set(line, { opacity: 1 });
+          const split = SplitText.create(line, { type: "chars", charsClass: "char" });
+          splits.push(split);
 
           gsap.from(split.chars, {
             opacity: 0,
@@ -46,14 +51,21 @@ export function GsapLanding() {
             duration: 1,
             ease: "back",
             stagger: 0.04,
-            delay: 0.2,
-            onComplete: () => {
-              split.revert();
-              heroTitle.classList.remove("opacity-0");
-              heroTitle.removeAttribute("style");
-            },
+            delay: 0.2 + charIndex * 0.04,
           });
-        }
+
+          charIndex += split.chars.length;
+        });
+
+        // Revert all splits after the full animation completes
+        const totalDuration = 0.2 + charIndex * 0.04 + 1;
+        gsap.delayedCall(totalDuration, () => {
+          splits.forEach((split) => split.revert());
+          heroLines.forEach((line) => {
+            line.classList.remove("opacity-0");
+            line.removeAttribute("style");
+          });
+        });
 
         // ─── 1. STATS COUNTER + STAGGER ───
         const statCards = gsap.utils.toArray<HTMLElement>("[data-gsap='stat-card']");
@@ -211,62 +223,17 @@ export function GsapLanding() {
           });
         }
 
-        // ─── 6. FAQ ACCORDION ───
-        const faqItems = gsap.utils.toArray<HTMLElement>("[data-gsap='faq-item']");
-        if (faqItems.length) {
-          gsap.fromTo(faqItems,
-            { x: 40, opacity: 0 },
-            {
-              x: 0, opacity: 1,
-              duration: 0.5,
-              stagger: 0.08,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: "[data-gsap='faq-content']",
-                start: "top 85%",
-                toggleActions: "play none none none",
-              },
-            }
-          );
-        }
-
-        // ─── 8. CTA CARD ───
-        const ctaCard = document.querySelector("[data-gsap='cta-card']");
-        if (ctaCard) {
-          gsap.fromTo(ctaCard,
-            { y: 60, opacity: 0, scale: 0.92 },
-            {
-              y: 0, opacity: 1, scale: 1,
-              duration: 0.8,
-              ease: "power3.out",
-              scrollTrigger: {
-                trigger: ctaCard,
-                start: "top 88%",
-                toggleActions: "play none none none",
-              },
-            }
-          );
-        }
-
-        // ─── 9. FOOTER ───
-        const footer = document.querySelector("[data-gsap='footer']");
-        if (footer) {
-          const footerChildren = gsap.utils.toArray<HTMLElement>(footer.children);
-          gsap.fromTo(footerChildren,
-            { y: 30, opacity: 0 },
-            {
-              y: 0, opacity: 1,
-              duration: 0.6,
-              stagger: 0.1,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: footer,
-                start: "top 92%",
-                toggleActions: "play none none none",
-              },
-            }
-          );
-        }
+        // ─── 6. BATCH — FAQ, CTA, FOOTER (single ScrollTrigger.batch) ───
+        ScrollTrigger.batch("[data-gsap='faq-item'], [data-gsap='cta-card'], [data-gsap='footer'] > *", {
+          start: "top 88%",
+          onEnter: (elements) => {
+            gsap.fromTo(elements,
+              { y: 30, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: "power2.out" }
+            );
+          },
+          once: true,
+        });
       });
     }, 100); // 100ms delay ensures hydration + paint is done
 

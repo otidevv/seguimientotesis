@@ -44,7 +44,9 @@
       "WebFetch(domain:localhost)",
       "Read(//d/tmp/**)",
       "Bash(python3 -c \":*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(claude mcp:*)",
+      "mcp__postgres__query"
     ]
   }
 }
