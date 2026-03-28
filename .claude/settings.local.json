@@ -39,7 +39,12 @@
       "Bash(xargs grep:*)",
       "Bash(grep:*)",
       "Bash(npx dotenv:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:localhost)",
+      "Read(//d/tmp/**)",
+      "Bash(python3 -c \":*)",
+      "Bash(node -e \":*)"
     ]
   }
 }

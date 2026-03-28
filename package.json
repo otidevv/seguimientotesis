@@ -15,6 +15,7 @@
     "db:reset": "prisma migrate reset"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@lottiefiles/dotlottie-react": "^0.18.7",
     "@lottiefiles/dotlottie-web": "^0.67.0",
     "@opeepsfun/open-peeps": "^1.0.6",

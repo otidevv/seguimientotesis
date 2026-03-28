@@ -41,7 +41,7 @@ export function LandingHeader() {
   return (
     <header className={`sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border/50 transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"}`}>
       {/* Gradient shimmer line at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-[shimmer_3s_ease-in-out_infinite] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-[shimmer_3s_ease-in-out_infinite] motion-reduce:animate-none pointer-events-none" />
 
       <div className="container mx-auto flex h-16 items-center justify-between px-4 relative z-10">
         {/* Logo */}
@@ -56,7 +56,7 @@ export function LandingHeader() {
             />
             <div className="absolute inset-0 rounded bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md" />
           </div>
-          <span className="text-xl font-bold hidden sm:inline bg-gradient-to-r from-foreground to-foreground bg-clip-text group-hover:from-primary group-hover:to-primary/70 group-hover:text-transparent transition-all duration-300">
+          <span className="font-[family-name:var(--font-syne)] text-xl font-bold hidden sm:inline bg-gradient-to-r from-foreground to-foreground bg-clip-text group-hover:from-primary group-hover:to-primary/70 group-hover:text-transparent transition-all duration-300">
             Seguimiento de Tesis
           </span>
         </a>

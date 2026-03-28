@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Syne } from "next/font/google";
+import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FirmaPeruScripts } from "@/components/firma-peru";
@@ -14,6 +15,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -31,39 +38,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <head>
-        {/* jQuery 3.6.0 requerido por Firma Perú - DEBE cargarse primero */}
-        <script
-          src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"
-          defer={false}
-        />
-        {/* Inicializar jqFirmaPeru INMEDIATAMENTE después de jQuery */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                function initJqFirmaPeru() {
-                  if (typeof jQuery !== 'undefined') {
-                    var jqFirmaPeru = jQuery.noConflict(true);
-                    window.jqFirmaPeru = jqFirmaPeru;
-                    console.log('[Firma Perú] jqFirmaPeru inicializado correctamente');
-                  } else {
-                    setTimeout(initJqFirmaPeru, 50);
-                  }
-                }
-                if (document.readyState === 'loading') {
-                  document.addEventListener('DOMContentLoaded', initJqFirmaPeru);
-                } else {
-                  initJqFirmaPeru();
-                }
-              })();
-            `,
-          }}
-        />
-      </head>
+      <head />
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} antialiased`}
       >
+        {/* WSG 3.1 — Skip-to-content link for keyboard/screen-reader users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg"
+        >
+          Saltar al contenido principal
+        </a>
+
         {/* Contenedor requerido por Firma Perú para ClickOnce - NO ELIMINAR */}
         <div id="addComponent" style={{ display: 'none' }} />
 
@@ -78,6 +64,19 @@ export default function RootLayout({
             <WhatsAppFloat />
           </AuthProvider>
         </ThemeProvider>
+        {/* jQuery 3.6.0 — carga diferida, solo necesario para Firma Perú */}
+        <Script
+          src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+          strategy="lazyOnload"
+          id="jquery-firma-peru"
+        />
+        <Script id="jquery-init-firma-peru" strategy="lazyOnload">{`
+          (function check(){
+            if(typeof jQuery!=='undefined'){
+              var jq=jQuery.noConflict(true);window.jqFirmaPeru=jq;
+            } else { setTimeout(check,100); }
+          })();
+        `}</Script>
         {/* Scripts adicionales de Firma Perú (PCM) */}
         <FirmaPeruScripts />
       </body>

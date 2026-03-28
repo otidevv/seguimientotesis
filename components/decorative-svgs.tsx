@@ -55,7 +55,7 @@ export function WaveDivider({ className, flip }: { className?: string; flip?: bo
       style={{ transform: flip ? 'scaleY(-1)' : undefined }}
     >
       <path
-        d="M0 60C240 120 480 0 720 60C960 120 1200 0 1440 60V120H0V60Z"
+        d="M0 0C240 80 480 0 720 40C960 80 1200 0 1440 0V120H0Z"
         className="fill-muted/50"
       />
     </svg>

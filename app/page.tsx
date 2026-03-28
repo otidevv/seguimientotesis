@@ -40,6 +40,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { GsapLanding } from "@/components/gsap-landing";
+import { GradientMesh } from "@/components/gradient-mesh";
+import { SmoothScrollWrapper } from "@/components/smooth-scroll-wrapper";
+import { Spotlight } from "@/components/ui/spotlight";
+import { BackgroundBeams } from "@/components/ui/background-beams";
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 
 export const metadata: Metadata = {
   title: "Sistema de Seguimiento de Tesis - UNAMAD",
@@ -57,23 +63,32 @@ export default function Home() {
       {/* Header */}
       <LandingHeader />
 
-      <main>
+      <SmoothScrollWrapper>
+      <main id="main-content">
         {/* Hero Section */}
-        <section className="relative overflow-hidden">
+        <section data-gsap="hero" className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex flex-col">
+          {/* Aceternity Spotlight — follows mouse */}
+          <Spotlight fill="var(--primary)" />
           {/* Background decorations */}
-          <BlobDecoration className="absolute -bottom-40 -left-40 w-[500px] h-[500px] opacity-40 rotate-180" />
-          <GridPattern className="absolute inset-0 opacity-40" />
+          <div data-gsap="hero-blob" data-speed="0.6" className="absolute -bottom-40 -left-40 w-[500px] h-[500px]">
+            <BlobDecoration className="w-full h-full opacity-40 rotate-180" />
+          </div>
+          <div data-gsap="hero-grid" className="absolute inset-0">
+            <GridPattern className="w-full h-full opacity-40" />
+          </div>
 
-          <div className="container mx-auto px-4 py-24 md:py-32 relative z-10">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="container mx-auto px-4 relative z-10 flex-1 flex items-center">
+            <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
               <div className="flex flex-col gap-8">
                 <Badge variant="secondary" className="w-fit px-4 py-1 animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-backwards">
                   Plataforma de Gestión Académica
                 </Badge>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight animate-in fade-in spin-in-12 zoom-in-90 duration-1000 delay-150 fill-mode-backwards">
-                  Sistema de Seguimiento de{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">Tesis Universitarias</span>
-                </h1>
+                <div className="relative">
+                  <GradientMesh variant="hero" className="z-0" />
+                  <h1 data-gsap="hero-title" className="font-[family-name:var(--font-syne)] text-[1.75rem] sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter leading-[0.95] opacity-0 relative z-10">
+                    Sistema de Seguimiento de Tesis Universitarias
+                  </h1>
+                </div>
                 <p className="text-xl text-muted-foreground max-w-xl animate-in fade-in spin-in-6 zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
                   Gestiona, supervisa y da seguimiento al progreso de tesis de pregrado y posgrado.
                   Una plataforma integral para tesistas, asesores y revisores.
@@ -107,7 +122,7 @@ export default function Home() {
                 </div>
               </div>
               {/* Lottie animation */}
-              <div className="hidden lg:flex items-center justify-center animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
+              <div data-gsap="hero-lottie" data-speed="0.85" className="hidden lg:flex items-center justify-center animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
                 <LottieBook className="w-[380px] h-[400px] drop-shadow-2xl" />
               </div>
             </div>
@@ -117,41 +132,48 @@ export default function Home() {
           <div className="relative z-10 pointer-events-none">
             <HeroGraduados className="h-12 mx-auto" />
           </div>
+
+          {/* Scroll indicator */}
+          <div className="pb-8 flex justify-center relative z-10 animate-in fade-in duration-1000 delay-1000 fill-mode-backwards">
+            <a href="#caracteristicas" className="flex flex-col items-center gap-2 text-muted-foreground/60 hover:text-primary transition-colors">
+              <span className="text-xs uppercase tracking-widest">Explorar</span>
+              <div className="w-5 h-8 rounded-full border-2 border-current flex justify-center pt-1.5">
+                <div className="w-1 h-2 rounded-full bg-current animate-bounce" />
+              </div>
+            </a>
+          </div>
         </section>
 
-        {/* Wave divider */}
-        <WaveDivider className="w-full h-24 -mt-1" />
-
         {/* Stats Section */}
-        <section className="bg-muted/50">
+        <section data-gsap="stats" className="bg-muted/50 relative">
           <div className="container mx-auto px-4 py-16">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-              <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div data-gsap="stat-card" className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   <BookOpen className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-3xl md:text-4xl font-bold text-primary">500+</p>
+                <p data-gsap="stat-number" className="text-3xl md:text-4xl font-bold text-primary">500+</p>
                 <p className="text-sm text-muted-foreground mt-1">Tesis Registradas</p>
               </div>
-              <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div data-gsap="stat-card" className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-3xl md:text-4xl font-bold text-primary">150+</p>
+                <p data-gsap="stat-number" className="text-3xl md:text-4xl font-bold text-primary">150+</p>
                 <p className="text-sm text-muted-foreground mt-1">Asesores Activos</p>
               </div>
-              <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div data-gsap="stat-card" className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   <GraduationCap className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-3xl md:text-4xl font-bold text-primary">12</p>
+                <p data-gsap="stat-number" className="text-3xl md:text-4xl font-bold text-primary">12</p>
                 <p className="text-sm text-muted-foreground mt-1">Facultades</p>
               </div>
-              <div className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
+              <div data-gsap="stat-card" className="text-center group bg-card p-6 rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-primary/20 transition-all duration-300">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   <Target className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-3xl md:text-4xl font-bold text-primary">95%</p>
+                <p data-gsap="stat-number" className="text-3xl md:text-4xl font-bold text-primary">95%</p>
                 <p className="text-sm text-muted-foreground mt-1">Tasa de Éxito</p>
               </div>
             </div>
@@ -159,87 +181,87 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="caracteristicas" className="bg-muted/50 py-24 relative">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
+        <section id="caracteristicas" className="bg-muted/50 py-24 relative overflow-hidden">
+          <div className="container mx-auto px-4 relative z-10">
+            <div data-gsap="section-header" className="text-center mb-16">
               <Badge variant="outline" className="mb-4 gap-1.5">
                 <Sparkles className="h-3 w-3" />
                 Características
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Todo lo que necesitas</h2>
+              <h2 className="font-[family-name:var(--font-syne)] text-3xl md:text-4xl font-bold mb-3">Todo lo que necesitas</h2>
               <SectionAccent className="w-28 h-2 mx-auto mb-4" />
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Herramientas diseñadas para gestionar el proceso de tesis de forma eficiente
               </p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+            <div data-gsap="features-grid" className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card data-gsap="feature-card" className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
                 <CardHeader className="relative">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                     <FileText className="h-7 w-7" />
                   </div>
-                  <CardTitle>Gestión de Documentos</CardTitle>
+                  <CardTitle className="font-[family-name:var(--font-syne)]">Gestión de Documentos</CardTitle>
                   <CardDescription>
                     Sube y organiza todos los documentos relacionados con tu tesis en un solo lugar
                   </CardDescription>
                 </CardHeader>
               </Card>
-              <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <Card data-gsap="feature-card" className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
                 <CardHeader className="relative">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                     <Users className="h-7 w-7" />
                   </div>
-                  <CardTitle>Asignación de Asesores</CardTitle>
+                  <CardTitle className="font-[family-name:var(--font-syne)]">Asignación de Asesores</CardTitle>
                   <CardDescription>
                     Conecta tesistas con asesores especializados según líneas de investigación
                   </CardDescription>
                 </CardHeader>
               </Card>
-              <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <Card data-gsap="feature-card" className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
                 <CardHeader className="relative">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                     <Calendar className="h-7 w-7" />
                   </div>
-                  <CardTitle>Cronograma de Actividades</CardTitle>
+                  <CardTitle className="font-[family-name:var(--font-syne)]">Cronograma de Actividades</CardTitle>
                   <CardDescription>
                     Planifica y visualiza las etapas del desarrollo de la tesis
                   </CardDescription>
                 </CardHeader>
               </Card>
-              <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <Card data-gsap="feature-card" className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
                 <CardHeader className="relative">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                     <CheckCircle className="h-7 w-7" />
                   </div>
-                  <CardTitle>Seguimiento de Avances</CardTitle>
+                  <CardTitle className="font-[family-name:var(--font-syne)]">Seguimiento de Avances</CardTitle>
                   <CardDescription>
                     Registra el progreso y recibe retroalimentación de tu asesor
                   </CardDescription>
                 </CardHeader>
               </Card>
-              <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <Card data-gsap="feature-card" className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
                 <CardHeader className="relative">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                     <ClipboardList className="h-7 w-7" />
                   </div>
-                  <CardTitle>Evaluaciones y Revisiones</CardTitle>
+                  <CardTitle className="font-[family-name:var(--font-syne)]">Evaluaciones y Revisiones</CardTitle>
                   <CardDescription>
                     Gestiona las observaciones y aprobaciones de los jurados
                   </CardDescription>
                 </CardHeader>
               </Card>
-              <Card className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <Card data-gsap="feature-card" className="group hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
                 <CardHeader className="relative">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                     <BarChart3 className="h-7 w-7" />
                   </div>
-                  <CardTitle>Reportes y Estadísticas</CardTitle>
+                  <CardTitle className="font-[family-name:var(--font-syne)]">Reportes y Estadísticas</CardTitle>
                   <CardDescription>
                     Visualiza métricas y genera reportes del proceso académico
                   </CardDescription>
@@ -247,106 +269,110 @@ export default function Home() {
               </Card>
             </div>
           </div>
+          <div data-gsap="wave" className="absolute -bottom-24 left-0 w-full z-10 leading-[0]"><WaveDivider className="w-full h-24 block" flip /></div>
         </section>
 
-        {/* Wave divider flipped */}
-        <WaveDivider className="w-full h-24 -mb-1" flip />
-
         {/* Process Section */}
-        <section id="proceso" className="py-24 relative overflow-hidden">
+        <section id="proceso" className="pt-24 pb-24 mt-24 relative overflow-hidden">
           <GridPattern className="absolute inset-0 opacity-30" />
           <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center mb-16">
+            <div data-gsap="section-header" className="text-center mb-16">
               <Badge variant="outline" className="mb-4 gap-1.5">
                 <Target className="h-3 w-3" />
                 Proceso
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Proceso de Tesis</h2>
+              <h2 className="font-[family-name:var(--font-syne)] text-3xl md:text-4xl font-bold mb-3">Proceso de Tesis</h2>
               <SectionAccent className="w-28 h-2 mx-auto mb-4" />
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Acompañamos cada etapa del desarrollo de tu investigación
               </p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="text-center relative group">
+              <div data-gsap="process-step" className="text-center relative group">
                 <div className="relative mx-auto mb-6">
-                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:rotate-3">
+                  <div data-gsap="process-icon" className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:rotate-3">
                     <RegistroIcon className="w-12 h-12" />
                   </div>
-                  <span className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">1</span>
+                  <span data-gsap="process-badge" className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">1</span>
                 </div>
-                <h3 className="font-semibold mb-2 text-lg">Registro del Proyecto</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Inscribe tu tema de tesis y datos del proyecto
-                </p>
-                <PeepRegistro className="w-20 h-24 mx-auto opacity-70" />
-                {/* Connector line */}
-                <div className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/40 to-primary/10" />
+                <div data-gsap="process-text">
+                  <h3 className="font-[family-name:var(--font-syne)] font-semibold mb-2 text-lg">Registro del Proyecto</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Inscribe tu tema de tesis y datos del proyecto
+                  </p>
+                </div>
+                <div data-gsap="process-peep"><PeepRegistro className="w-20 h-24 mx-auto opacity-70" /></div>
+                <div data-gsap="process-connector" className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/40 to-primary/10" />
               </div>
-              <div className="text-center relative group">
+              <div data-gsap="process-step" className="text-center relative group">
                 <div className="relative mx-auto mb-6">
-                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:-rotate-3">
+                  <div data-gsap="process-icon" className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:-rotate-3">
                     <AsesorIcon className="w-12 h-12" />
                   </div>
-                  <span className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">2</span>
+                  <span data-gsap="process-badge" className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">2</span>
                 </div>
-                <h3 className="font-semibold mb-2 text-lg">Asignación de Asesor</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Se asigna un asesor según tu línea de investigación
-                </p>
-                <PeepAsesor className="w-20 h-24 mx-auto opacity-70" />
-                <div className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/40 to-primary/10" />
+                <div data-gsap="process-text">
+                  <h3 className="font-[family-name:var(--font-syne)] font-semibold mb-2 text-lg">Asignación de Asesor</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Se asigna un asesor según tu línea de investigación
+                  </p>
+                </div>
+                <div data-gsap="process-peep"><PeepAsesor className="w-20 h-24 mx-auto opacity-70" /></div>
+                <div data-gsap="process-connector" className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/40 to-primary/10" />
               </div>
-              <div className="text-center relative group">
+              <div data-gsap="process-step" className="text-center relative group">
                 <div className="relative mx-auto mb-6">
-                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:rotate-3">
+                  <div data-gsap="process-icon" className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:rotate-3">
                     <DesarrolloIcon className="w-12 h-12" />
                   </div>
-                  <span className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">3</span>
+                  <span data-gsap="process-badge" className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">3</span>
                 </div>
-                <h3 className="font-semibold mb-2 text-lg">Desarrollo y Seguimiento</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Avanza en tu investigación con supervisión continua
-                </p>
-                <PeepInvestigador className="w-20 h-24 mx-auto opacity-70" />
-                <div className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/40 to-primary/10" />
+                <div data-gsap="process-text">
+                  <h3 className="font-[family-name:var(--font-syne)] font-semibold mb-2 text-lg">Desarrollo y Seguimiento</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Avanza en tu investigación con supervisión continua
+                  </p>
+                </div>
+                <div data-gsap="process-peep"><PeepInvestigador className="w-20 h-24 mx-auto opacity-70" /></div>
+                <div data-gsap="process-connector" className="hidden lg:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/40 to-primary/10" />
               </div>
-              <div className="text-center group">
+              <div data-gsap="process-step" className="text-center group">
                 <div className="relative mx-auto mb-6">
-                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:-rotate-3">
+                  <div data-gsap="process-icon" className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center mx-auto shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 group-hover:-rotate-3">
                     <SustentacionIcon className="w-12 h-12" />
                   </div>
-                  <span className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">4</span>
+                  <span data-gsap="process-badge" className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-background border-2 border-primary text-primary text-sm font-bold flex items-center justify-center shadow-sm">4</span>
                 </div>
-                <h3 className="font-semibold mb-2 text-lg">Sustentación</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Programa y realiza la defensa de tu tesis
-                </p>
-                <PeepGraduado className="w-20 h-24 mx-auto opacity-70" />
+                <div data-gsap="process-text">
+                  <h3 className="font-[family-name:var(--font-syne)] font-semibold mb-2 text-lg">Sustentación</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Programa y realiza la defensa de tu tesis
+                  </p>
+                </div>
+                <div data-gsap="process-peep"><PeepGraduado className="w-20 h-24 mx-auto opacity-70" /></div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Wave divider */}
-        <WaveDivider className="w-full h-24 -mt-1" />
-
         {/* Testimonials Section */}
-        <section id="testimonios" className="bg-muted/50 py-24">
+        <section id="testimonios" className="bg-muted/50 py-24 mt-24 relative">
+          <div data-gsap="wave" className="absolute -top-24 left-0 w-full leading-[0]"><WaveDivider className="w-full h-24 block" /></div>
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
+            <div data-gsap="section-header" className="text-center mb-16">
               <Badge variant="outline" className="mb-4 gap-1.5">
                 <Quote className="h-3 w-3" />
                 Testimonios
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Lo que dicen nuestros usuarios</h2>
+              <h2 className="font-[family-name:var(--font-syne)] text-3xl md:text-4xl font-bold mb-3">Lo que dicen nuestros usuarios</h2>
               <SectionAccent className="w-28 h-2 mx-auto mb-4" />
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Experiencias de estudiantes y asesores que usan nuestra plataforma
               </p>
             </div>
-            <div className="grid lg:grid-cols-3 gap-8">
-              <Card className="relative hover:shadow-lg transition-shadow">
+            <InfiniteMovingCards speed="slow" pauseOnHover aria-label="Testimonios de usuarios" role="region">
+              {/* Card 1 */}
+              <Card className="relative hover:shadow-lg transition-shadow w-[min(350px,85vw)] shrink-0">
                 <CardContent className="pt-6">
                   <Quote className="h-8 w-8 text-primary/20 absolute top-4 right-4" />
                   <div className="flex gap-1 mb-4" role="img" aria-label="Calificación: 5 de 5 estrellas">
@@ -355,8 +381,8 @@ export default function Home() {
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-6">
-                    "La plataforma me ayudó a organizar todo el proceso de mi tesis.
-                    El seguimiento con mi asesor fue mucho más fluido y pude graduarme a tiempo."
+                    &quot;La plataforma me ayudó a organizar todo el proceso de mi tesis.
+                    El seguimiento con mi asesor fue mucho más fluido y pude graduarme a tiempo.&quot;
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/5 border border-primary/10 overflow-hidden shrink-0">
@@ -369,7 +395,8 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="relative hover:shadow-lg transition-shadow">
+              {/* Card 2 */}
+              <Card className="relative hover:shadow-lg transition-shadow w-[min(350px,85vw)] shrink-0">
                 <CardContent className="pt-6">
                   <Quote className="h-8 w-8 text-primary/20 absolute top-4 right-4" />
                   <div className="flex gap-1 mb-4" role="img" aria-label="Calificación: 5 de 5 estrellas">
@@ -378,8 +405,8 @@ export default function Home() {
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-6">
-                    "Como asesor, puedo dar seguimiento a múltiples tesistas de forma ordenada.
-                    Las notificaciones y el calendario son muy útiles."
+                    &quot;Como asesor, puedo dar seguimiento a múltiples tesistas de forma ordenada.
+                    Las notificaciones y el calendario son muy útiles.&quot;
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/5 border border-primary/10 overflow-hidden shrink-0">
@@ -392,7 +419,8 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="relative hover:shadow-lg transition-shadow">
+              {/* Card 3 */}
+              <Card className="relative hover:shadow-lg transition-shadow w-[min(350px,85vw)] shrink-0">
                 <CardContent className="pt-6">
                   <Quote className="h-8 w-8 text-primary/20 absolute top-4 right-4" />
                   <div className="flex gap-1 mb-4" role="img" aria-label="Calificación: 5 de 5 estrellas">
@@ -401,8 +429,8 @@ export default function Home() {
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-6">
-                    "Excelente sistema para gestionar los documentos y ver el progreso.
-                    Recomiendo a todos los estudiantes que inicien su tesis aquí."
+                    &quot;Excelente sistema para gestionar los documentos y ver el progreso.
+                    Recomiendo a todos los estudiantes que inicien su tesis aquí.&quot;
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/5 border border-primary/10 overflow-hidden shrink-0">
@@ -415,32 +443,30 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </InfiniteMovingCards>
           </div>
+          <div data-gsap="wave" className="absolute -bottom-24 left-0 w-full z-10 leading-[0]"><WaveDivider className="w-full h-24 block" flip /></div>
         </section>
 
-        {/* Wave divider flipped */}
-        <WaveDivider className="w-full h-24 -mb-1" flip />
-
         {/* FAQ Section */}
-        <section id="faq" className="py-24">
+        <section id="faq" className="py-24 mt-24">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
+            <div data-gsap="section-header" className="text-center mb-16">
               <Badge variant="outline" className="mb-4 gap-1.5">
                 <BookOpen className="h-3 w-3" />
                 FAQ
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Preguntas Frecuentes</h2>
+              <h2 className="font-[family-name:var(--font-syne)] text-3xl md:text-4xl font-bold mb-3">Preguntas Frecuentes</h2>
               <SectionAccent className="w-28 h-2 mx-auto mb-4" />
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Respuestas a las dudas más comunes sobre nuestra plataforma
               </p>
             </div>
-            <div className="max-w-3xl mx-auto relative">
+            <div data-gsap="faq-content" className="max-w-3xl mx-auto relative">
               {/* Peep character - thinking with coffee */}
               <PeepThinking className="hidden lg:block absolute -right-52 top-8 w-40 h-52 opacity-50" />
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
+                <AccordionItem data-gsap="faq-item" value="item-1">
                   <AccordionTrigger className="text-left">
                     ¿Cómo me registro en la plataforma?
                   </AccordionTrigger>
@@ -450,7 +476,7 @@ export default function Home() {
                     tu identidad.
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-2">
+                <AccordionItem data-gsap="faq-item" value="item-2">
                   <AccordionTrigger className="text-left">
                     ¿Puedo cambiar de asesor durante el proceso?
                   </AccordionTrigger>
@@ -459,7 +485,7 @@ export default function Home() {
                     a través de la plataforma, la cual será evaluada por la coordinación de tu facultad.
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-3">
+                <AccordionItem data-gsap="faq-item" value="item-3">
                   <AccordionTrigger className="text-left">
                     ¿Qué formatos de archivo puedo subir?
                   </AccordionTrigger>
@@ -468,7 +494,7 @@ export default function Home() {
                     El tamaño máximo por archivo es de 25MB.
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-4">
+                <AccordionItem data-gsap="faq-item" value="item-4">
                   <AccordionTrigger className="text-left">
                     ¿Cómo puedo ver el avance de mi tesis?
                   </AccordionTrigger>
@@ -478,7 +504,7 @@ export default function Home() {
                     revise tus avances.
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="item-5">
+                <AccordionItem data-gsap="faq-item" value="item-5">
                   <AccordionTrigger className="text-left">
                     ¿La plataforma es gratuita?
                   </AccordionTrigger>
@@ -492,27 +518,18 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Wave divider */}
-        <WaveDivider className="w-full h-24 -mt-1" />
-
         {/* CTA Section */}
-        <section className="bg-muted/50 py-24">
-          <div className="container mx-auto px-4">
-            <Card className="bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground overflow-hidden relative">
-              <div className="absolute inset-0 opacity-10" aria-hidden="true">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <circle cx="0" cy="0" r="40" fill="white" />
-                  <circle cx="100" cy="100" r="50" fill="white" />
-                  <circle cx="80" cy="20" r="30" fill="white" />
-                </svg>
-              </div>
+        <section className="bg-muted/50 py-24 relative overflow-hidden">
+          <div className="container mx-auto px-4 relative z-10">
+            <Card data-gsap="cta-card" className="bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground overflow-hidden relative">
+              <BackgroundBeams />
               <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 p-8 md:p-12 relative z-10">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
                     <GraduationCap className="h-6 w-6" />
                     <span className="text-sm font-medium text-primary-foreground/80 uppercase tracking-wider">Empieza ahora</span>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                  <h2 className="font-[family-name:var(--font-syne)] text-2xl md:text-3xl font-bold mb-3">
                     ¿Listo para comenzar tu tesis?
                   </h2>
                   <p className="text-primary-foreground/80 mb-6">
@@ -535,7 +552,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t bg-background">
-        <div className="container mx-auto px-4 py-12">
+        <div data-gsap="footer" className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
@@ -575,11 +592,11 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Mail className="h-4 w-4 text-primary shrink-0" />
-                  <span>soporte@unamad.edu.pe</span>
+                  <a href="mailto:soporte@unamad.edu.pe" className="hover:text-primary transition-colors">soporte@unamad.edu.pe</a>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Phone className="h-4 w-4 text-primary shrink-0" />
-                  <span>(082) 571-046</span>
+                  <a href="tel:+5182571046" className="hover:text-primary transition-colors">(082) 571-046</a>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <GraduationCap className="h-4 w-4 text-primary shrink-0" />
@@ -593,6 +610,10 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      </SmoothScrollWrapper>
+      {/* GSAP ScrollTrigger animations — zero-render layer */}
+      <GsapLanding />
     </div>
   );
 }

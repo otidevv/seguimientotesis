@@ -252,8 +252,24 @@ html {
   50% { box-shadow: 0 0 40px rgba(var(--primary-rgb, 220 38 38), 0.2); }
 }
 
+/* Infinite scroll for moving cards */
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50%)); }
+}
+
 .dark .bg-grid {
   background-image:
     linear-gradient(to right, hsl(var(--primary) / 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, hsl(var(--primary) / 0.05) 1px, transparent 1px);
+}
+
+/* ── WSG 2.5 — Respect prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

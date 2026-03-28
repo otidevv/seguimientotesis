@@ -53,7 +53,7 @@ export function WhatsAppFloat() {
       {/* Menu desplegable */}
       <div
         className={`
-          bg-card border rounded-2xl shadow-2xl overflow-hidden w-[300px]
+          bg-card border rounded-2xl shadow-2xl overflow-hidden w-[min(300px,calc(100vw-3rem))]
           transition-all duration-300 origin-bottom-right
           ${open ? "scale-100 opacity-100 translate-y-0" : "scale-90 opacity-0 translate-y-4 pointer-events-none"}
         `}
@@ -119,7 +119,7 @@ export function WhatsAppFloat() {
       >
         {/* Ping animation */}
         {!open && (
-          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-25" />
+          <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-25 motion-reduce:animate-none" />
         )}
         <WhatsAppIcon className={`w-7 h-7 relative z-10 transition-transform duration-300 ${open ? "scale-0" : "scale-100"}`} />
         <X className={`w-6 h-6 absolute z-10 transition-transform duration-300 ${open ? "scale-100 -rotate-90" : "scale-0"}`} />
