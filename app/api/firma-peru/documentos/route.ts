@@ -23,6 +23,7 @@ export async function GET() {
     // Verificar si existe el directorio
     if (!fs.existsSync(documentosDir)) {
       return NextResponse.json({
+        success: true,
         documentos: [],
         mensaje: 'La carpeta de documentos no existe',
       });
@@ -46,6 +47,7 @@ export async function GET() {
     });
 
     return NextResponse.json({
+      success: true,
       documentos,
       total: documentos.length,
     });
@@ -53,7 +55,7 @@ export async function GET() {
   } catch (error) {
     console.error('[Firma Perú] Error al listar documentos:', error);
     return NextResponse.json(
-      { message: 'Error al listar documentos' },
+      { success: false, error: 'Error al listar documentos' },
       { status: 500 }
     );
   }

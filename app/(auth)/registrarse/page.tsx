@@ -287,27 +287,27 @@ export default function RegistrarsePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background bg-grid">
+    <div className="min-h-screen bg-background">
       <Header variant="auth" />
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-8 lg:py-12">
         <div className="max-w-4xl mx-auto">
           {/* Progress indicator */}
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="flex items-center gap-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                {step > 1 ? <Check className="h-5 w-5" /> : "1"}
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-colors ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                {step > 1 ? <Check className="h-4 w-4" /> : "1"}
               </div>
-              <span className={`text-sm hidden sm:inline ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <span className={`text-sm hidden sm:inline font-medium ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Validar Identidad
               </span>
             </div>
-            <div className={`w-16 h-1 rounded ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+            <div className={`w-12 h-0.5 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-border'}`} />
             <div className="flex items-center gap-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                2
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-colors ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                {step > 2 ? <Check className="h-4 w-4" /> : "2"}
               </div>
-              <span className={`text-sm hidden sm:inline ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <span className={`text-sm hidden sm:inline font-medium ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Confirmación
               </span>
             </div>
@@ -316,45 +316,39 @@ export default function RegistrarsePage() {
           <div className="grid lg:grid-cols-5 gap-8">
             {/* Left side - Info */}
             <div className="lg:col-span-2 hidden lg:block">
-              <div className="sticky top-24">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <GraduationCap className="h-6 w-6 text-primary" />
+              <div className="sticky top-24 space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25">
+                    <GraduationCap className="h-5 w-5" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-lg">Registro de Usuario</h2>
-                    <p className="text-sm text-muted-foreground">UNAMAD - Sistema de Tesis</p>
+                    <h2 className="font-bold text-lg tracking-tight">Registro de Usuario</h2>
+                    <p className="text-xs text-muted-foreground">UNAMAD - Sistema de Tesis</p>
                   </div>
                 </div>
 
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <UserCheck className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Detección Automática</p>
-                      <p className="text-xs text-muted-foreground">El sistema detecta si eres estudiante, docente o externo</p>
+                <div className="space-y-2">
+                  {[
+                    { icon: UserCheck, title: 'Detección Automática', desc: 'El sistema detecta si eres estudiante, docente o externo' },
+                    { icon: CheckCircle2, title: 'Datos Verificados', desc: 'Tu información se valida con UNAMAD y RENIEC' },
+                    { icon: CheckCircle2, title: 'Acceso Inmediato', desc: 'Una vez registrado, accede al sistema' },
+                  ].map((item) => (
+                    <div key={item.title} className="flex items-start gap-3 p-3 rounded-xl border bg-card">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0 mt-0.5">
+                        <item.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{item.title}</p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">{item.desc}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Datos Verificados</p>
-                      <p className="text-xs text-muted-foreground">Tu información se valida con UNAMAD y RENIEC</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Acceso Inmediato</p>
-                      <p className="text-xs text-muted-foreground">Una vez registrado, accede al sistema</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                <div className="p-4 rounded-xl bg-muted/50 text-center">
                   <p className="text-sm text-muted-foreground">
                     ¿Ya tienes una cuenta?{" "}
-                    <Link href="/login" className="text-primary font-medium hover:underline">
+                    <Link href="/login" className="text-primary font-semibold hover:underline">
                       Iniciar Sesión
                     </Link>
                   </p>
@@ -364,7 +358,7 @@ export default function RegistrarsePage() {
 
             {/* Right side - Form */}
             <div className="lg:col-span-3">
-              <Card className="shadow-lg">
+              <Card className="shadow-lg border-border/60">
                 <CardHeader>
                   <CardTitle className="text-2xl">
                     {step === 1 && "Validar Identidad"}

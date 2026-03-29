@@ -187,6 +187,74 @@ export class RoleService {
   }
 
   /**
+   * Duplicar rol con sus permisos
+   */
+  async duplicate(id: string, adminId: string): Promise<RoleResponse> {
+    const source = await prisma.role.findUnique({
+      where: { id },
+      include: {
+        permissions: true,
+        _count: { select: { users: true, permissions: true } },
+      },
+    })
+
+    if (!source) {
+      throw new AdminError('ROLE_NOT_FOUND', 'Rol no encontrado', 404)
+    }
+
+    // Generar nombre y código únicos
+    let suffix = 1
+    let nombre = `${source.nombre} (copia)`
+    let codigo = `${source.codigo}_COPIA`
+
+    while (await prisma.role.findFirst({ where: { OR: [{ nombre }, { codigo }] } })) {
+      suffix++
+      nombre = `${source.nombre} (copia ${suffix})`
+      codigo = `${source.codigo}_COPIA_${suffix}`
+    }
+
+    const role = await prisma.$transaction(async (tx) => {
+      const newRole = await tx.role.create({
+        data: {
+          nombre,
+          codigo,
+          descripcion: source.descripcion,
+          color: source.color,
+          isSystem: false,
+          isActive: true,
+        },
+        include: { _count: { select: { users: true, permissions: true } } },
+      })
+
+      // Copiar permisos
+      if (source.permissions.length > 0) {
+        await tx.rolePermission.createMany({
+          data: source.permissions.map((p) => ({
+            roleId: newRole.id,
+            moduleId: p.moduleId,
+            canView: p.canView,
+            canCreate: p.canCreate,
+            canEdit: p.canEdit,
+            canDelete: p.canDelete,
+          })),
+        })
+      }
+
+      return newRole
+    })
+
+    await this.logAudit(adminId, 'ROLE_DUPLICATE', 'Role', role.id, null, {
+      sourceRoleId: id,
+      sourceRoleName: source.nombre,
+      nombre: role.nombre,
+      codigo: role.codigo,
+      permissionsCopied: source.permissions.length,
+    })
+
+    return this.formatRoleResponse(role)
+  }
+
+  /**
    * Actualizar rol
    */
   async update(id: string, input: UpdateRoleInput, adminId: string): Promise<RoleResponse> {

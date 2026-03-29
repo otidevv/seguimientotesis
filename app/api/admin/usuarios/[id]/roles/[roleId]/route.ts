@@ -2,23 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { userService } from '@/lib/admin/services/user.service'
 import { AdminError } from '@/lib/admin/types'
+import { requirePermission } from '@/lib/admin/require-permission'
 
-// PATCH - Actualizar contexto de un rol asignado (ej: cambiar facultad de MESA_PARTES)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; roleId: string }> }
 ) {
   try {
-    const adminId = request.headers.get('x-user-id')
-    if (!adminId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
-    }
+    const auth = await requirePermission(request, 'usuarios', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const { id, roleId } = await params
     const body = await request.json()
     const { contextType, contextId } = body
 
-    // Buscar la asignación de rol
     const userRole = await prisma.userRole.findFirst({
       where: {
         userId: id,
@@ -34,7 +31,6 @@ export async function PATCH(
       )
     }
 
-    // Actualizar contexto
     await prisma.userRole.update({
       where: { id: userRole.id },
       data: {
@@ -43,7 +39,6 @@ export async function PATCH(
       },
     })
 
-    // Retornar usuario actualizado
     const user = await userService.getById(id)
 
     return NextResponse.json({
@@ -73,13 +68,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; roleId: string }> }
 ) {
   try {
-    const adminId = request.headers.get('x-user-id')
-    if (!adminId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
-    }
+    const auth = await requirePermission(request, 'usuarios', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const { id, roleId } = await params
-    const user = await userService.removeRole(id, roleId, adminId)
+    const user = await userService.removeRole(id, roleId, auth.userId)
 
     return NextResponse.json({
       success: true,

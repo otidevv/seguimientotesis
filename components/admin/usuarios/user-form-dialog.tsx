@@ -38,7 +38,7 @@ import {
   User,
   Building2,
 } from 'lucide-react'
-import { useAuth } from '@/contexts/auth-context'
+import { api } from '@/lib/api'
 import type { AdminUserResponse } from '@/lib/admin/types'
 
 interface Role {
@@ -100,7 +100,6 @@ export function UserFormDialog({
   roles = [],
   onSubmit,
 }: UserFormDialogProps) {
-  const { authFetch } = useAuth()
   const isEditing = !!user
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -132,12 +131,9 @@ export function UserFormDialog({
   // Cargar facultades al abrir el diálogo
   useEffect(() => {
     if (open) {
-      fetch('/api/facultades')
-        .then(res => res.json())
+      api.get<{ data: Facultad[] }>('/api/facultades')
         .then(data => {
-          if (data.success) {
-            setFacultades(data.data)
-          }
+          setFacultades(data.data)
         })
         .catch(console.error)
     }
@@ -198,38 +194,31 @@ export function UserFormDialog({
     setDetectionResult(null)
 
     try {
-      const response = await authFetch('/api/admin/users/search', {
-        method: 'POST',
-        body: JSON.stringify({ numeroDocumento: formData.numeroDocumento }),
+      const data = await api.post<{ data: DetectionResult; message: string }>('/api/admin/users/search', {
+        numeroDocumento: formData.numeroDocumento,
       })
 
-      const data = await response.json()
+      const result = data.data
+      setDetectionResult(result)
+      setSearchSuccess(data.message)
+      setIsValidated(true)
 
-      if (data.success) {
-        const result = data.data as DetectionResult
-        setDetectionResult(result)
-        setSearchSuccess(data.message)
-        setIsValidated(true)
-
-        // Auto-fill form data
-        setFormData(prev => ({
-          ...prev,
-          nombres: result.nombres,
-          apellidoPaterno: result.apellidoPaterno,
-          apellidoMaterno: result.apellidoMaterno,
-          email: result.email || '',
-          emailPersonal: result.emailPersonal || '',
-          // Auto-select detected roles
-          selectedRoleIds: result.suggestedRoles.map(r => r.id),
-        }))
+      setFormData(prev => ({
+        ...prev,
+        nombres: result.nombres,
+        apellidoPaterno: result.apellidoPaterno,
+        apellidoMaterno: result.apellidoMaterno,
+        email: result.email || '',
+        emailPersonal: result.emailPersonal || '',
+        selectedRoleIds: result.suggestedRoles.map(r => r.id),
+      }))
+    } catch (err: any) {
+      const message = err?.message || 'Error de conexión al buscar'
+      if (message.includes('Ya existe')) {
+        setSearchError(message)
       } else {
-        setSearchError(data.message || 'Error al buscar usuario')
-        if (data.error === 'USER_EXISTS') {
-          setSearchError(`Ya existe: ${data.existingUser.nombres} ${data.existingUser.apellidoPaterno} (${data.existingUser.roles.join(', ')})`)
-        }
+        setSearchError(message)
       }
-    } catch (err) {
-      setSearchError('Error de conexión al buscar')
     } finally {
       setIsSearching(false)
     }

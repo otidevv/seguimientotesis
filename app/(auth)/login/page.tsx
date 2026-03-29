@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,12 +34,21 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 
+// WSG 3.10: Variantes de animación que respetan prefers-reduced-motion
 const formItemVariants = {
   hidden: { opacity: 0, x: 30 },
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
     transition: { delay: 0.15 + i * 0.08, duration: 0.5, ease: "easeOut" as const },
+  }),
+};
+
+const reducedFormItemVariants = {
+  hidden: { opacity: 0 },
+  visible: (i: number) => ({
+    opacity: 1,
+    transition: { delay: 0.05 + i * 0.03, duration: 0.2 },
   }),
 };
 
@@ -56,6 +65,9 @@ function LoginForm() {
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  // WSG 3.10: Respetar preferencia de movimiento reducido
+  const prefersReducedMotion = useReducedMotion();
+  const variants = prefersReducedMotion ? reducedFormItemVariants : formItemVariants;
 
   // Verificar si viene de un redirect del middleware (sesión inválida ya determinada)
   const isFromRedirect = searchParams.has('redirect') || searchParams.has('expired');
@@ -81,9 +93,9 @@ function LoginForm() {
   // 1. Está verificando Y NO viene de un redirect del middleware
   if (isCheckingAuth && !isFromRedirect) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background" role="status" aria-label="Verificando sesión">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
           <p className="text-muted-foreground">Verificando sesión...</p>
         </div>
       </div>
@@ -93,9 +105,9 @@ function LoginForm() {
   // Mostrar pantalla limpia mientras redirige al dashboard
   if (isRedirecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background" role="status" aria-label="Ingresando al sistema">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
           <p className="text-muted-foreground">Ingresando al sistema...</p>
         </div>
       </div>
@@ -131,13 +143,20 @@ function LoginForm() {
       {/* Mobile: no background images, just plain bg */}
 
       {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 xl:w-[45%] flex flex-col min-h-screen relative">
+      <div className="w-full lg:w-1/2 xl:w-[45%] flex flex-col min-h-screen relative overflow-hidden">
+        {/* WSG 3.5: Decoraciones ligeras — sin blur-3xl (menos GPU) */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/[0.03]" style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.04), transparent 70%)" }} />
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.03), transparent 70%)" }} />
+          <div className="absolute top-1/4 right-8 w-1 h-24 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent rounded-full" />
+        </div>
+
         {/* Header bar */}
         <motion.div
-          className="flex items-center justify-between p-4 lg:p-6"
-          initial={{ opacity: 0, y: -10 }}
+          className="flex items-center justify-between p-4 lg:p-6 relative z-10"
+          initial={{ opacity: 0, ...(prefersReducedMotion ? {} : { y: -10 }) }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: prefersReducedMotion ? 0.15 : 0.4 }}
         >
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Image
@@ -155,21 +174,31 @@ function LoginForm() {
         </motion.div>
 
         {/* Form area */}
-        <div className="flex-1 flex items-center justify-center px-4 py-8 lg:px-12 xl:px-16">
+        <div className="flex-1 flex items-center justify-center px-4 py-8 lg:px-12 xl:px-16 relative z-10">
           <div className="w-full max-w-md">
             {/* Welcome text */}
             <motion.div
               className="mb-8"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, ...(prefersReducedMotion ? {} : { y: 20 }) }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: prefersReducedMotion ? 0.15 : 0.5, delay: prefersReducedMotion ? 0 : 0.1 }}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-primary" />
+              <div className="flex items-center gap-4 mb-5">
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
+                    <GraduationCap className="h-7 w-7 text-primary-foreground" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-background flex items-center justify-center">
+                    <CheckCircle2 className="h-3 w-3 text-white" />
+                  </div>
+                </div>
+                <div className="h-8 w-px bg-border" />
+                <div>
+                  <p className="text-xs font-medium text-primary uppercase tracking-wider">Sistema de Tesis</p>
+                  <p className="text-xs text-muted-foreground">UNAMAD</p>
                 </div>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight mb-2">Bienvenido de vuelta</h1>
+              <h1 className="font-[family-name:var(--font-syne)] text-3xl font-bold tracking-tight mb-2">Bienvenido de vuelta</h1>
               <p className="text-muted-foreground">
                 Ingresa tus credenciales para acceder al sistema
               </p>
@@ -203,7 +232,7 @@ function LoginForm() {
                 custom={0}
                 initial="hidden"
                 animate="visible"
-                variants={formItemVariants}
+                variants={variants}
               >
                 <Label htmlFor="email">Correo Institucional</Label>
                 <div className="relative">
@@ -216,6 +245,7 @@ function LoginForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
+                    autoComplete="email"
                   />
                 </div>
               </motion.div>
@@ -225,7 +255,7 @@ function LoginForm() {
                 custom={1}
                 initial="hidden"
                 animate="visible"
-                variants={formItemVariants}
+                variants={variants}
               >
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Contraseña</Label>
@@ -246,14 +276,16 @@ function LoginForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
+                    autoComplete="current-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2 rounded-sm"
                     disabled={isLoading}
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
                   </button>
                 </div>
               </motion.div>
@@ -263,7 +295,7 @@ function LoginForm() {
                 custom={2}
                 initial="hidden"
                 animate="visible"
-                variants={formItemVariants}
+                variants={variants}
               >
                 <input
                   type="checkbox"
@@ -282,9 +314,9 @@ function LoginForm() {
                 custom={3}
                 initial="hidden"
                 animate="visible"
-                variants={formItemVariants}
+                variants={variants}
               >
-                <Button type="submit" className="w-full gap-2 h-11" disabled={isLoading}>
+                <Button type="submit" className="w-full gap-2 h-12 text-base shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 group" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -292,27 +324,37 @@ function LoginForm() {
                     </>
                   ) : (
                     <>
-                      Iniciar Sesión <ArrowRight className="h-4 w-4" />
+                      Iniciar Sesión <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                     </>
                   )}
                 </Button>
               </motion.div>
             </form>
 
+            {/* Divider */}
+            <motion.div
+              className="mt-8"
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ delay: 0.55, duration: 0.5 }}
+            >
+              <Separator />
+            </motion.div>
+
             {/* Features - compact row */}
             <motion.div
-              className="mt-8 grid grid-cols-3 gap-3"
+              className="mt-6 grid grid-cols-3 gap-3"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
             >
               {[
-                { icon: CheckCircle2, label: "Acceso Rápido" },
-                { icon: Lock, label: "Sesión Segura" },
-                { icon: GraduationCap, label: "Panel Personal" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-muted/50 text-center">
-                  <Icon className="h-4 w-4 text-primary" />
+                { icon: CheckCircle2, label: "Acceso Rápido", color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10" },
+                { icon: Lock, label: "Sesión Segura", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10" },
+                { icon: GraduationCap, label: "Panel Personal", color: "text-primary", bg: "bg-primary/10" },
+              ].map(({ icon: Icon, label, color, bg }) => (
+                <div key={label} className={`flex flex-col items-center gap-2 p-3.5 rounded-xl ${bg} border border-border/50 text-center hover:border-border transition-colors`}>
+                  <Icon className={`h-4 w-4 ${color}`} />
                   <span className="text-[11px] text-muted-foreground font-medium">{label}</span>
                 </div>
               ))}

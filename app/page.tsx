@@ -213,7 +213,7 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         {/* FEATURES — BENTO GRID                           */}
         {/* ═══════════════════════════════════════════════ */}
-        <section id="caracteristicas" className="bg-muted/50 py-24 relative overflow-hidden noise-overlay">
+        <section id="caracteristicas" className="bg-muted py-24 relative overflow-hidden noise-overlay">
           <div className="container mx-auto px-4 relative z-10">
             <div data-gsap="section-header" className="text-center mb-16">
               <Badge variant="outline" className="mb-4 gap-1.5">
@@ -231,97 +231,36 @@ export default function Home() {
 
             {/* Bento Grid Layout */}
             <div data-gsap="features-grid" className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 auto-rows-fr">
-              {/* Card 1 — Featured (spans 2 cols on lg) */}
-              <Card data-gsap="feature-card" className="bento-glow group hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden lg:col-span-2 lg:row-span-1">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-primary/8 to-transparent rounded-bl-[4rem] group-hover:from-primary/15 transition-all duration-500" />
-                <CardHeader className="relative z-10 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 shrink-0">
-                    <FileText className="h-8 w-8" />
-                  </div>
-                  <div className="flex-1">
-                    <CardTitle className="font-[family-name:var(--font-syne)] text-xl mb-2">Gestión de Documentos</CardTitle>
-                    <CardDescription className="text-base leading-relaxed">
-                      Sube, organiza y versiona todos los documentos relacionados con tu tesis en un solo lugar.
-                      Control de versiones automático, firma digital integrada y descarga en lote.
-                    </CardDescription>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 hidden md:block" />
-                </CardHeader>
-              </Card>
-
-              {/* Card 2 */}
-              <Card data-gsap="feature-card" className="bento-glow group hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
-                <CardHeader className="relative z-10">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
-                    <Users className="h-7 w-7" />
-                  </div>
-                  <CardTitle className="font-[family-name:var(--font-syne)]">Asignación de Asesores</CardTitle>
-                  <CardDescription>
-                    Conecta tesistas con asesores especializados según líneas de investigación
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              {/* Card 3 */}
-              <Card data-gsap="feature-card" className="bento-glow group hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
-                <CardHeader className="relative z-10">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
-                    <Calendar className="h-7 w-7" />
-                  </div>
-                  <CardTitle className="font-[family-name:var(--font-syne)]">Cronograma de Actividades</CardTitle>
-                  <CardDescription>
-                    Planifica y visualiza las etapas del desarrollo de la tesis con alertas automáticas
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              {/* Card 4 */}
-              <Card data-gsap="feature-card" className="bento-glow group hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
-                <CardHeader className="relative z-10">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
-                    <CheckCircle className="h-7 w-7" />
-                  </div>
-                  <CardTitle className="font-[family-name:var(--font-syne)]">Seguimiento de Avances</CardTitle>
-                  <CardDescription>
-                    Registra el progreso y recibe retroalimentación continua de tu asesor
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              {/* Card 5 — Featured (spans 2 cols on lg) */}
-              <Card data-gsap="feature-card" className="bento-glow group hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden lg:col-span-2 lg:row-span-1">
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-primary/8 to-transparent rounded-tr-[4rem] group-hover:from-primary/15 transition-all duration-500" />
-                <CardHeader className="relative z-10 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 shrink-0">
-                    <ClipboardList className="h-8 w-8" />
-                  </div>
-                  <div className="flex-1">
-                    <CardTitle className="font-[family-name:var(--font-syne)] text-xl mb-2">Evaluaciones y Revisiones</CardTitle>
-                    <CardDescription className="text-base leading-relaxed">
-                      Gestiona las observaciones y aprobaciones de los jurados con un flujo de trabajo estructurado.
-                      Historial completo de revisiones y notificaciones en tiempo real.
-                    </CardDescription>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 hidden md:block" />
-                </CardHeader>
-              </Card>
-
-              {/* Card 6 */}
-              <Card data-gsap="feature-card" className="bento-glow group hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
-                <CardHeader className="relative z-10">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
-                    <BarChart3 className="h-7 w-7" />
-                  </div>
-                  <CardTitle className="font-[family-name:var(--font-syne)]">Reportes y Estadísticas</CardTitle>
-                  <CardDescription>
-                    Visualiza métricas y genera reportes detallados del proceso académico
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+              {[
+                { icon: FileText, title: 'Gestión de Documentos', desc: 'Sube, organiza y versiona todos los documentos relacionados con tu tesis en un solo lugar. Control de versiones automático y firma digital integrada.', featured: true },
+                { icon: Users, title: 'Asignación de Asesores', desc: 'Conecta tesistas con asesores especializados según líneas de investigación.' },
+                { icon: Calendar, title: 'Cronograma de Actividades', desc: 'Planifica y visualiza las etapas del desarrollo de la tesis con alertas automáticas.' },
+                { icon: CheckCircle, title: 'Seguimiento de Avances', desc: 'Registra el progreso y recibe retroalimentación continua de tu asesor.' },
+                { icon: ClipboardList, title: 'Evaluaciones y Revisiones', desc: 'Gestiona las observaciones y aprobaciones de los jurados con un flujo de trabajo estructurado. Historial completo de revisiones y notificaciones.', featured: true },
+                { icon: BarChart3, title: 'Reportes y Estadísticas', desc: 'Visualiza métricas y genera reportes detallados del proceso académico.' },
+              ].map((feature) => (
+                <Card
+                  key={feature.title}
+                  data-gsap="feature-card"
+                  className={`group bg-background shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-500 relative overflow-hidden ${feature.featured ? 'lg:col-span-2' : ''}`}
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full group-hover:from-primary/10 transition-colors duration-300" />
+                  <CardHeader className={`relative z-10 ${feature.featured ? 'flex flex-col md:flex-row md:items-center gap-4 md:gap-6' : ''}`}>
+                    <div className={`${feature.featured ? 'w-16 h-16 rounded-2xl' : 'w-14 h-14 rounded-xl mb-4'} bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300 shrink-0`}>
+                      <feature.icon className={feature.featured ? 'h-8 w-8' : 'h-7 w-7'} />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className={`font-[family-name:var(--font-syne)] ${feature.featured ? 'text-xl mb-2' : ''}`}>{feature.title}</CardTitle>
+                      <CardDescription className={feature.featured ? 'text-base leading-relaxed' : ''}>
+                        {feature.desc}
+                      </CardDescription>
+                    </div>
+                    {feature.featured && (
+                      <ChevronRight className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 hidden md:block" />
+                    )}
+                  </CardHeader>
+                </Card>
+              ))}
             </div>
           </div>
           <div data-gsap="wave" className="absolute -bottom-24 left-0 w-full z-10 leading-[0]"><WaveDivider className="w-full h-24 block" flip /></div>
@@ -330,7 +269,7 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         {/* PROCESS SECTION                                 */}
         {/* ═══════════════════════════════════════════════ */}
-        <section id="proceso" className="pt-24 pb-24 mt-24 relative overflow-hidden">
+        <section id="proceso" className="pt-24 pb-24 relative overflow-hidden">
           <GridPattern className="absolute inset-0 opacity-30" />
           <div className="container mx-auto px-4 relative z-10">
             <div data-gsap="section-header" className="text-center mb-16">
@@ -377,7 +316,7 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         {/* TESTIMONIALS SECTION                            */}
         {/* ═══════════════════════════════════════════════ */}
-        <section id="testimonios" className="bg-muted/50 py-24 mt-24 relative">
+        <section id="testimonios" className="bg-muted py-24 relative">
           <div data-gsap="wave" className="absolute -top-24 left-0 w-full leading-[0]"><WaveDivider className="w-full h-24 block" /></div>
           <div className="container mx-auto px-4">
             <div data-gsap="section-header" className="text-center mb-16">
@@ -443,7 +382,7 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         {/* FAQ SECTION                                     */}
         {/* ═══════════════════════════════════════════════ */}
-        <section id="faq" className="py-24 mt-24">
+        <section id="faq" className="py-24">
           <div className="container mx-auto px-4">
             <div data-gsap="section-header" className="text-center mb-16">
               <Badge variant="outline" className="mb-4 gap-1.5">
@@ -503,7 +442,7 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         {/* CTA SECTION                                     */}
         {/* ═══════════════════════════════════════════════ */}
-        <section className="bg-muted/50 py-24 relative overflow-hidden">
+        <section className="bg-muted py-24 relative overflow-hidden">
           <div className="container mx-auto px-4 relative z-10">
             <Card data-gsap="cta-card" className="bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground overflow-hidden relative border-0 shadow-2xl shadow-primary/20">
               <BackgroundBeams />

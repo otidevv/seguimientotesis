@@ -45,6 +45,7 @@ export default function RolesPage() {
     error,
     fetchRoles,
     createRole,
+    duplicateRole,
     updateRole,
     deleteRole,
     toggleActive,
@@ -246,6 +247,15 @@ export default function RolesPage() {
                   onEdit={(role) => {
                     setSelectedRole(role)
                     setEditDialogOpen(true)
+                  }}
+                  onDuplicate={async (role) => {
+                    try {
+                      await duplicateRole(role.id)
+                      toast.success(`Rol "${role.nombre}" duplicado`)
+                      fetchRoles(filters)
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'Error al duplicar rol')
+                    }
                   }}
                   onDelete={(role) => {
                     setSelectedRole(role)

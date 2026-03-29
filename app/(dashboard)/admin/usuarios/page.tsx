@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '@/contexts/auth-context'
+import { api } from '@/lib/api'
 import { useUsers } from '@/hooks/use-users'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -41,7 +41,6 @@ interface Role {
 }
 
 export default function UsuariosPage() {
-  const { authFetch } = useAuth()
   const {
     users,
     pagination,
@@ -78,11 +77,8 @@ export default function UsuariosPage() {
   // Cargar roles
   const loadRoles = async () => {
     try {
-      const response = await authFetch('/api/admin/roles')
-      const data = await response.json()
-      if (data.success) {
-        setRoles(data.data)
-      }
+      const data = await api.get<{ data: Role[] }>('/api/admin/roles')
+      setRoles(data.data)
     } catch (err) {
       console.error('Error loading roles:', err)
     }

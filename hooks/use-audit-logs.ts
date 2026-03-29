@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useAuth } from '@/contexts/auth-context'
+import { api } from '@/lib/api'
 import type { AuditLogResponse } from '@/lib/admin/services/audit.service'
 
 interface AuditFilters {
@@ -30,7 +30,6 @@ interface AuditMetadata {
 }
 
 export function useAuditLogs() {
-  const { authFetch } = useAuth()
   const [logs, setLogs] = useState<AuditLogResponse[]>([])
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
@@ -50,23 +49,17 @@ export function useAuditLogs() {
     try {
       const currentPage = page || pagination.page
       const currentLimit = limit || pagination.limit
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: currentLimit.toString(),
-      })
 
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          params.set(key, value)
+      const data = await api.get<{ data: AuditLogResponse[]; pagination: Pagination }>(
+        '/api/admin/auditoria',
+        {
+          params: {
+            page: currentPage,
+            limit: currentLimit,
+            ...filters,
+          },
         }
-      })
-
-      const response = await authFetch(`/api/admin/auditoria?${params}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar registros de auditoría')
-      }
+      )
 
       setLogs(data.data)
       setPagination(data.pagination)
@@ -75,19 +68,16 @@ export function useAuditLogs() {
     } finally {
       setIsLoading(false)
     }
-  }, [authFetch, pagination.page, pagination.limit])
+  }, [pagination.page, pagination.limit])
 
   const fetchMetadata = useCallback(async () => {
     try {
-      const response = await authFetch('/api/admin/auditoria/metadata')
-      const data = await response.json()
-      if (response.ok) {
-        setMetadata(data.data)
-      }
+      const data = await api.get<{ data: AuditMetadata }>('/api/admin/auditoria/metadata')
+      setMetadata(data.data)
     } catch {
       // Silently fail - metadata is optional
     }
-  }, [authFetch])
+  }, [])
 
   const setPage = useCallback((page: number) => {
     setPagination((prev) => ({ ...prev, page }))

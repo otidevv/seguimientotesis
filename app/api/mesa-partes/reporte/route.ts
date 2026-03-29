@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { generarReporteExcel, TesisReporteData } from '@/lib/excel/reporte-mesa-partes'
 
 // Mapeo de estados legibles
@@ -37,9 +37,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const tieneAcceso = user.roles?.some(
-      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    const tieneAcceso = await checkPermission(user.id, 'mesa-partes', 'view')
 
     if (!tieneAcceso) {
       return NextResponse.json(

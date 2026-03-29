@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { roleService } from '@/lib/admin/services/role.service'
 import { AdminError } from '@/lib/admin/types'
 import { createRoleSchema, roleQuerySchema } from '@/lib/validators/role.schema'
+import { requirePermission } from '@/lib/admin/require-permission'
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requirePermission(request, 'roles', 'view')
+    if (auth instanceof NextResponse) return auth
+
     const { searchParams } = new URL(request.url)
 
     // Construir objeto solo con valores no nulos
@@ -52,14 +56,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const adminId = request.headers.get('x-user-id')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      )
-    }
+    const auth = await requirePermission(request, 'roles', 'create')
+    if (auth instanceof NextResponse) return auth
 
     const body = await request.json()
     const result = createRoleSchema.safeParse(body)
@@ -71,7 +69,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const role = await roleService.create(result.data, adminId)
+    const role = await roleService.create(result.data, auth.userId)
 
     return NextResponse.json({
       success: true,

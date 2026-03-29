@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { AdminError } from '@/lib/admin/types'
+import { requirePermission } from '@/lib/admin/require-permission'
 import { z } from 'zod'
 
 // Schema de validación para actualizar permisos en batch
@@ -19,8 +20,11 @@ const updatePermissionsBatchSchema = z.object({
  * GET /api/admin/permisos
  * Obtiene la matriz completa de permisos (roles × módulos)
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await requirePermission(request, 'permisos', 'view')
+    if (auth instanceof NextResponse) return auth
+
     // Obtener todos los roles activos
     const roles = await prisma.role.findMany({
       where: { isActive: true },
@@ -91,14 +95,8 @@ export async function GET() {
  */
 export async function PUT(request: NextRequest) {
   try {
-    const adminId = request.headers.get('x-user-id')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      )
-    }
+    const auth = await requirePermission(request, 'permisos', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const body = await request.json()
     const result = updatePermissionsBatchSchema.safeParse(body)
@@ -219,7 +217,7 @@ export async function PUT(request: NextRequest) {
     // Registrar auditoría
     await prisma.auditLog.create({
       data: {
-        userId: adminId,
+        userId: auth.userId,
         action: 'PERMISSIONS_BATCH_UPDATE',
         entityType: 'RolePermission',
         entityId: 'batch',

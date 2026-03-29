@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, checkPermission } from '@/lib/auth'
 
-// GET /api/gestion-tesis - Lista de tesis con filtros (ADMIN/SUPER_ADMIN)
+// GET /api/gestion-tesis - Lista de tesis con filtros
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
@@ -14,14 +14,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Solo ADMIN y SUPER_ADMIN
-    const tieneAcceso = user.roles?.some(
-      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    // Verificar permiso del módulo 'tesis' en vez de roles hardcodeados
+    const tieneAcceso = await checkPermission(user.id, 'tesis', 'view')
 
     if (!tieneAcceso) {
       return NextResponse.json(
-        { error: 'No tienes permisos para acceder a Gestion de Tesis' },
+        { error: 'No tienes permisos para acceder a Gestión de Tesis' },
         { status: 403 }
       )
     }

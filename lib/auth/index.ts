@@ -37,6 +37,7 @@ export {
   verifyEmailToken,
   resendVerificationEmail,
 } from './services/email-verification.service'
+export { checkPermission } from './check-permission'
 
 // Helper para obtener el usuario actual desde una request
 export async function getCurrentUser(request: NextRequest) {

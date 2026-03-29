@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/auth-context'
+import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -104,23 +105,25 @@ export default function MisEvaluacionesPage() {
   const loadEvaluaciones = useCallback(async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      params.set('page', String(page))
-      params.set('limit', String(itemsPerPage))
-      if (filtroFase !== 'TODOS') params.set('fase', filtroFase)
-      if (busquedaDebounced) params.set('busqueda', busquedaDebounced)
-
-      const response = await fetch(`/api/mis-evaluaciones?${params.toString()}`)
-      const data = await response.json()
-      if (data.success) {
-        setEvaluaciones(data.data)
-        if (data.pagination) {
-          setTotalPages(data.pagination.totalPages)
-          setTotalItems(data.pagination.totalItems)
-        }
-        if (data.contadores) {
-          setContadores(data.contadores)
-        }
+      const result = await api.get<{
+        data: EvaluacionItem[]
+        pagination?: { totalPages: number; totalItems: number }
+        contadores?: { total: number; pendientes: number; evaluadas: number }
+      }>('/api/mis-evaluaciones', {
+        params: {
+          page,
+          limit: itemsPerPage,
+          fase: filtroFase !== 'TODOS' ? filtroFase : undefined,
+          busqueda: busquedaDebounced || undefined,
+        },
+      })
+      setEvaluaciones(result.data)
+      if (result.pagination) {
+        setTotalPages(result.pagination.totalPages)
+        setTotalItems(result.pagination.totalItems)
+      }
+      if (result.contadores) {
+        setContadores(result.contadores)
       }
     } catch {
       // Error silencioso

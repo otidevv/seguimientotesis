@@ -56,6 +56,7 @@ import {
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { api } from '@/lib/api'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface Tesista {
@@ -165,13 +166,9 @@ export default function MisAsesoriasPage() {
   const loadAsesorias = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/mis-asesorias')
-      const data = await response.json()
-
-      if (data.success) {
-        setAsesorias(data.data)
-        setConteo(data.conteo)
-      }
+      const result = await api.get<{ data: Asesoria[]; conteo: Conteo }>('/api/mis-asesorias')
+      setAsesorias(result.data)
+      setConteo(result.conteo)
     } catch {
       toast.error('Error de conexion')
     } finally {
@@ -236,25 +233,16 @@ export default function MisAsesoriasPage() {
     if (!selectedAsesoria || !accion) return
     setProcesando(true)
     try {
-      const response = await fetch(`/api/mis-invitaciones/${selectedAsesoria.id}/responder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion }),
-      })
-      const data = await response.json()
-      if (data.success) {
-        toast.success(data.message)
-        setDialogOpen(false)
-        if (accion === 'ACEPTAR') {
-          router.push(`/mis-asesorias/${selectedAsesoria.tesis.id}`)
-        } else {
-          loadAsesorias()
-        }
+      const result = await api.post<{ message: string }>(`/api/mis-invitaciones/${selectedAsesoria.id}/responder`, { accion })
+      toast.success(result.message)
+      setDialogOpen(false)
+      if (accion === 'ACEPTAR') {
+        router.push(`/mis-asesorias/${selectedAsesoria.tesis.id}`)
       } else {
-        toast.error(data.error || 'Error al procesar respuesta')
+        loadAsesorias()
       }
-    } catch {
-      toast.error('Error de conexion')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error de conexion')
     } finally {
       setProcesando(false)
     }

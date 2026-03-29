@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useAuth } from '@/contexts/auth-context'
+import { api } from '@/lib/api'
 import type { RoleResponse, RoleWithPermissions, ModulePermission } from '@/lib/admin/services/role.service'
 
 interface RoleFilters {
@@ -22,7 +22,6 @@ interface SystemModule {
 }
 
 export function useRoles() {
-  const { authFetch } = useAuth()
   const [roles, setRoles] = useState<RoleResponse[]>([])
   const [modules, setModules] = useState<SystemModule[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -33,56 +32,30 @@ export function useRoles() {
     setError(null)
 
     try {
-      const params = new URLSearchParams()
-
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          params.set(key, value)
-        }
-      })
-
-      const response = await authFetch(`/api/admin/roles?${params}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar roles')
-      }
-
+      const data = await api.get<{ data: RoleResponse[] }>('/api/admin/roles', { params: filters })
       setRoles(data.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsLoading(false)
     }
-  }, [authFetch])
+  }, [])
 
   const fetchModules = useCallback(async () => {
     try {
-      const response = await authFetch('/api/admin/modules')
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar módulos')
-      }
-
+      const data = await api.get<{ data: SystemModule[] }>('/api/admin/modules')
       setModules(data.data)
       return data.data
     } catch (err) {
       console.error('Error loading modules:', err)
       return []
     }
-  }, [authFetch])
+  }, [])
 
   const getRole = useCallback(async (id: string): Promise<RoleWithPermissions> => {
-    const response = await authFetch(`/api/admin/roles/${id}`)
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al cargar rol')
-    }
-
+    const data = await api.get<{ data: RoleWithPermissions }>(`/api/admin/roles/${id}`)
     return data.data
-  }, [authFetch])
+  }, [])
 
   const createRole = useCallback(async (roleData: {
     nombre: string
@@ -90,83 +63,37 @@ export function useRoles() {
     descripcion?: string
     color?: string
   }) => {
-    const response = await authFetch('/api/admin/roles', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(roleData),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      const error = new Error(data.error || 'Error al crear rol') as any
-      error.details = data.details
-      throw error
-    }
-
+    const data = await api.post<{ data: RoleResponse }>('/api/admin/roles', roleData)
     return data.data
-  }, [authFetch])
+  }, [])
 
   const updateRole = useCallback(async (id: string, roleData: {
     nombre?: string
     descripcion?: string
     color?: string
   }) => {
-    const response = await authFetch(`/api/admin/roles/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(roleData),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      const error = new Error(data.error || 'Error al actualizar rol') as any
-      error.details = data.details
-      throw error
-    }
-
+    const data = await api.put<{ data: RoleResponse }>(`/api/admin/roles/${id}`, roleData)
     return data.data
-  }, [authFetch])
+  }, [])
+
+  const duplicateRole = useCallback(async (id: string) => {
+    const data = await api.post<{ data: RoleResponse }>(`/api/admin/roles/${id}/duplicate`, {})
+    return data.data
+  }, [])
 
   const deleteRole = useCallback(async (id: string) => {
-    const response = await authFetch(`/api/admin/roles/${id}`, {
-      method: 'DELETE',
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al eliminar rol')
-    }
-
-    return data
-  }, [authFetch])
+    return await api.delete(`/api/admin/roles/${id}`)
+  }, [])
 
   const toggleActive = useCallback(async (id: string) => {
-    const response = await authFetch(`/api/admin/roles/${id}/toggle-active`, {
-      method: 'POST',
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al cambiar estado')
-    }
-
+    const data = await api.post<{ data: RoleResponse }>(`/api/admin/roles/${id}/toggle-active`, {})
     return data.data
-  }, [authFetch])
+  }, [])
 
   const getPermissions = useCallback(async (roleId: string): Promise<ModulePermission[]> => {
-    const response = await authFetch(`/api/admin/roles/${roleId}/permissions`)
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al cargar permisos')
-    }
-
+    const data = await api.get<{ data: ModulePermission[] }>(`/api/admin/roles/${roleId}/permissions`)
     return data.data
-  }, [authFetch])
+  }, [])
 
   const updatePermissions = useCallback(async (
     roleId: string,
@@ -178,20 +105,9 @@ export function useRoles() {
       canDelete: boolean
     }>
   ) => {
-    const response = await authFetch(`/api/admin/roles/${roleId}/permissions`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ permissions }),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al actualizar permisos')
-    }
-
+    const data = await api.put<{ data: ModulePermission[] }>(`/api/admin/roles/${roleId}/permissions`, { permissions })
     return data.data
-  }, [authFetch])
+  }, [])
 
   return {
     roles,
@@ -202,6 +118,7 @@ export function useRoles() {
     fetchModules,
     getRole,
     createRole,
+    duplicateRole,
     updateRole,
     deleteRole,
     toggleActive,

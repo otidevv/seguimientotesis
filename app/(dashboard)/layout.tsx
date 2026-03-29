@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, dispatchSessionExpired } from '@/contexts/auth-context'
+import { api, ApiError } from '@/lib/api'
 import { SidebarProvider } from '@/contexts/sidebar-context'
 import { DashboardSidebar } from '@/components/layout/sidebar'
 import { DashboardHeader } from '@/components/layout/dashboard-header'
@@ -36,17 +37,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const response = await fetch('/api/auth/me', {
-          credentials: 'include',
-        })
-
-        if (!response.ok && response.status === 401) {
-          // Solo disparar el evento, el middleware se encarga de redirigir
-          // No llamar a dispatchSessionExpired aquí para evitar loops
+        await api.get('/api/auth/me')
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 401) {
+          // Solo loguear, el middleware se encarga de redirigir
           console.log('[Session] Token expirado, el middleware redirigirá')
         }
-      } catch {
-        // Error de red, no hacer nada
+        // Otros errores (red, etc.), no hacer nada
       }
     }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { roleService } from '@/lib/admin/services/role.service'
 import { AdminError } from '@/lib/admin/types'
+import { requirePermission } from '@/lib/admin/require-permission'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -8,17 +9,11 @@ interface RouteParams {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const adminId = request.headers.get('x-user-id')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      )
-    }
+    const auth = await requirePermission(request, 'roles', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const { id } = await params
-    const role = await roleService.toggleActive(id, adminId)
+    const role = await roleService.toggleActive(id, auth.userId)
 
     return NextResponse.json({
       success: true,

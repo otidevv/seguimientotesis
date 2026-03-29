@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fullUserDetection } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { requirePermission } from '@/lib/admin/require-permission'
 import { z } from 'zod'
 
 const searchSchema = z.object({
@@ -9,6 +10,9 @@ const searchSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requirePermission(request, 'usuarios', 'create')
+    if (auth instanceof NextResponse) return auth
+
     const body = await request.json()
 
     const result = searchSchema.safeParse(body)

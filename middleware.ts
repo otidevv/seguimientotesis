@@ -25,13 +25,10 @@ const PUBLIC_API_ROUTES = [
   '/api/auth/me', // Permitir verificar sesión sin token
 ]
 
-// Rutas protegidas por rol
+// Rutas protegidas por rol (páginas y APIs)
 const PROTECTED_ROUTE_ROLES: Record<string, string[]> = {
   '/admin': ['SUPER_ADMIN', 'ADMIN'],
-  '/admin/usuarios': ['SUPER_ADMIN', 'ADMIN'],
-  '/admin/roles': ['SUPER_ADMIN'],
-  '/admin/permisos': ['SUPER_ADMIN'],
-  '/admin/auditoria': ['SUPER_ADMIN', 'ADMIN'],
+  '/api/admin': ['SUPER_ADMIN', 'ADMIN'],
 }
 
 interface JwtPayload {

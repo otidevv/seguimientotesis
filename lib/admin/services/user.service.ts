@@ -442,7 +442,22 @@ export class UserService {
       throw new AdminError('USER_NOT_FOUND', 'Usuario no encontrado', 404)
     }
 
-    // Registrar auditoría ANTES de eliminar
+    // Soft delete: desactivar cuenta y marcar deletedAt
+    await prisma.user.update({
+      where: { id },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+      },
+    })
+
+    // Desactivar todos los roles del usuario
+    await prisma.userRole.updateMany({
+      where: { userId: id, isActive: true },
+      data: { isActive: false },
+    })
+
+    // Registrar auditoría
     await this.logAudit(adminId, 'USER_DELETE', 'User', id, {
       email: user.email,
       numeroDocumento: user.numeroDocumento,
@@ -450,12 +465,7 @@ export class UserService {
       apellidoPaterno: user.apellidoPaterno,
       apellidoMaterno: user.apellidoMaterno,
       roles: user.roles.map(r => r.role.codigo),
-    }, null)
-
-    // Hard delete - las relaciones se eliminan en cascada
-    await prisma.user.delete({
-      where: { id },
-    })
+    }, { deletedAt: new Date().toISOString(), isActive: false })
   }
 
   /**

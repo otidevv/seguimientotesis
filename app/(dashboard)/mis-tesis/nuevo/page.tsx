@@ -43,6 +43,7 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 interface Carrera {
   id: string
@@ -196,15 +197,12 @@ export default function NuevoProyectoPage() {
   const loadCarreras = async () => {
     try {
       // Cargar carreras y tesis activas en paralelo
-      const [profileRes, tesisRes] = await Promise.all([
-        fetch('/api/auth/profile'),
-        fetch('/api/tesis?rol=autor'),
+      const [profileData, tesisData] = await Promise.all([
+        api.get<{ data: { carreras: Carrera[] } }>('/api/auth/profile'),
+        api.get<{ data: any[] }>('/api/tesis?rol=autor'),
       ])
 
-      const profileData = await profileRes.json()
-      const tesisData = await tesisRes.json()
-
-      if (profileData.success && profileData.data.carreras) {
+      if (profileData.data.carreras) {
         // Mapear las carreras con información de tesis activas
         const carrerasConTesis = profileData.data.carreras.map((carrera: Carrera) => {
           // Buscar si hay una tesis activa para esta carrera
@@ -251,13 +249,10 @@ export default function NuevoProyectoPage() {
 
     setBuscandoCoautor(true)
     try {
-      const response = await fetch(
+      const result = await api.get<{ data: Persona[] }>(
         `/api/tesis/buscar-estudiantes?carrera=${encodeURIComponent(carrera.carreraNombre)}&q=${encodeURIComponent(query)}`
       )
-      const data = await response.json()
-      if (data.success) {
-        setResultadosCoautor(data.data)
-      }
+      setResultadosCoautor(result.data)
     } catch {
       console.error('Error buscando coautor')
     } finally {
@@ -279,16 +274,13 @@ export default function NuevoProyectoPage() {
     try {
       const carrera = carreras.find((c) => c.id === carreraSeleccionada)
       const facultadParam = carrera ? `&facultadId=${carrera.facultadId}` : ''
-      const response = await fetch(`/api/tesis/buscar-docentes?q=${encodeURIComponent(query)}${facultadParam}`)
-      const data = await response.json()
-      if (data.success) {
-        const filtrados = data.data.filter((d: Persona) => {
-          if (tipo === 'asesor') return d.id !== coasesorSeleccionado?.id
-          return d.id !== asesorSeleccionado?.id
-        })
-        if (tipo === 'asesor') setResultadosAsesor(filtrados)
-        else setResultadosCoasesor(filtrados)
-      }
+      const result = await api.get<{ data: Persona[] }>(`/api/tesis/buscar-docentes?q=${encodeURIComponent(query)}${facultadParam}`)
+      const filtrados = result.data.filter((d: Persona) => {
+        if (tipo === 'asesor') return d.id !== coasesorSeleccionado?.id
+        return d.id !== asesorSeleccionado?.id
+      })
+      if (tipo === 'asesor') setResultadosAsesor(filtrados)
+      else setResultadosCoasesor(filtrados)
     } catch {
       console.error('Error buscando docente')
     } finally {
@@ -362,42 +354,20 @@ export default function NuevoProyectoPage() {
 
     setGuardando(true)
     try {
-      const response = await fetch('/api/tesis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          titulo: titulo.trim(),
-          resumen: resumen.trim() || null,
-          palabrasClave,
-          lineaInvestigacion: lineaInvestigacion.trim() || null,
-          studentCareerId: carreraSeleccionada,
-          coautorId: coautorSeleccionado?.id || null,
-          asesorId: asesorSeleccionado.id,
-          coasesorId: coasesorSeleccionado?.id || null,
-        }),
+      const result = await api.post<{ data: { id: string } }>('/api/tesis', {
+        titulo: titulo.trim(),
+        resumen: resumen.trim() || null,
+        palabrasClave,
+        lineaInvestigacion: lineaInvestigacion.trim() || null,
+        studentCareerId: carreraSeleccionada,
+        coautorId: coautorSeleccionado?.id || null,
+        asesorId: asesorSeleccionado.id,
+        coasesorId: coasesorSeleccionado?.id || null,
       })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Proyecto creado exitosamente')
-        router.push(`/mis-tesis/${data.data.id}`)
-      } else {
-        // Si ya tiene una tesis activa, mostrar enlace para verla
-        if (data.detalles?.tesisId) {
-          toast.error(data.error, {
-            description: 'Puedes ver tu proyecto existente en Mis Tesis',
-            action: {
-              label: 'Ver proyecto',
-              onClick: () => router.push(`/mis-tesis/${data.detalles.tesisId}`),
-            },
-          })
-        } else {
-          toast.error(data.error || 'Error al crear proyecto')
-        }
-      }
-    } catch {
-      toast.error('Error de conexión')
+      toast.success('Proyecto creado exitosamente')
+      router.push(`/mis-tesis/${result.data.id}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al crear proyecto')
     } finally {
       setGuardando(false)
     }
@@ -477,7 +447,7 @@ export default function NuevoProyectoPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6">
       <FullscreenLoader
         visible={guardando}
         title="Creando tu proyecto"
@@ -485,22 +455,16 @@ export default function NuevoProyectoPage() {
       />
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <Link href="/mis-tesis" className="hover:text-foreground transition-colors">
-            Mis Tesis
-          </Link>
-          <ChevronRight className="w-4 h-4" />
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+          <Link href="/mis-tesis" className="hover:text-foreground transition-colors">Mis Tesis</Link>
+          <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-foreground font-medium">Nuevo Proyecto</span>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Nuevo Proyecto de Tesis
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Completa los pasos para registrar tu proyecto
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight">Nuevo Proyecto de Tesis</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Completa los pasos para registrar tu proyecto</p>
           </div>
           <Button variant="outline" size="sm" asChild>
             <Link href="/mis-tesis">
@@ -512,8 +476,7 @@ export default function NuevoProyectoPage() {
       </div>
 
       {/* Progress Steps */}
-      <Card className="overflow-hidden">
-            <CardContent className="p-0">
+      <div className="rounded-xl border overflow-hidden">
               {/* Desktop Steps */}
               <div className="hidden md:flex">
                 {STEPS.map((step, index) => {
@@ -527,35 +490,38 @@ export default function NuevoProyectoPage() {
                       onClick={() => goToStep(step.id)}
                       disabled={!canNavigateToStep(step.id) && !isCurrent}
                       className={cn(
-                        'flex-1 flex items-center gap-3 p-4 border-b-2 transition-all',
-                        isCompleted && 'border-primary bg-primary/5 cursor-pointer hover:bg-primary/10',
-                        isCurrent && 'border-primary bg-primary/10',
-                        !isCompleted && !isCurrent && canNavigateToStep(step.id) && 'border-primary/40 cursor-pointer hover:bg-muted/50',
-                        !isCompleted && !isCurrent && !canNavigateToStep(step.id) && 'border-transparent opacity-50',
+                        'flex-1 flex items-center gap-3 px-4 py-3.5 transition-all relative',
+                        isCompleted && 'cursor-pointer hover:bg-muted/50',
+                        isCurrent && 'bg-muted/30',
+                        !isCompleted && !isCurrent && !canNavigateToStep(step.id) && 'opacity-40',
+                        !isCompleted && !isCurrent && canNavigateToStep(step.id) && 'cursor-pointer hover:bg-muted/30',
                         index > 0 && 'border-l'
                       )}
                     >
+                      {/* Bottom indicator for current */}
+                      {isCurrent && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+                      {isCompleted && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary/30" />}
+
                       <div className={cn(
-                        'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors',
-                        isCompleted && 'bg-primary text-primary-foreground',
-                        isCurrent && 'bg-primary text-primary-foreground animate-in zoom-in-75 duration-300',
+                        'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
+                        isCompleted && 'bg-primary/10 text-primary',
+                        isCurrent && 'bg-primary text-primary-foreground',
                         !isCompleted && !isCurrent && 'bg-muted text-muted-foreground'
                       )}>
                         {isCompleted ? (
-                          <Check className="w-5 h-5" />
+                          <Check className="w-4 h-4" />
                         ) : (
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-4 h-4" />
                         )}
                       </div>
                       <div className="text-left">
                         <p className={cn(
                           'font-medium text-sm',
-                          (isCompleted || isCurrent) && 'text-foreground',
-                          !isCompleted && !isCurrent && 'text-muted-foreground'
+                          (isCompleted || isCurrent) ? 'text-foreground' : 'text-muted-foreground'
                         )}>
                           {step.title}
                         </p>
-                        <p className="text-xs text-muted-foreground">{step.description}</p>
+                        <p className="text-[11px] text-muted-foreground">{step.description}</p>
                       </div>
                     </button>
                   )
@@ -605,8 +571,7 @@ export default function NuevoProyectoPage() {
                   })}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+          </div>
 
           {/* Main Content */}
           <div className="grid lg:grid-cols-3 gap-6">
@@ -1476,21 +1441,19 @@ export default function NuevoProyectoPage() {
                 </Card>
 
                 {/* Tips */}
-                <Card key={currentStep} className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 animate-in fade-in duration-300">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <Info className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium mb-1">{STEP_TIPS[currentStep].titulo}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {STEP_TIPS[currentStep].descripcion}
-                        </p>
-                      </div>
+                <div key={currentStep} className="rounded-xl border bg-muted/30 p-4 animate-in fade-in duration-300">
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Info className="w-3.5 h-3.5 text-primary" />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div>
+                      <p className="text-xs font-semibold mb-0.5">{STEP_TIPS[currentStep].titulo}</p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        {STEP_TIPS[currentStep].descripcion}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
         </div>
       </div>

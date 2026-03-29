@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use, useRef } from 'react'
+import { useState, useEffect, use, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -8,15 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
-import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   AlertCircle,
   AlertTriangle,
@@ -40,18 +31,17 @@ import {
   Loader2,
   Receipt,
   RefreshCw,
-  Search,
   Send,
   ShieldCheck,
-  Trash2,
   Upload,
-  User,
   Users,
   X,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, validarArchivoPDF } from '@/lib/utils'
+import { api } from '@/lib/api'
+import { useParticipantManager } from '@/hooks/use-participant-manager'
 import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import {
   Accordion,
@@ -60,218 +50,19 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-
-interface Documento {
-  id: string
-  tipoDocumento: string
-  nombre: string
-  archivoUrl: string
-  archivoTamano: number
-  archivoMimeType: string
-  createdAt: string
-  subidoPor?: {
-    id: string
-    nombres: string
-    apellidoPaterno: string
-    apellidoMaterno: string
-  }
-}
-
-interface Tesis {
-  id: string
-  codigo: string
-  titulo: string
-  resumen: string | null
-  palabrasClave: string[]
-  lineaInvestigacion: string | null
-  carreraNombre: string
-  estado: string
-  createdAt: string
-  fechaRegistro: string | null
-  autores: {
-    id: string
-    tipoParticipante: string
-    estado: string // PENDIENTE, ACEPTADO, RECHAZADO
-    user: {
-      id: string
-      nombres: string
-      apellidoPaterno: string
-      apellidoMaterno: string
-      email: string
-    }
-    studentCareer: {
-      codigoEstudiante: string
-    }
-  }[]
-  asesores: {
-    id: string
-    tipoAsesor: string
-    estado: string
-    user: {
-      id: string
-      nombres: string
-      apellidoPaterno: string
-      apellidoMaterno: string
-      email: string
-    }
-  }[]
-  voucherFisicoEntregado: boolean
-  voucherInformeFisicoEntregado: boolean
-  voucherSustentacionFisicoEntregado: boolean
-  voucherSustentacionFisicoFecha: string | null
-  ejemplaresEntregados: boolean
-  ejemplaresEntregadosFecha: string | null
-  facultad: {
-    id: string
-    nombre: string
-  }
-  documentos: Documento[]
-}
-
-const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
-  BORRADOR: {
-    label: 'Borrador',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100 dark:bg-gray-800',
-    icon: <FileText className="w-4 h-4" />
-  },
-  EN_REVISION: {
-    label: 'En Revisión',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
-    icon: <Clock className="w-4 h-4" />
-  },
-  REGISTRO_PENDIENTE: {
-    label: 'En Revisión',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
-    icon: <Clock className="w-4 h-4" />
-  },
-  OBSERVADA: {
-    label: 'Observada',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: <AlertCircle className="w-4 h-4" />
-  },
-  PROYECTO_OBSERVADO: {
-    label: 'Observado',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: <AlertCircle className="w-4 h-4" />
-  },
-  APROBADA: {
-    label: 'Aprobada',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100 dark:bg-green-900/30',
-    icon: <CheckCircle2 className="w-4 h-4" />
-  },
-  PROYECTO_APROBADO: {
-    label: 'Proyecto Aprobado',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100 dark:bg-green-900/30',
-    icon: <CheckCircle2 className="w-4 h-4" />
-  },
-  EN_DESARROLLO: {
-    label: 'En Desarrollo',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-    icon: <FileText className="w-4 h-4" />
-  },
-  EN_SUSTENTACION: {
-    label: 'En Sustentación',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-    icon: <GraduationCap className="w-4 h-4" />
-  },
-  SUSTENTADA: {
-    label: 'Sustentada',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
-    icon: <CheckCircle2 className="w-4 h-4" />
-  },
-  RECHAZADA: {
-    label: 'Rechazada',
-    color: 'text-red-600',
-    bgColor: 'bg-red-100 dark:bg-red-900/30',
-    icon: <X className="w-4 h-4" />
-  },
-  ASIGNANDO_JURADOS: {
-    label: 'Asignando Jurados',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-    icon: <Clock className="w-4 h-4" />
-  },
-  EN_EVALUACION_JURADO: {
-    label: 'En Evaluacion (Jurado)',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
-    icon: <Clock className="w-4 h-4" />
-  },
-  OBSERVADA_JURADO: {
-    label: 'Observada por Jurado',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: <AlertCircle className="w-4 h-4" />
-  },
-  INFORME_FINAL: {
-    label: 'Informe Final',
-    color: 'text-cyan-600',
-    bgColor: 'bg-cyan-100 dark:bg-cyan-900/30',
-    icon: <FileText className="w-4 h-4" />
-  },
-  EN_REVISION_INFORME: {
-    label: 'Informe en Revisión',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-    icon: <Clock className="w-4 h-4" />
-  },
-  EN_EVALUACION_INFORME: {
-    label: 'Evaluando Informe',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
-    icon: <Clock className="w-4 h-4" />
-  },
-  OBSERVADA_INFORME: {
-    label: 'Informe Observado',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: <AlertCircle className="w-4 h-4" />
-  },
-}
-
-const ESTADO_ASESOR_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
-  PENDIENTE: {
-    label: 'Pendiente de aceptación',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
-    icon: <Clock className="w-5 h-5" />
-  },
-  ACEPTADO: {
-    label: 'Aceptado',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100 dark:bg-green-900/30',
-    icon: <CheckCircle2 className="w-5 h-5" />
-  },
-  RECHAZADO: {
-    label: 'Rechazado',
-    color: 'text-red-600',
-    bgColor: 'bg-red-100 dark:bg-red-900/30',
-    icon: <X className="w-5 h-5" />
-  },
-}
-
-interface Participante {
-  id: string
-  nombres: string
-  apellidoPaterno: string
-  apellidoMaterno: string
-  email: string
-  codigoEstudiante?: string
-  codigoDocente?: string
-  carrera?: string
-  departamento?: string
-  studentCareerId?: string // ID del registro StudentCareer específico
-}
+import {
+  ESTADO_CONFIG,
+  ESTADO_ASESOR_CONFIG,
+  DocumentUploadCard,
+  AdvisorStatusCard,
+  ReadOnlyDocumentCard,
+  ReadOnlyAdvisorCard,
+  ReadOnlyCoauthorCard,
+  ThesisSidebar,
+  ParticipantDialog,
+  formatFileSize,
+} from '@/components/tesis'
+import type { Documento, Tesis, Participante } from '@/components/tesis'
 
 export default function DetalleTesisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -286,51 +77,33 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [respondiendo, setRespondiendo] = useState(false)
   const [mostrarObsAnteriores, setMostrarObsAnteriores] = useState(false)
 
-  // Estado para el diálogo de reemplazo/agregar participantes
-  const [dialogReemplazo, setDialogReemplazo] = useState(false)
-  const [tipoReemplazo, setTipoReemplazo] = useState<'COAUTOR' | 'ASESOR' | 'COASESOR' | null>(null)
-  const [participanteActualId, setParticipanteActualId] = useState<string | null>(null)
-  const [modoDialogo, setModoDialogo] = useState<'REEMPLAZAR' | 'AGREGAR'>('REEMPLAZAR')
-  const [busquedaParticipante, setBusquedaParticipante] = useState('')
-  const [resultadosBusqueda, setResultadosBusqueda] = useState<Participante[]>([])
-  const [buscando, setBuscando] = useState(false)
-  const [reemplazando, setReemplazando] = useState(false)
-  const [participanteSeleccionado, setParticipanteSeleccionado] = useState<Participante | null>(null)
+  const loadTesis = useCallback(async () => {
+    try {
+      const data = await api.get<{ data: Tesis }>(`/api/tesis/${id}`)
+      setTesis(data.data)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al cargar tesis')
+      router.push('/mis-tesis')
+    } finally {
+      setLoading(false)
+    }
+  }, [id, router])
+
+  // Participant manager hook
+  const participants = useParticipantManager(tesis, loadTesis)
 
   useEffect(() => {
     if (!authLoading && user) {
       loadTesis()
     }
-  }, [authLoading, user, id])
-
-  const loadTesis = async () => {
-    try {
-      const response = await fetch(`/api/tesis/${id}`)
-      const data = await response.json()
-
-      if (data.success) {
-        setTesis(data.data)
-      } else {
-        toast.error(data.error || 'Tesis no encontrada')
-        router.push('/mis-tesis')
-      }
-    } catch {
-      toast.error('Error al cargar tesis')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [authLoading, user, loadTesis])
 
   const handleFileUpload = async (tipoDocumento: string, file: File) => {
     if (!tesis) return
 
-    const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error(`El archivo "${file.name}" excede el límite de 25MB (${(file.size / 1024 / 1024).toFixed(1)}MB)`)
-      return
-    }
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Solo se permiten archivos PDF')
+    const error = validarArchivoPDF(file)
+    if (error) {
+      toast.error(error)
       return
     }
 
@@ -340,21 +113,11 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
     formData.append('tipoDocumento', tipoDocumento)
 
     try {
-      const response = await fetch(`/api/tesis/${tesis.id}/documentos`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Documento subido exitosamente')
-        loadTesis()
-      } else {
-        toast.error(data.error || 'Error al subir documento')
-      }
-    } catch {
-      toast.error('Error de conexión')
+      await api.post(`/api/tesis/${tesis.id}/documentos`, formData)
+      toast.success('Documento subido exitosamente')
+      loadTesis()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error de conexión')
     } finally {
       setSubiendo(null)
     }
@@ -365,24 +128,11 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
     setEnviando(true)
     try {
-      const response = await fetch(`/api/tesis/${tesis.id}/enviar`, {
-        method: 'POST',
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Proyecto enviado a revisión')
-        loadTesis()
-      } else {
-        if (data.detalles) {
-          data.detalles.forEach((d: string) => toast.error(d))
-        } else {
-          toast.error(data.error || 'Error al enviar')
-        }
-      }
-    } catch {
-      toast.error('Error de conexión')
+      await api.post(`/api/tesis/${tesis.id}/enviar`, {})
+      toast.success('Proyecto enviado a revisión')
+      loadTesis()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error de conexión')
     } finally {
       setEnviando(false)
     }
@@ -392,169 +142,15 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const responderInvitacion = async (invitacionId: string, accion: 'ACEPTAR' | 'RECHAZAR') => {
     setRespondiendo(true)
     try {
-      const response = await fetch(`/api/mis-invitaciones/${invitacionId}/responder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(accion === 'ACEPTAR' ? 'Invitación aceptada' : 'Invitación rechazada')
-        loadTesis()
-      } else {
-        toast.error(data.error || 'Error al responder')
-      }
-    } catch {
-      toast.error('Error de conexión')
+      await api.post(`/api/mis-invitaciones/${invitacionId}/responder`, { accion })
+      toast.success(accion === 'ACEPTAR' ? 'Invitación aceptada' : 'Invitación rechazada')
+      loadTesis()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error de conexión')
     } finally {
       setRespondiendo(false)
     }
   }
-
-  // Funciones para reemplazar/agregar participantes
-  const abrirDialogoReemplazo = (tipo: 'COAUTOR' | 'ASESOR' | 'COASESOR', participanteId: string) => {
-    setTipoReemplazo(tipo)
-    setParticipanteActualId(participanteId)
-    setModoDialogo('REEMPLAZAR')
-    setBusquedaParticipante('')
-    setResultadosBusqueda([])
-    setParticipanteSeleccionado(null)
-    setDialogReemplazo(true)
-  }
-
-  const abrirDialogoAgregar = (tipo: 'COAUTOR' | 'COASESOR') => {
-    setTipoReemplazo(tipo)
-    setParticipanteActualId(null)
-    setModoDialogo('AGREGAR')
-    setBusquedaParticipante('')
-    setResultadosBusqueda([])
-    setParticipanteSeleccionado(null)
-    setDialogReemplazo(true)
-  }
-
-  const buscarParticipantes = async (query: string) => {
-    if (query.length < 2) {
-      setResultadosBusqueda([])
-      return
-    }
-
-    setBuscando(true)
-    try {
-      let endpoint: string
-      if (tipoReemplazo === 'COAUTOR') {
-        // Filtrar por la misma carrera del autor principal
-        const carreraParam = tesis?.carreraNombre ? `&carrera=${encodeURIComponent(tesis.carreraNombre)}` : ''
-        endpoint = `/api/tesis/buscar-estudiantes?q=${encodeURIComponent(query)}${carreraParam}`
-      } else {
-        // Para asesores, filtrar por facultad
-        const facultadParam = tesis?.facultad?.id ? `&facultadId=${encodeURIComponent(tesis.facultad.id)}` : ''
-        endpoint = `/api/tesis/buscar-docentes?q=${encodeURIComponent(query)}${facultadParam}`
-      }
-
-      const response = await fetch(endpoint)
-      const data = await response.json()
-
-      if (data.success) {
-        setResultadosBusqueda(data.data)
-      }
-    } catch {
-      toast.error('Error al buscar')
-    } finally {
-      setBuscando(false)
-    }
-  }
-
-  const ejecutarReemplazo = async () => {
-    if (!tesis || !tipoReemplazo || !participanteSeleccionado) return
-
-    setReemplazando(true)
-    try {
-      let response: Response
-
-      if (modoDialogo === 'AGREGAR') {
-        // Agregar nuevo participante
-        response = await fetch(`/api/tesis/${tesis.id}/participantes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tipo: tipoReemplazo,
-            participanteId: participanteSeleccionado.id,
-            studentCareerId: tipoReemplazo === 'COAUTOR' ? participanteSeleccionado.studentCareerId : undefined,
-          }),
-        })
-      } else {
-        // Reemplazar participante existente
-        response = await fetch(`/api/tesis/${tesis.id}/participantes`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tipo: tipoReemplazo,
-            accion: 'REEMPLAZAR',
-            participanteId: participanteActualId,
-            nuevoParticipanteId: participanteSeleccionado.id,
-            studentCareerId: tipoReemplazo === 'COAUTOR' ? participanteSeleccionado.studentCareerId : undefined,
-          }),
-        })
-      }
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        setDialogReemplazo(false)
-        loadTesis()
-      } else {
-        toast.error(data.error || `Error al ${modoDialogo === 'AGREGAR' ? 'agregar' : 'reemplazar'}`)
-      }
-    } catch {
-      toast.error('Error de conexión')
-    } finally {
-      setReemplazando(false)
-    }
-  }
-
-  const eliminarParticipante = async (tipo: 'COAUTOR' | 'COASESOR', participanteId: string) => {
-    if (!tesis) return
-
-    if (!confirm(`¿Estás seguro de eliminar este ${tipo === 'COAUTOR' ? 'coautor' : 'coasesor'}?`)) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/tesis/${tesis.id}/participantes`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tipo,
-          accion: 'ELIMINAR',
-          participanteId,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        loadTesis()
-      } else {
-        toast.error(data.error || 'Error al eliminar')
-      }
-    } catch {
-      toast.error('Error de conexión')
-    }
-  }
-
-  // Efecto para buscar cuando cambia el texto de búsqueda
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (busquedaParticipante.length >= 2) {
-        buscarParticipantes(busquedaParticipante)
-      }
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [busquedaParticipante, tipoReemplazo])
 
   if (authLoading || loading) {
     return (
@@ -1177,16 +773,11 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 onClick={async () => {
                   setReenviando(true)
                   try {
-                    const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
-                    const data = await res.json()
-                    if (data.success) {
-                      toast.success(data.message)
-                      window.location.reload()
-                    } else {
-                      toast.error(data.error)
-                    }
-                  } catch {
-                    toast.error('Error de conexión')
+                    const data = await api.post<{ message: string }>(`/api/tesis/${tesis.id}/reenviar-jurado`, {})
+                    toast.success(data.message)
+                    window.location.reload()
+                  } catch (error) {
+                    toast.error(error instanceof Error ? error.message : 'Error de conexión')
                   } finally {
                     setReenviando(false)
                   }
@@ -1499,21 +1090,11 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 onClick={async () => {
                   setEnviando(true)
                   try {
-                    const res = await fetch(`/api/tesis/${tesis.id}/enviar-informe`, { method: 'POST' })
-                    const data = await res.json()
-                    if (data.success) {
-                      toast.success(data.message)
-                      window.location.reload()
-                    } else {
-                      toast.error(data.error || 'Error al enviar')
-                      if (data.requisitos) {
-                        data.requisitos.filter((r: any) => !r.cumplido).forEach((r: any) => {
-                          toast.error(r.detalle)
-                        })
-                      }
-                    }
-                  } catch {
-                    toast.error('Error de conexión')
+                    const data = await api.post<{ message: string }>(`/api/tesis/${tesis.id}/enviar-informe`, {})
+                    toast.success(data.message)
+                    window.location.reload()
+                  } catch (error) {
+                    toast.error(error instanceof Error ? error.message : 'Error de conexión')
                   } finally {
                     setEnviando(false)
                   }
@@ -1863,16 +1444,11 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 onClick={async () => {
                   setReenviando(true)
                   try {
-                    const res = await fetch(`/api/tesis/${tesis.id}/reenviar-jurado`, { method: 'POST' })
-                    const data = await res.json()
-                    if (data.success) {
-                      toast.success(data.message)
-                      window.location.reload()
-                    } else {
-                      toast.error(data.error)
-                    }
-                  } catch {
-                    toast.error('Error de conexión')
+                    const data = await api.post<{ message: string }>(`/api/tesis/${tesis.id}/reenviar-jurado`, {})
+                    toast.success(data.message)
+                    window.location.reload()
+                  } catch (error) {
+                    toast.error(error instanceof Error ? error.message : 'Error de conexión')
                   } finally {
                     setReenviando(false)
                   }
@@ -2783,930 +2359,34 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Tesistas */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" />
-                Tesistas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {tesis.autores.map((a) => (
-                <div key={a.id} className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                      a.tipoParticipante === 'AUTOR_PRINCIPAL'
-                        ? 'bg-primary/10'
-                        : a.estado === 'ACEPTADO'
-                          ? 'bg-green-100 dark:bg-green-900/50'
-                          : a.estado === 'RECHAZADO'
-                            ? 'bg-red-100 dark:bg-red-900/50'
-                            : 'bg-yellow-100 dark:bg-yellow-900/50'
-                    )}>
-                      <User className={cn(
-                        'w-4 h-4',
-                        a.tipoParticipante === 'AUTOR_PRINCIPAL'
-                          ? 'text-primary'
-                          : a.estado === 'ACEPTADO'
-                            ? 'text-green-600'
-                            : a.estado === 'RECHAZADO'
-                              ? 'text-red-600'
-                              : 'text-yellow-600'
-                      )} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {a.user.apellidoPaterno} {a.user.apellidoMaterno}, {a.user.nombres}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {a.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'} • {a.studentCareer.codigoEstudiante}
-                        </span>
-                        {/* Mostrar estado solo para coautores */}
-                        {a.tipoParticipante === 'COAUTOR' && (
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              'text-[10px] px-1.5 py-0',
-                              a.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                              a.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
-                              a.estado === 'RECHAZADO' && 'border-red-500 text-red-600'
-                            )}
-                          >
-                            {a.estado === 'PENDIENTE' ? 'Pendiente' : a.estado === 'ACEPTADO' ? 'Aceptado' : 'Rechazado'}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  {/* Botones de acción para coautores rechazados o pendientes (solo autor principal) */}
-                  {puedeEditar && esAutorPrincipal && a.tipoParticipante === 'COAUTOR' && a.estado !== 'ACEPTADO' && (
-                    <div className="flex gap-2 ml-12">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => abrirDialogoReemplazo('COAUTOR', a.id)}
-                      >
-                        <RefreshCw className="w-3 h-3 mr-1" />
-                        Cambiar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => eliminarParticipante('COAUTOR', a.id)}
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Eliminar
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Botón para agregar coautor si no existe (solo autor principal) */}
-              {puedeEditar && esAutorPrincipal && !coautor && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full mt-2"
-                  onClick={() => abrirDialogoAgregar('COAUTOR')}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Agregar Tesista 2
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Asesores */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-primary" />
-                Asesores
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {tesis.asesores.map((a) => (
-                <div key={a.id} className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                      a.estado === 'ACEPTADO'
-                        ? 'bg-green-100 dark:bg-green-900/50'
-                        : a.estado === 'RECHAZADO'
-                          ? 'bg-red-100 dark:bg-red-900/50'
-                          : a.tipoAsesor === 'ASESOR'
-                            ? 'bg-green-100 dark:bg-green-900/50'
-                            : 'bg-purple-100 dark:bg-purple-900/50'
-                    )}>
-                      <GraduationCap className={cn(
-                        'w-4 h-4',
-                        a.estado === 'ACEPTADO'
-                          ? 'text-green-600'
-                          : a.estado === 'RECHAZADO'
-                            ? 'text-red-600'
-                            : a.tipoAsesor === 'ASESOR'
-                              ? 'text-green-600'
-                              : 'text-purple-600'
-                      )} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {a.user.apellidoPaterno} {a.user.apellidoMaterno}, {a.user.nombres}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {a.tipoAsesor === 'ASESOR' ? 'Asesor' : 'Coasesor'}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'text-[10px] px-1.5 py-0',
-                            a.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                            a.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
-                            a.estado === 'RECHAZADO' && 'border-red-500 text-red-600'
-                          )}
-                        >
-                          {a.estado === 'PENDIENTE' ? 'Pendiente' : a.estado === 'ACEPTADO' ? 'Aceptado' : 'Rechazado'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Botones de acción para asesores rechazados o pendientes (solo autor principal) */}
-                  {puedeEditar && esAutorPrincipal && a.estado !== 'ACEPTADO' && (
-                    <div className="flex gap-2 ml-12">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => abrirDialogoReemplazo(a.tipoAsesor === 'ASESOR' ? 'ASESOR' : 'COASESOR', a.id)}
-                      >
-                        <RefreshCw className="w-3 h-3 mr-1" />
-                        Cambiar
-                      </Button>
-                      {/* Solo permitir eliminar coasesores */}
-                      {a.tipoAsesor === 'COASESOR' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => eliminarParticipante('COASESOR', a.id)}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Eliminar
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Botón para agregar coasesor si no existe (solo autor principal) */}
-              {puedeEditar && esAutorPrincipal && !coasesor && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full mt-2"
-                  onClick={() => abrirDialogoAgregar('COASESOR')}
-                >
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Agregar Coasesor
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Info adicional */}
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="pt-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Info className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium mb-1">Importante</p>
-                  <p className="text-xs text-muted-foreground">
-                    Una vez enviado a revisión, no podrás modificar los documentos hasta recibir observaciones o aprobación.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <ThesisSidebar
+          tesis={tesis}
+          puedeEditar={puedeEditar}
+          esAutorPrincipal={esAutorPrincipal}
+          coautor={coautor}
+          coasesor={coasesor}
+          onReemplazar={participants.abrirReemplazo}
+          onEliminar={participants.eliminar}
+          onAgregar={participants.abrirAgregar}
+        />
       </div>
 
       {/* Diálogo de agregar/reemplazar participante */}
-      <Dialog open={dialogReemplazo} onOpenChange={setDialogReemplazo}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {modoDialogo === 'AGREGAR' ? 'Agregar' : 'Cambiar'} {tipoReemplazo === 'COAUTOR' ? 'Tesista 2' : tipoReemplazo === 'ASESOR' ? 'Asesor' : 'Coasesor'}
-            </DialogTitle>
-            <DialogDescription>
-              Busca y selecciona {tipoReemplazo === 'COAUTOR' ? 'al estudiante' : 'al docente'} que participará en tu proyecto.
-              {tipoReemplazo === 'COAUTOR' && (
-                <span className="block mt-1 text-yellow-600 dark:text-yellow-400">
-                  Solo se mostrarán estudiantes de tu misma carrera.
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {/* Buscador */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder={tipoReemplazo === 'COAUTOR' ? 'Buscar por nombre o código...' : 'Buscar por nombre...'}
-                value={busquedaParticipante}
-                onChange={(e) => setBusquedaParticipante(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-
-            {/* Resultados */}
-            <div className="max-h-60 overflow-y-auto space-y-2">
-              {buscando ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              ) : resultadosBusqueda.length > 0 ? (
-                resultadosBusqueda.map((p) => (
-                  <div
-                    key={p.id}
-                    onClick={() => setParticipanteSeleccionado(p)}
-                    className={cn(
-                      'p-3 rounded-lg border cursor-pointer transition-all',
-                      participanteSeleccionado?.id === p.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                        {tipoReemplazo === 'COAUTOR' ? (
-                          <User className="w-5 h-5 text-muted-foreground" />
-                        ) : (
-                          <GraduationCap className="w-5 h-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {p.apellidoPaterno} {p.apellidoMaterno}, {p.nombres}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {tipoReemplazo === 'COAUTOR'
-                            ? `${p.codigoEstudiante || 'Sin código'} • ${p.carrera || 'Sin carrera'}`
-                            : `${p.codigoDocente || ''} • ${p.departamento || 'Sin departamento'}`}
-                        </p>
-                      </div>
-                      {participanteSeleccionado?.id === p.id && (
-                        <CheckCircle2 className="w-5 h-5 text-primary" />
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : busquedaParticipante.length >= 2 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className="text-sm">No se encontraron resultados</p>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Escribe al menos 2 caracteres para buscar</p>
-                </div>
-              )}
-            </div>
-
-            {/* Seleccionado */}
-            {participanteSeleccionado && (
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                <p className="text-xs text-green-600 dark:text-green-400 font-medium mb-1">Seleccionado:</p>
-                <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                  {participanteSeleccionado.apellidoPaterno} {participanteSeleccionado.apellidoMaterno}, {participanteSeleccionado.nombres}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogReemplazo(false)} disabled={reemplazando}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={ejecutarReemplazo}
-              disabled={!participanteSeleccionado || reemplazando}
-            >
-              {reemplazando ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {modoDialogo === 'AGREGAR' ? 'Agregando...' : 'Cambiando...'}
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  {modoDialogo === 'AGREGAR' ? 'Agregar' : 'Confirmar cambio'}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ParticipantDialog
+        open={participants.dialogOpen}
+        onOpenChange={(open) => { if (!open) participants.cerrar() }}
+        modo={participants.modoDialogo}
+        tipo={participants.tipoReemplazo}
+        busqueda={participants.busqueda}
+        onBusquedaChange={participants.setBusqueda}
+        buscando={participants.buscando}
+        resultados={participants.resultados}
+        seleccionado={participants.participanteSeleccionado}
+        onSeleccionar={participants.setParticipanteSeleccionado}
+        reemplazando={participants.reemplazando}
+        onConfirmar={participants.ejecutar}
+      />
     </div>
   )
 }
 
-// Componente para subir documentos con drag & drop
-function DocumentUploadCard({
-  titulo,
-  descripcion,
-  tipoDocumento,
-  documento,
-  onUpload,
-  subiendo,
-  accept,
-  icon,
-  iconColor,
-  iconBg,
-}: {
-  titulo: string
-  descripcion: string
-  tipoDocumento: string
-  documento?: Documento
-  onUpload: (tipo: string, file: File) => void
-  subiendo: boolean
-  accept: string
-  icon: React.ReactNode
-  iconColor: string
-  iconBg: string
-}) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file) {
-      onUpload(tipoDocumento, file)
-    }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      onUpload(tipoDocumento, file)
-    }
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-  }
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    // No abrir el selector si se hizo clic en un enlace, botón o el input
-    const target = e.target as HTMLElement
-    if (target.closest('a') || target.closest('button') || target.closest('input')) return
-    // Si ya hay documento, no abrir selector al hacer clic en la tarjeta
-    if (documento) return
-    if (!subiendo) inputRef.current?.click()
-  }
-
-  return (
-    <div
-      className={cn(
-        'relative rounded-xl border-2 transition-all group',
-        isDragging && 'border-primary bg-primary/5 border-dashed',
-        documento && !isDragging && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 border-solid',
-        !documento && !isDragging && 'border-dashed border-border hover:border-primary/50 hover:bg-muted/30 cursor-pointer'
-      )}
-      onClick={handleCardClick}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      <div className="p-3 sm:p-4">
-        <div className="flex items-start gap-3 sm:gap-4">
-          {/* Icono */}
-          <div className={cn(
-            'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105',
-            documento ? 'bg-green-100 dark:bg-green-900/50' : iconBg
-          )}>
-            {documento ? (
-              <FileCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-            ) : (
-              <span className={iconColor}>{icon}</span>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <p className="font-semibold text-xs sm:text-sm">{titulo}</p>
-              {documento ? (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600 shrink-0">
-                  Subido
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-destructive border-destructive shrink-0">
-                  Requerido
-                </Badge>
-              )}
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-none">{descripcion}</p>
-
-            {documento ? (
-              <a
-                href={documento.archivoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg bg-white dark:bg-background border hover:bg-muted/50 transition-colors cursor-pointer"
-                title="Ver documento"
-              >
-                <File className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
-                <span className="text-xs sm:text-sm flex-1 truncate">{documento.nombre}</span>
-                <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline shrink-0">
-                  {formatFileSize(documento.archivoTamano)}
-                </span>
-                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
-              </a>
-            ) : (
-              <div className="text-center py-1 sm:py-2">
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
-                  Arrastra un archivo aquí o haz clic en subir
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Botón */}
-          <div className="shrink-0">
-            <input
-              ref={inputRef}
-              type="file"
-              accept={accept}
-              onChange={handleChange}
-              className="hidden"
-              disabled={subiendo}
-            />
-            <Button
-              variant={documento ? 'outline' : 'default'}
-              size="sm"
-              onClick={() => inputRef.current?.click()}
-              disabled={subiendo}
-              className="h-8 sm:h-9 text-xs sm:text-sm"
-            >
-              {subiendo ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : documento ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 sm:mr-1" />
-                  <span className="hidden sm:inline">Cambiar</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="w-3.5 h-3.5 sm:mr-1" />
-                  <span className="hidden sm:inline">Subir</span>
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Overlay de carga */}
-      {subiendo && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-xl flex items-center justify-center">
-          <div className="flex items-center gap-3">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-            <span className="text-sm font-medium">Subiendo documento...</span>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// Componente para mostrar el estado de aceptación del asesor (sin upload)
-function AdvisorStatusCard({
-  titulo,
-  descripcion,
-  tipoAsesor,
-  asesor,
-  documento,
-  icon,
-  iconColor,
-  iconBg,
-}: {
-  titulo: string
-  descripcion: string
-  tipoAsesor: string
-  asesor: {
-    id: string
-    tipoAsesor: string
-    estado: string
-    user: {
-      id: string
-      nombres: string
-      apellidoPaterno: string
-      apellidoMaterno: string
-      email: string
-    }
-  }
-  documento?: Documento
-  icon: React.ReactNode
-  iconColor: string
-  iconBg: string
-}) {
-  const estadoConfig = ESTADO_ASESOR_CONFIG[asesor.estado] || ESTADO_ASESOR_CONFIG.PENDIENTE
-  const nombreAsesor = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno}`
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-  }
-
-  return (
-    <div
-      className={cn(
-        'relative rounded-xl border-2 transition-all',
-        asesor.estado === 'ACEPTADO' && documento && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
-        asesor.estado === 'ACEPTADO' && !documento && 'border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20',
-        asesor.estado === 'PENDIENTE' && 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20',
-        asesor.estado === 'RECHAZADO' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
-      )}
-    >
-      <div className="p-4">
-        <div className="flex items-start gap-4">
-          {/* Icono */}
-          <div className={cn(
-            'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
-            asesor.estado === 'ACEPTADO' && documento ? 'bg-green-100 dark:bg-green-900/50' :
-            asesor.estado === 'ACEPTADO' && !documento ? 'bg-blue-100 dark:bg-blue-900/50' :
-            asesor.estado === 'RECHAZADO' ? 'bg-red-100 dark:bg-red-900/50' : iconBg
-          )}>
-            {asesor.estado === 'ACEPTADO' && documento ? (
-              <FileCheck className="w-6 h-6 text-green-600" />
-            ) : asesor.estado === 'ACEPTADO' && !documento ? (
-              <Clock className="w-6 h-6 text-blue-600" />
-            ) : asesor.estado === 'RECHAZADO' ? (
-              <X className="w-6 h-6 text-red-600" />
-            ) : (
-              <span className={iconColor}>{icon}</span>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <p className="font-semibold text-sm">{titulo}</p>
-              {asesor.estado === 'ACEPTADO' && documento ? (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
-                  Carta registrada
-                </Badge>
-              ) : asesor.estado === 'ACEPTADO' && !documento ? (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-500 text-blue-600">
-                  Falta carta
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-[10px] px-1.5 py-0',
-                    estadoConfig.color,
-                    asesor.estado === 'PENDIENTE' && 'border-yellow-500',
-                    asesor.estado === 'RECHAZADO' && 'border-red-500'
-                  )}
-                >
-                  {estadoConfig.label}
-                </Badge>
-              )}
-            </div>
-
-            <p className="text-xs text-muted-foreground mb-2">
-              {tipoAsesor}: <span className="font-medium">{nombreAsesor}</span>
-            </p>
-
-            {asesor.estado === 'ACEPTADO' && documento ? (
-              <a
-                href={documento.archivoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border hover:bg-muted/50 transition-colors cursor-pointer"
-                title="Ver carta de aceptación"
-              >
-                <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm flex-1 truncate">{documento.nombre}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formatFileSize(documento.archivoTamano)}
-                </span>
-                <Eye className="w-4 h-4 text-muted-foreground" />
-              </a>
-            ) : asesor.estado === 'ACEPTADO' && !documento ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                <Clock className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
-                    Aceptó la asesoría — falta carta
-                  </p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                    El {tipoAsesor.toLowerCase()} debe subir su carta de aceptación
-                  </p>
-                </div>
-              </div>
-            ) : asesor.estado === 'PENDIENTE' ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-100/50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-                <Clock className="w-4 h-4 text-yellow-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    Esperando aceptación
-                  </p>
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                    El {tipoAsesor.toLowerCase()} debe aceptar y subir su carta de aceptación
-                  </p>
-                </div>
-              </div>
-            ) : asesor.estado === 'RECHAZADO' ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-100/50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                <X className="w-4 h-4 text-red-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    Asesoría rechazada
-                  </p>
-                  <p className="text-xs text-red-600 dark:text-red-400">
-                    El {tipoAsesor.toLowerCase()} ha rechazado la asesoría
-                  </p>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Componente para mostrar documentos en modo solo lectura
-function ReadOnlyDocumentCard({
-  titulo,
-  documento,
-  icon,
-  iconColor,
-  iconBg,
-}: {
-  titulo: string
-  documento?: Documento
-  icon: React.ReactNode
-  iconColor: string
-  iconBg: string
-}) {
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-  }
-
-  return (
-    <div className={cn(
-      'rounded-xl border-2 p-4',
-      documento ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20' : 'border-muted'
-    )}>
-      <div className="flex items-start gap-4">
-        <div className={cn(
-          'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
-          documento ? 'bg-green-100 dark:bg-green-900/50' : iconBg
-        )}>
-          {documento ? (
-            <FileCheck className="w-5 h-5 text-green-600" />
-          ) : (
-            <span className={iconColor}>{icon}</span>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <p className="font-semibold text-sm">{titulo}</p>
-            {documento && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
-                Subido
-              </Badge>
-            )}
-          </div>
-          {documento ? (
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border mt-2">
-              <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-sm flex-1 truncate">{documento.nombre}</span>
-              <span className="text-xs text-muted-foreground">
-                {formatFileSize(documento.archivoTamano)}
-              </span>
-              <a
-                href={documento.archivoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                title="Ver documento"
-              >
-                <Eye className="w-4 h-4" />
-              </a>
-              <a
-                href={documento.archivoUrl}
-                download
-                className="p-1.5 hover:bg-muted rounded-md transition-colors"
-                title="Descargar documento"
-              >
-                <Download className="w-4 h-4" />
-              </a>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No hay documento subido</p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Componente para mostrar estado del asesor en modo solo lectura
-function ReadOnlyAdvisorCard({
-  titulo,
-  asesor,
-  documento,
-}: {
-  titulo: string
-  asesor: {
-    id: string
-    tipoAsesor: string
-    estado: string
-    user: {
-      id: string
-      nombres: string
-      apellidoPaterno: string
-      apellidoMaterno: string
-      email: string
-    }
-  }
-  documento?: Documento
-}) {
-  const estadoConfig = ESTADO_ASESOR_CONFIG[asesor.estado] || ESTADO_ASESOR_CONFIG.PENDIENTE
-  const nombreAsesor = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno}`
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-  }
-
-  return (
-    <div className={cn(
-      'rounded-xl border-2 p-4',
-      asesor.estado === 'ACEPTADO' && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
-      asesor.estado === 'PENDIENTE' && 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20',
-      asesor.estado === 'RECHAZADO' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
-    )}>
-      <div className="flex items-start gap-4">
-        <div className={cn(
-          'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
-          asesor.estado === 'ACEPTADO' && 'bg-green-100 dark:bg-green-900/50',
-          asesor.estado === 'PENDIENTE' && 'bg-yellow-100 dark:bg-yellow-900/50',
-          asesor.estado === 'RECHAZADO' && 'bg-red-100 dark:bg-red-900/50'
-        )}>
-          {asesor.estado === 'ACEPTADO' ? (
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-          ) : asesor.estado === 'RECHAZADO' ? (
-            <X className="w-5 h-5 text-red-600" />
-          ) : (
-            <Clock className="w-5 h-5 text-yellow-600" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <p className="font-semibold text-sm">{titulo}</p>
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-[10px] px-1.5 py-0',
-                asesor.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                asesor.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
-                asesor.estado === 'RECHAZADO' && 'border-red-500 text-red-600'
-              )}
-            >
-              {asesor.estado === 'ACEPTADO' ? 'Aceptado' : asesor.estado === 'PENDIENTE' ? 'Pendiente' : 'Rechazado'}
-            </Badge>
-          </div>
-          <p className="text-sm font-medium">{nombreAsesor}</p>
-          <p className="text-xs text-muted-foreground">{asesor.user.email}</p>
-
-          {/* Mostrar documento si existe */}
-          {asesor.estado === 'ACEPTADO' && documento && (
-            <a
-              href={documento.archivoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border mt-2 hover:bg-muted/50 transition-colors cursor-pointer"
-              title="Ver carta de aceptación"
-            >
-              <FileCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span className="text-sm flex-1 truncate">Carta de Aceptación</span>
-              <span className="text-xs text-muted-foreground">
-                {formatFileSize(documento.archivoTamano)}
-              </span>
-              <Eye className="w-4 h-4 text-muted-foreground" />
-            </a>
-          )}
-          {asesor.estado === 'ACEPTADO' && !documento && (
-            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-              Aceptó la asesoría — pendiente de subir carta
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Componente para mostrar estado del coautor en modo solo lectura
-function ReadOnlyCoauthorCard({
-  coautor,
-}: {
-  coautor: {
-    id: string
-    tipoParticipante: string
-    estado: string
-    user: {
-      id: string
-      nombres: string
-      apellidoPaterno: string
-      apellidoMaterno: string
-      email: string
-    }
-    studentCareer: {
-      codigoEstudiante: string
-    }
-  }
-}) {
-  const nombreCoautor = `${coautor.user.nombres} ${coautor.user.apellidoPaterno} ${coautor.user.apellidoMaterno}`
-
-  return (
-    <div className={cn(
-      'rounded-xl border-2 p-4',
-      coautor.estado === 'ACEPTADO' && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
-      coautor.estado === 'PENDIENTE' && 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20',
-      coautor.estado === 'RECHAZADO' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
-    )}>
-      <div className="flex items-start gap-4">
-        <div className={cn(
-          'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
-          coautor.estado === 'ACEPTADO' && 'bg-green-100 dark:bg-green-900/50',
-          coautor.estado === 'PENDIENTE' && 'bg-yellow-100 dark:bg-yellow-900/50',
-          coautor.estado === 'RECHAZADO' && 'bg-red-100 dark:bg-red-900/50'
-        )}>
-          {coautor.estado === 'ACEPTADO' ? (
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-          ) : coautor.estado === 'RECHAZADO' ? (
-            <X className="w-5 h-5 text-red-600" />
-          ) : (
-            <Clock className="w-5 h-5 text-yellow-600" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <p className="font-semibold text-sm">Coautor (Tesista 2)</p>
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-[10px] px-1.5 py-0',
-                coautor.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                coautor.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
-                coautor.estado === 'RECHAZADO' && 'border-red-500 text-red-600'
-              )}
-            >
-              {coautor.estado === 'ACEPTADO' ? 'Aceptado' : coautor.estado === 'PENDIENTE' ? 'Pendiente' : 'Rechazado'}
-            </Badge>
-          </div>
-          <p className="text-sm font-medium">{nombreCoautor}</p>
-          <p className="text-xs text-muted-foreground">
-            {coautor.studentCareer.codigoEstudiante} • {coautor.user.email}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}

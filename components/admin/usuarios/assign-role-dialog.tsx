@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Loader2, Plus, X, Shield, Building2, Pencil, Check } from 'lucide-react'
+import { api } from '@/lib/api'
 import type { AdminUserResponse } from '@/lib/admin/types'
 
 interface Facultad {
@@ -59,12 +60,9 @@ export function AssignRoleDialog({
   // Cargar facultades al abrir el diálogo
   useEffect(() => {
     if (open) {
-      fetch('/api/facultades')
-        .then(res => res.json())
+      api.get<{ data: Facultad[] }>('/api/facultades')
         .then(data => {
-          if (data.success) {
-            setFacultades(data.data)
-          }
+          setFacultades(data.data)
         })
         .catch(console.error)
     }

@@ -39,6 +39,7 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 // Declarar la función global de Firma Perú
 declare global {
@@ -210,17 +211,11 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
 
   const loadData = async () => {
     try {
-      const response = await fetch(`/api/mis-asesorias/${id}`)
-      const result = await response.json()
-
-      if (result.success) {
-        setData(result.data)
-      } else {
-        toast.error(result.error || 'Error al cargar datos')
-        router.push('/mis-asesorias')
-      }
-    } catch {
-      toast.error('Error de conexión')
+      const result = await api.get<{ data: AsesoriaDetalle }>(`/api/mis-asesorias/${id}`)
+      setData(result.data)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al cargar datos')
+      router.push('/mis-asesorias')
     } finally {
       setLoading(false)
     }
@@ -238,23 +233,12 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
     setProcesandoRespuesta(true)
 
     try {
-      const response = await fetch(`/api/mis-invitaciones/${data.asesoria.id}/responder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: accionRespuesta }),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        toast.success(result.message)
-        setShowRespuestaDialog(false)
-        await loadData()
-      } else {
-        toast.error(result.error || 'Error al procesar respuesta')
-      }
-    } catch {
-      toast.error('Error de conexión')
+      const result = await api.post<{ message: string }>(`/api/mis-invitaciones/${data.asesoria.id}/responder`, { accion: accionRespuesta })
+      toast.success(result.message)
+      setShowRespuestaDialog(false)
+      await loadData()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al procesar respuesta')
     } finally {
       setProcesandoRespuesta(false)
     }
@@ -267,23 +251,12 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
     setRegistrandoCarta(true)
 
     try {
-      const response = await fetch(`/api/tesis/${data.tesis.id}/carta-aceptacion/registrar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: cartaSubida.fileName }),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        toast.success('Carta de aceptación registrada correctamente')
-        setCartaSubida(null)
-        await loadData()
-      } else {
-        toast.error(result.error || 'Error al registrar carta')
-      }
-    } catch {
-      toast.error('Error de conexión')
+      await api.post(`/api/tesis/${data.tesis.id}/carta-aceptacion/registrar`, { fileName: cartaSubida.fileName })
+      toast.success('Carta de aceptación registrada correctamente')
+      setCartaSubida(null)
+      await loadData()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al registrar carta')
     } finally {
       setRegistrandoCarta(false)
     }
@@ -312,24 +285,14 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch(`/api/tesis/${data.tesis.id}/carta-aceptacion/subir`, {
-        method: 'POST',
-        body: formData,
+      const result = await api.post<{ data: { fileName: string; filePath: string } }>(`/api/tesis/${data.tesis.id}/carta-aceptacion/subir`, formData)
+      setCartaSubida({
+        fileName: result.data.fileName,
+        filePath: result.data.filePath,
       })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setCartaSubida({
-          fileName: result.data.fileName,
-          filePath: result.data.filePath,
-        })
-        toast.success('Carta subida correctamente. Ahora puedes firmarla.')
-      } else {
-        toast.error(result.error || 'Error al subir carta')
-      }
-    } catch {
-      toast.error('Error de conexión')
+      toast.success('Carta subida correctamente. Ahora puedes firmarla.')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al subir carta')
     } finally {
       setSubiendoCarta(false)
       // Limpiar input
@@ -393,21 +356,11 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
       }
 
       // Registrar el lote con metadata de tesis
-      const response = await fetch(`/api/tesis/${data.tesis.id}/carta-aceptacion/firmar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: cartaSubida.fileName,
-          motivo: 1, // Autor
-          apariencia: 1, // Horizontal
-        }),
+      const result = await api.post<{ data: { token_lote: string } }>(`/api/tesis/${data.tesis.id}/carta-aceptacion/firmar`, {
+        fileName: cartaSubida.fileName,
+        motivo: 1, // Autor
+        apariencia: 1, // Horizontal
       })
-
-      const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.error || 'Error al iniciar firma')
-      }
 
       const { token_lote } = result.data
 

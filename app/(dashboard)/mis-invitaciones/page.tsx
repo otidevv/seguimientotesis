@@ -50,6 +50,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 interface Invitacion {
   id: string
@@ -163,24 +164,23 @@ export default function MisInvitacionesPage() {
   const loadInvitaciones = useCallback(async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      params.set('page', String(page))
-      params.set('limit', String(itemsPerPage))
-      if (filtroEstado !== 'TODOS') params.set('estado', filtroEstado)
-      if (busquedaDebounced) params.set('busqueda', busquedaDebounced)
-
-      const response = await fetch(`/api/mis-invitaciones?${params.toString()}`)
-      const data = await response.json()
-
-      if (data.success) {
-        setInvitaciones(data.data)
-        setConteo(data.conteo)
-        if (data.pagination) {
-          setTotalPages(data.pagination.totalPages)
-          setTotalItems(data.pagination.totalItems)
-        }
-      } else {
-        toast.error(data.error || 'Error al cargar invitaciones')
+      const result = await api.get<{
+        data: Invitacion[]
+        conteo: Conteo
+        pagination?: { totalPages: number; totalItems: number }
+      }>('/api/mis-invitaciones', {
+        params: {
+          page,
+          limit: itemsPerPage,
+          estado: filtroEstado !== 'TODOS' ? filtroEstado : undefined,
+          busqueda: busquedaDebounced || undefined,
+        },
+      })
+      setInvitaciones(result.data)
+      setConteo(result.conteo)
+      if (result.pagination) {
+        setTotalPages(result.pagination.totalPages)
+        setTotalItems(result.pagination.totalItems)
       }
     } catch {
       toast.error('Error de conexion')
@@ -223,39 +223,28 @@ export default function MisInvitacionesPage() {
     setProcesando(true)
 
     try {
-      const response = await fetch(`/api/mis-invitaciones/${selectedInvitacion.id}/responder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accion,
-          motivoRechazo: accion === 'RECHAZAR' ? motivoRechazo : undefined,
-        }),
+      const result = await api.post<{ message: string }>(`/api/mis-invitaciones/${selectedInvitacion.id}/responder`, {
+        accion,
+        motivoRechazo: accion === 'RECHAZAR' ? motivoRechazo : undefined,
       })
+      toast.success(result.message)
+      setDialogOpen(false)
 
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        setDialogOpen(false)
-
-        // Si acepto como asesor/coasesor, redirigir a la asesoria para subir carta de aceptacion
-        if (accion === 'ACEPTAR' && (selectedInvitacion.tipoInvitacion === 'ASESOR' || selectedInvitacion.tipoInvitacion === 'COASESOR')) {
-          router.push(`/mis-asesorias/${selectedInvitacion.tesis.id}`)
-          return
-        }
-
-        // Si acepto como coautor, redirigir a la tesis
-        if (accion === 'ACEPTAR' && selectedInvitacion.tipoInvitacion === 'COAUTOR') {
-          router.push(`/mis-tesis/${selectedInvitacion.tesis.id}`)
-          return
-        }
-
-        loadInvitaciones()
-      } else {
-        toast.error(data.error || 'Error al procesar respuesta')
+      // Si acepto como asesor/coasesor, redirigir a la asesoria para subir carta de aceptacion
+      if (accion === 'ACEPTAR' && (selectedInvitacion.tipoInvitacion === 'ASESOR' || selectedInvitacion.tipoInvitacion === 'COASESOR')) {
+        router.push(`/mis-asesorias/${selectedInvitacion.tesis.id}`)
+        return
       }
-    } catch {
-      toast.error('Error de conexion')
+
+      // Si acepto como coautor, redirigir a la tesis
+      if (accion === 'ACEPTAR' && selectedInvitacion.tipoInvitacion === 'COAUTOR') {
+        router.push(`/mis-tesis/${selectedInvitacion.tesis.id}`)
+        return
+      }
+
+      loadInvitaciones()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error de conexion')
     } finally {
       setProcesando(false)
     }
@@ -280,73 +269,21 @@ export default function MisInvitacionesPage() {
 
   if (authLoading) {
     return (
-      <div className="container mx-auto py-6 px-4">
-        <div className="max-w-6xl mx-auto space-y-6">
-          {/* Header skeleton */}
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-56" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-          {/* Stats skeleton */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i}>
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="w-10 h-10 rounded-lg" />
-                    <div className="space-y-1.5">
-                      <Skeleton className="h-7 w-10" />
-                      <Skeleton className="h-3 w-16" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+      <div className="space-y-6">
+        <div className="space-y-2"><Skeleton className="h-7 w-48" /><Skeleton className="h-4 w-80" /></div>
+        <div className="flex gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (<Skeleton key={i} className="h-[60px] w-32 rounded-xl" />))}
+        </div>
+        <Card>
+          <div className="flex gap-3 p-4 border-b"><Skeleton className="h-9 flex-1" /><Skeleton className="h-9 w-44" /></div>
+          <div className="space-y-0">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-3 border-b last:border-b-0">
+                <Skeleton className="h-4 w-48 flex-1" /><Skeleton className="h-5 w-16 rounded-full" /><Skeleton className="h-7 w-20" />
+              </div>
             ))}
           </div>
-          {/* Table skeleton */}
-          <Card>
-            <CardHeader className="pb-0">
-              <Skeleton className="h-5 w-32" />
-            </CardHeader>
-            <div className="flex flex-col sm:flex-row gap-3 p-4 border-b">
-              <Skeleton className="h-9 flex-1" />
-              <Skeleton className="h-9 w-full sm:w-48" />
-            </div>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead><Skeleton className="h-4 w-16" /></TableHead>
-                      <TableHead className="hidden md:table-cell"><Skeleton className="h-4 w-12" /></TableHead>
-                      <TableHead><Skeleton className="h-4 w-14" /></TableHead>
-                      <TableHead className="hidden lg:table-cell"><Skeleton className="h-4 w-24" /></TableHead>
-                      <TableHead className="hidden lg:table-cell"><Skeleton className="h-4 w-14" /></TableHead>
-                      <TableHead><Skeleton className="h-4 w-16" /></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <div className="space-y-1.5">
-                            <Skeleton className="h-4 w-48" />
-                            <Skeleton className="h-3 w-32" />
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
-                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
-                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
-                        <TableCell><Skeleton className="h-7 w-24" /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        </Card>
       </div>
     )
   }
@@ -355,91 +292,48 @@ export default function MisInvitacionesPage() {
   const endItem = Math.min(page * itemsPerPage, totalItems)
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-          <h1 className="text-2xl font-bold">Mis Invitaciones</h1>
-          <p className="text-muted-foreground">
-            Invitaciones para participar como coautor, asesor o coasesor en proyectos de tesis
-          </p>
+    <div className="space-y-6">
+        {/* Header + Stats */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Mis Invitaciones</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Invitaciones para participar como coautor, asesor o coasesor en proyectos de tesis
+            </p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { label: 'Total', value: conteo.total, icon: Mail, color: 'text-blue-500' },
+              { label: 'Pendientes', value: conteo.pendientes, icon: Clock, color: 'text-amber-500' },
+              { label: 'Aceptadas', value: conteo.aceptadas, icon: CheckCircle2, color: 'text-emerald-500' },
+              { label: 'Rechazadas', value: conteo.rechazadas, icon: X, color: 'text-red-500' },
+            ].map((s) => (
+              <div key={s.label} className="flex items-center gap-2 rounded-xl border px-3 py-2">
+                <s.icon className={cn('h-4 w-4 flex-shrink-0', s.color)} />
+                <div>
+                  <p className="text-lg font-bold leading-none">{s.value}</p>
+                  <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Estadisticas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '0ms', animationDuration: '500ms' }}>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{conteo.total}</p>
-                  <p className="text-xs text-muted-foreground">Total</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '80ms', animationDuration: '500ms' }}>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{conteo.pendientes}</p>
-                  <p className="text-xs text-muted-foreground">Pendientes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '160ms', animationDuration: '500ms' }}>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{conteo.aceptadas}</p>
-                  <p className="text-xs text-muted-foreground">Aceptadas</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '240ms', animationDuration: '500ms' }}>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
-                  <X className="w-5 h-5 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{conteo.rechazadas}</p>
-                  <p className="text-xs text-muted-foreground">Rechazadas</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabla */}
-        <Card>
-          <CardHeader className="pb-0">
-            <CardTitle className="text-lg">Invitaciones</CardTitle>
-          </CardHeader>
-
+        {/* Table Card */}
+        <Card className="overflow-hidden">
           {/* Filtros */}
-          <div className="flex flex-col sm:flex-row gap-3 p-4 border-b">
+          <div className="flex flex-col sm:flex-row gap-3 p-4 border-b bg-muted/20">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por titulo de tesis..."
-                className="pl-9"
+                placeholder="Buscar por título de tesis..."
+                className="pl-9 bg-background"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
             </div>
             <Select value={filtroEstado} onValueChange={handleFiltroEstado}>
-              <SelectTrigger className="w-full sm:w-48">
+              <SelectTrigger className="w-full sm:w-44 bg-background">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent position="popper">
@@ -759,7 +653,6 @@ export default function MisInvitacionesPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   )
 }

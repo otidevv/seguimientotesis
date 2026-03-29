@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
 import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
@@ -22,10 +22,7 @@ export async function GET(
       )
     }
 
-    // Verificar que el usuario tiene rol MESA_PARTES, ADMIN o SUPER_ADMIN
-    const tieneAcceso = user.roles?.some(
-      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    const tieneAcceso = await checkPermission(user.id, 'mesa-partes', 'view')
 
     if (!tieneAcceso) {
       return NextResponse.json(
@@ -289,10 +286,7 @@ export async function PUT(
       )
     }
 
-    // Verificar que el usuario tiene rol MESA_PARTES
-    const isMesaPartes = user.roles?.some(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive
-    )
+    const isMesaPartes = await checkPermission(user.id, 'mesa-partes', 'edit')
 
     if (!isMesaPartes) {
       return NextResponse.json(

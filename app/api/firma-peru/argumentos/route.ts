@@ -51,28 +51,28 @@ export async function POST(request: NextRequest) {
     // Validar parámetros requeridos
     if (!body.archivo_ids || !Array.isArray(body.archivo_ids) || body.archivo_ids.length === 0) {
       return NextResponse.json(
-        { message: 'archivo_ids es requerido y debe ser un array no vacío' },
+        { success: false, error: 'archivo_ids es requerido y debe ser un array no vacío' },
         { status: 400 }
       );
     }
 
     if (!body.motivo || ![1, 2].includes(body.motivo)) {
       return NextResponse.json(
-        { message: 'motivo es requerido (1: Autor, 2: VoBo)' },
+        { success: false, error: 'motivo es requerido (1: Autor, 2: VoBo)' },
         { status: 400 }
       );
     }
 
     if (!body.apariencia || ![1, 2].includes(body.apariencia)) {
       return NextResponse.json(
-        { message: 'apariencia es requerida (1: Horizontal, 2: Vertical)' },
+        { success: false, error: 'apariencia es requerida (1: Horizontal, 2: Vertical)' },
         { status: 400 }
       );
     }
 
     if (!body.nombre_lote) {
       return NextResponse.json(
-        { message: 'nombre_lote es requerido' },
+        { success: false, error: 'nombre_lote es requerido' },
         { status: 400 }
       );
     }
@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
     console.log(`[Firma Perú] Lote creado: ${tokenLote} con ${body.archivo_ids.length} archivos`);
 
     return NextResponse.json({
+      success: true,
       message: 'Parámetros recibidos correctamente',
       token_lote: tokenLote,
     });
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[Firma Perú] Error en POST /argumentos:', error);
     return NextResponse.json(
-      { message: 'Error interno del servidor' },
+      { success: false, error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { roleService } from '@/lib/admin/services/role.service'
 import { AdminError } from '@/lib/admin/types'
 import { updatePermissionsSchema } from '@/lib/validators/role.schema'
+import { requirePermission } from '@/lib/admin/require-permission'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -9,6 +10,9 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await requirePermission(request, 'permisos', 'view')
+    if (auth instanceof NextResponse) return auth
+
     const { id } = await params
     const permissions = await roleService.getPermissions(id)
 
@@ -35,14 +39,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const adminId = request.headers.get('x-user-id')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      )
-    }
+    const auth = await requirePermission(request, 'permisos', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const { id } = await params
     const body = await request.json()
@@ -55,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const permissions = await roleService.updatePermissions(id, result.data, adminId)
+    const permissions = await roleService.updatePermissions(id, result.data, auth.userId)
 
     return NextResponse.json({
       success: true,

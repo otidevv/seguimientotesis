@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
+import { api } from '@/lib/api'
 import {
   Palette,
   Sun,
@@ -56,18 +57,8 @@ export default function ConfiguracionPage() {
   const handleLogoutAll = async () => {
     setIsLoggingOutAll(true)
     try {
-      const response = await fetch('/api/auth/logout-all', {
-        method: 'POST',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Error al cerrar sesiones')
-      }
-
+      await api.post('/api/auth/logout-all')
       toast.success('Todas las sesiones han sido cerradas')
-      // Redirigir al login después de un momento
       setTimeout(() => logout(), 1500)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al cerrar sesiones')

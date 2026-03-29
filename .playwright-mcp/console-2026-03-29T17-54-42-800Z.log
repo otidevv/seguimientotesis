@@ -1,0 +1,6 @@
+[   60484ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3000/api/notificaciones?limit=30:0
+[  107409ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3000/api/reportes?page=1&limit=10:0
+[  107412ms] [ERROR] Error cargando reportes: ApiError: No autorizado
+    at request (http://localhost:3000/_next/static/chunks/_bf289ee5._.js:42:19)
+    at async ReportesPage.useCallback[loadReportes] (http://localhost:3000/_next/static/chunks/_c20d455d._.js?id=%255Bproject%255D%252Fapp%252F%2528dashboard%2529%252Freportes%252Fpage.tsx+%255Bapp-client%255D+%2528ecmascript%2529:283:32) @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  120488ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3000/api/notificaciones?limit=30:0

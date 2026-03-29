@@ -70,8 +70,9 @@ export function WhatsAppFloat() {
           <button
             onClick={() => setOpen(false)}
             className="text-white/70 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
+            aria-label="Cerrar menú de contacto"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 

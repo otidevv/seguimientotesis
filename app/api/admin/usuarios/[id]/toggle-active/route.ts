@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { userService } from '@/lib/admin/services/user.service'
 import { AdminError } from '@/lib/admin/types'
+import { requirePermission } from '@/lib/admin/require-permission'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const adminId = request.headers.get('x-user-id')
-    if (!adminId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
-    }
+    const auth = await requirePermission(request, 'usuarios', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const { id } = await params
-    const user = await userService.toggleActive(id, adminId)
+    const user = await userService.toggleActive(id, auth.userId)
 
     return NextResponse.json({
       success: true,

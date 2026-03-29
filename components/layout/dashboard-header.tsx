@@ -46,18 +46,18 @@ export function DashboardHeader() {
             <span className="sr-only">Abrir menú</span>
           </Button>
 
-          {/* Logo - solo visible en móvil donde el sidebar está oculto */}
-          <Link href="/dashboard" className="flex items-center gap-3 lg:hidden">
+          {/* Logo - siempre visible */}
+          <Link href="/dashboard" className="flex items-center gap-3">
             <Image
               src="/logo/logounamad.png"
               alt="UNAMAD"
               width={40}
               height={40}
-              className="rounded"
+              className="rounded-xl ring-1 ring-border"
             />
             <div className="hidden sm:block">
               <p className="font-semibold text-sm">Sistema de Tesis</p>
-              <p className="text-xs text-muted-foreground">UNAMAD</p>
+              <p className="text-[11px] font-medium tracking-widest uppercase text-muted-foreground">UNAMAD</p>
             </div>
           </Link>
         </div>

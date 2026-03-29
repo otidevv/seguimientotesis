@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useAuth } from '@/contexts/auth-context'
+import { api } from '@/lib/api'
 import type { AdminUserResponse } from '@/lib/admin/types'
 
 interface UseUsersOptions {
@@ -27,7 +27,6 @@ interface Pagination {
 }
 
 export function useUsers(options: UseUsersOptions = {}) {
-  const { authFetch } = useAuth()
   const [users, setUsers] = useState<AdminUserResponse[]>([])
   const [pagination, setPagination] = useState<Pagination>({
     page: options.initialPage || 1,
@@ -46,24 +45,17 @@ export function useUsers(options: UseUsersOptions = {}) {
     try {
       const currentPage = page || pagination.page
       const currentLimit = limit || pagination.limit
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: currentLimit.toString(),
-      })
 
-      // Agregar filtros que no estén vacíos
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          params.set(key, value)
+      const data = await api.get<{ data: AdminUserResponse[]; pagination: Pagination }>(
+        '/api/admin/usuarios',
+        {
+          params: {
+            page: currentPage,
+            limit: currentLimit,
+            ...filters,
+          },
         }
-      })
-
-      const response = await authFetch(`/api/admin/usuarios?${params}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar usuarios')
-      }
+      )
 
       setUsers(data.data)
       setPagination(data.pagination)
@@ -72,131 +64,46 @@ export function useUsers(options: UseUsersOptions = {}) {
     } finally {
       setIsLoading(false)
     }
-  }, [authFetch, pagination.page, pagination.limit])
+  }, [pagination.page, pagination.limit])
 
   const createUser = useCallback(async (userData: any) => {
-    const response = await authFetch('/api/admin/usuarios', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      const error = new Error(data.error || 'Error al crear usuario') as any
-      error.details = data.details
-      throw error
-    }
-
+    const data = await api.post<{ data: AdminUserResponse }>('/api/admin/usuarios', userData)
     return data.data
-  }, [authFetch])
+  }, [])
 
   const updateUser = useCallback(async (id: string, userData: any) => {
-    const response = await authFetch(`/api/admin/usuarios/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      const error = new Error(data.error || 'Error al actualizar usuario') as any
-      error.details = data.details
-      throw error
-    }
-
+    const data = await api.put<{ data: AdminUserResponse }>(`/api/admin/usuarios/${id}`, userData)
     return data.data
-  }, [authFetch])
+  }, [])
 
   const deleteUser = useCallback(async (id: string) => {
-    const response = await authFetch(`/api/admin/usuarios/${id}`, {
-      method: 'DELETE',
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al eliminar usuario')
-    }
-
-    return data
-  }, [authFetch])
+    return await api.delete(`/api/admin/usuarios/${id}`)
+  }, [])
 
   const toggleActive = useCallback(async (id: string) => {
-    const response = await authFetch(`/api/admin/usuarios/${id}/toggle-active`, {
-      method: 'POST',
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al cambiar estado')
-    }
-
+    const data = await api.post<{ data: AdminUserResponse }>(`/api/admin/usuarios/${id}/toggle-active`, {})
     return data.data
-  }, [authFetch])
+  }, [])
 
   const unlockUser = useCallback(async (id: string) => {
-    const response = await authFetch(`/api/admin/usuarios/${id}/unlock`, {
-      method: 'POST',
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al desbloquear usuario')
-    }
-
+    const data = await api.post<{ data: AdminUserResponse }>(`/api/admin/usuarios/${id}/unlock`, {})
     return data.data
-  }, [authFetch])
+  }, [])
 
   const assignRole = useCallback(async (userId: string, roleData: { roleId: string; contextType?: string; contextId?: string }) => {
-    const response = await authFetch(`/api/admin/usuarios/${userId}/roles`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(roleData),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al asignar rol')
-    }
-
+    const data = await api.post<{ data: AdminUserResponse }>(`/api/admin/usuarios/${userId}/roles`, roleData)
     return data.data
-  }, [authFetch])
+  }, [])
 
   const removeRole = useCallback(async (userId: string, roleId: string) => {
-    const response = await authFetch(`/api/admin/usuarios/${userId}/roles/${roleId}`, {
-      method: 'DELETE',
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al remover rol')
-    }
-
+    const data = await api.delete<{ data: AdminUserResponse }>(`/api/admin/usuarios/${userId}/roles/${roleId}`)
     return data.data
-  }, [authFetch])
+  }, [])
 
   const updateRoleContext = useCallback(async (userId: string, roleId: string, contextType?: string, contextId?: string) => {
-    const response = await authFetch(`/api/admin/usuarios/${userId}/roles/${roleId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contextType, contextId }),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al actualizar contexto del rol')
-    }
-
+    const data = await api.patch<{ data: AdminUserResponse }>(`/api/admin/usuarios/${userId}/roles/${roleId}`, { contextType, contextId })
     return data.data
-  }, [authFetch])
+  }, [])
 
   const setPage = useCallback((page: number) => {
     setPagination(prev => ({ ...prev, page }))

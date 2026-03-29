@@ -46,7 +46,23 @@
       "Bash(python3 -c \":*)",
       "Bash(node -e \":*)",
       "Bash(claude mcp:*)",
-      "mcp__postgres__query"
+      "mcp__postgres__query",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "Bash(npx --yes sharp-cli --version)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Read(//d/sistemas unamad/seguimientotesis/**)",
+      "Bash(done)",
+      "Bash(grep -h \"useState\" ./app/\\\\\\(dashboard\\\\\\)/mis-tesis/[id]/page.tsx ./app/\\\\\\(dashboard\\\\\\)/mesa-partes/[id]/page.tsx)",
+      "Bash(head -500 ./app/\\\\\\(dashboard\\\\\\)/mis-tesis/nuevo/page.tsx)",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_fill_form",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "mcp__plugin_playwright_playwright__browser_resize",
+      "Bash(__NEW_LINE_6c55411012c72675__ node -e \":*)",
+      "Skill(commit-commands:commit)"
     ]
   }
 }

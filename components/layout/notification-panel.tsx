@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 interface Notification {
   id: string
@@ -58,13 +59,9 @@ export function NotificationPanel() {
 
   const fetchNotificaciones = useCallback(async () => {
     try {
-      const res = await fetch('/api/notificaciones?limit=30')
-      if (!res.ok) return
-      const data = await res.json()
-      if (data.success) {
-        setNotificaciones(data.data)
-        setNoLeidasCount(data.noLeidasCount)
-      }
+      const data = await api.get<{ data: Notification[]; noLeidasCount: number }>('/api/notificaciones', { params: { limit: 30 } })
+      setNotificaciones(data.data)
+      setNoLeidasCount(data.noLeidasCount)
     } catch {
       // silently fail
     }
@@ -87,15 +84,9 @@ export function NotificationPanel() {
   const marcarTodasLeidas = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/notificaciones', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ todas: true }),
-      })
-      if (res.ok) {
-        setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })))
-        setNoLeidasCount(0)
-      }
+      await api.put('/api/notificaciones', { todas: true })
+      setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })))
+      setNoLeidasCount(0)
     } catch {
       // silently fail
     } finally {
@@ -107,11 +98,7 @@ export function NotificationPanel() {
     // Mark as read
     if (!notif.leida) {
       try {
-        await fetch('/api/notificaciones', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: [notif.id] }),
-        })
+        await api.put('/api/notificaciones', { ids: [notif.id] })
         setNotificaciones(prev =>
           prev.map(n => n.id === notif.id ? { ...n, leida: true } : n)
         )

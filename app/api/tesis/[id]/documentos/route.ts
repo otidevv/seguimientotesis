@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import path from 'path'
 import fs from 'fs'
@@ -101,9 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Verificar que el usuario es autor, asesor, o tiene rol administrativo
     const esAutor = tesis.autores.length > 0
     const esAsesor = tesis.asesores.length > 0
-    const esAdminOMesaPartes = user.roles?.some(
-      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    const esAdminOMesaPartes = await checkPermission(user.id, 'mesa-partes', 'edit')
 
     if (!esAutor && !esAsesor && !esAdminOMesaPartes) {
       return NextResponse.json(

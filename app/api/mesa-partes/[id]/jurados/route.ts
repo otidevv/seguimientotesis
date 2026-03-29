@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, checkPermission } from '@/lib/auth'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -16,9 +16,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const tieneAcceso = user.roles?.some(
-      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    const tieneAcceso = await checkPermission(user.id, 'mesa-partes', 'view')
 
     if (!tieneAcceso) {
       return NextResponse.json({ error: 'No tienes permisos' }, { status: 403 })
@@ -79,9 +77,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const isMesaPartes = user.roles?.some(
-      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    const isMesaPartes = await checkPermission(user.id, 'mesa-partes', 'edit')
 
     if (!isMesaPartes) {
       return NextResponse.json({ error: 'No tienes permisos' }, { status: 403 })
@@ -234,9 +230,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const isMesaPartes = user.roles?.some(
-      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    const isMesaPartes = await checkPermission(user.id, 'mesa-partes', 'edit')
 
     if (!isMesaPartes) {
       return NextResponse.json({ error: 'No tienes permisos' }, { status: 403 })

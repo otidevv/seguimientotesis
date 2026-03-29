@@ -49,6 +49,7 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 
@@ -193,22 +194,22 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
     const timer = setTimeout(async () => {
       setVerificandoConflictos(true)
       try {
-        const params = new URLSearchParams({
-          fecha: fechaSustentacion,
-          hora: horaSustentacion,
-          thesisId: id,
+        const data = await api.get<{
+          data: {
+            conflictos: typeof conflictos
+            sustentacionesDia: typeof sustentacionesDia
+          }
+        }>('/api/sustentaciones/verificar-conflictos', {
+          params: {
+            fecha: fechaSustentacion,
+            hora: horaSustentacion,
+            thesisId: id,
+            lugar: lugarSustentacion.trim() || undefined,
+          },
         })
-        if (lugarSustentacion.trim()) {
-          params.set('lugar', lugarSustentacion.trim())
-        }
 
-        const res = await fetch(`/api/sustentaciones/verificar-conflictos?${params}`)
-        const data = await res.json()
-
-        if (data.success) {
-          setConflictos(data.data.conflictos || [])
-          setSustentacionesDia(data.data.sustentacionesDia || [])
-        }
+        setConflictos(data.data.conflictos || [])
+        setSustentacionesDia(data.data.sustentacionesDia || [])
       } catch {
         // Silenciar errores de verificación
       } finally {
@@ -228,18 +229,14 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
   const loadTesis = async () => {
     try {
       setLoading(true)
-      const queryParams = juradoIdParam ? `?juradoId=${juradoIdParam}` : ''
-      const response = await fetch(`/api/mis-evaluaciones/${id}${queryParams}`)
-      const data = await response.json()
+      const data = await api.get<{ data: TesisEvaluacion }>(`/api/mis-evaluaciones/${id}`, {
+        params: { juradoId: juradoIdParam || undefined },
+      })
 
-      if (data.success) {
-        setTesis(data.data)
-      } else {
-        toast.error(data.error || 'Error al cargar tesis')
-        router.push('/mis-evaluaciones')
-      }
-    } catch {
-      toast.error('Error al cargar tesis')
+      setTesis(data.data)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al cargar tesis')
+      router.push('/mis-evaluaciones')
     } finally {
       setLoading(false)
     }
@@ -281,25 +278,16 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
         formData.append('archivo', archivoEval)
       }
 
-      const response = await fetch(`/api/mis-evaluaciones/${id}/evaluacion`, {
-        method: 'POST',
-        body: formData,
-      })
+      const data = await api.post<{ message: string }>(`/api/mis-evaluaciones/${id}/evaluacion`, formData)
 
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        await loadTesis()
-        // Si es presidente y aún faltan jurados por votar, mostrar modal
-        if (esPresidente) {
-          setShowEsperaModal(true)
-        }
-      } else {
-        toast.error(data.error)
+      toast.success(data.message)
+      await loadTesis()
+      // Si es presidente y aún faltan jurados por votar, mostrar modal
+      if (esPresidente) {
+        setShowEsperaModal(true)
       }
-    } catch {
-      toast.error('Error al enviar evaluacion')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al enviar evaluacion')
     } finally {
       setEnviando(false)
     }
@@ -325,21 +313,12 @@ export default function DetalleEvaluacionPage({ params }: { params: Promise<{ id
       if (lugarSustentacion) formData.append('lugarSustentacion', lugarSustentacion)
       if (modalidadSustentacion) formData.append('modalidadSustentacion', modalidadSustentacion)
 
-      const response = await fetch(`/api/mis-evaluaciones/${id}/dictamen`, {
-        method: 'POST',
-        body: formData,
-      })
+      const data = await api.post<{ message: string }>(`/api/mis-evaluaciones/${id}/dictamen`, formData)
 
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        loadTesis()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al enviar dictamen')
+      toast.success(data.message)
+      loadTesis()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al enviar dictamen')
     } finally {
       setEnviando(false)
     }

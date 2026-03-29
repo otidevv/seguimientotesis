@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/auth-context'
+import { api } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -90,16 +91,10 @@ export default function PerfilPage() {
     if (!user) return
 
     try {
-      const response = await fetch('/api/auth/profile', {
-        credentials: 'include',
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setProfileData(data.data)
-      }
+      const data = await api.get<{ data: ProfileData }>('/api/auth/profile')
+      setProfileData(data.data)
     } catch (error) {
-      console.error('Error loading profile:', error)
+      console.error('Error loading profile:', error instanceof Error ? error.message : 'Error loading profile')
     } finally {
       setIsLoadingProfile(false)
     }
@@ -138,17 +133,7 @@ export default function PerfilPage() {
       const formData = new FormData()
       formData.append('avatar', file)
 
-      const response = await fetch('/api/auth/avatar', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al subir la imagen')
-      }
+      const data = await api.post<{ avatarUrl: string }>('/api/auth/avatar', formData)
 
       setAvatarUrl(data.avatarUrl)
       toast.success('Foto de perfil actualizada')
@@ -170,16 +155,7 @@ export default function PerfilPage() {
     setIsUploadingAvatar(true)
 
     try {
-      const response = await fetch('/api/auth/avatar', {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al eliminar la imagen')
-      }
+      await api.delete('/api/auth/avatar')
 
       setAvatarUrl(null)
       toast.success('Foto de perfil eliminada')
@@ -195,16 +171,7 @@ export default function PerfilPage() {
     setIsSyncing(true)
 
     try {
-      const response = await fetch('/api/auth/sync', {
-        method: 'POST',
-        credentials: 'include',
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al sincronizar')
-      }
+      const data = await api.post<{ message: string }>('/api/auth/sync', {})
 
       toast.success(data.message)
 
@@ -222,18 +189,7 @@ export default function PerfilPage() {
     setIsSavingProfile(true)
 
     try {
-      const response = await fetch('/api/auth/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ emailPersonal }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al actualizar perfil')
-      }
+      await api.put('/api/auth/profile', { emailPersonal })
 
       toast.success('Perfil actualizado correctamente')
     } catch (error) {
@@ -258,22 +214,11 @@ export default function PerfilPage() {
     setIsChangingPassword(true)
 
     try {
-      const response = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          confirmPassword,
-        }),
+      await api.post('/api/auth/change-password', {
+        currentPassword,
+        newPassword,
+        confirmPassword,
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cambiar contraseña')
-      }
 
       toast.success('Contraseña cambiada correctamente')
       setCurrentPassword('')

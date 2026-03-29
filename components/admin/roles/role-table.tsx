@@ -26,12 +26,14 @@ import {
   Shield,
   Lock,
   Users,
+  Copy,
 } from 'lucide-react'
 import type { RoleResponse } from '@/lib/admin/services/role.service'
 
 interface RoleTableProps {
   roles: RoleResponse[]
   onEdit: (role: RoleResponse) => void
+  onDuplicate: (role: RoleResponse) => void
   onDelete: (role: RoleResponse) => void
   onToggleActive: (role: RoleResponse) => void
   onManagePermissions: (role: RoleResponse) => void
@@ -40,6 +42,7 @@ interface RoleTableProps {
 export function RoleTable({
   roles,
   onEdit,
+  onDuplicate,
   onDelete,
   onToggleActive,
   onManagePermissions,
@@ -136,6 +139,13 @@ export function RoleTable({
                       <DropdownMenuItem onClick={() => onManagePermissions(role)}>
                         <Shield className="h-4 w-4 mr-2" />
                         Gestionar permisos
+                      </DropdownMenuItem>
+                    </PermissionGuard>
+
+                    <PermissionGuard moduleCode="roles" action="create">
+                      <DropdownMenuItem onClick={() => onDuplicate(role)}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Duplicar
                       </DropdownMenuItem>
                     </PermissionGuard>
 

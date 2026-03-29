@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, checkPermission } from '@/lib/auth'
 
 // GET /api/mesa-partes - Listar proyectos de tesis para mesa de partes
 export async function GET(request: NextRequest) {
@@ -14,10 +14,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verificar que el usuario tiene rol MESA_PARTES, ADMIN o SUPER_ADMIN
-    const tieneAcceso = user.roles?.some(
-      (r) => ['MESA_PARTES', 'ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
+    const tieneAcceso = await checkPermission(user.id, 'mesa-partes', 'view')
 
     if (!tieneAcceso) {
       return NextResponse.json(

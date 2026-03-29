@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useSidebar } from '@/contexts/sidebar-context'
@@ -20,7 +19,6 @@ import {
   ChevronRight,
   LogOut,
   HelpCircle,
-  X,
   GraduationCap,
   Mail,
   Boxes,
@@ -28,8 +26,6 @@ import {
   ClipboardCheck,
   FileSpreadsheet,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import {
   Tooltip,
   TooltipContent,
@@ -42,6 +38,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
+
+// ─── Nav item types & data ─────────────────────────────────────────────────────
 
 interface NavItem {
   title: string
@@ -52,543 +52,357 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    moduleCode: 'dashboard',
-  },
-  {
-    title: 'Gestión de Tesis',
-    href: '/tesis',
-    icon: BookOpen,
-    moduleCode: 'tesis',
-    badge: '12',
-  },
-  {
-    title: 'Firma Digital',
-    href: '/firma-peru',
-    icon: PenTool,
-    moduleCode: 'firma-digital',
-  },
-  {
-    title: 'Reportes',
-    href: '/reportes',
-    icon: BarChart3,
-    moduleCode: 'reportes',
-  },
+  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, moduleCode: 'dashboard' },
+  { title: 'Gestión de Tesis', href: '/tesis', icon: BookOpen, moduleCode: 'tesis' },
+  { title: 'Firma Digital', href: '/firma-peru', icon: PenTool, moduleCode: 'firma-digital' },
+  { title: 'Reportes', href: '/reportes', icon: BarChart3, moduleCode: 'reportes' },
 ]
 
 const studentNavItems: NavItem[] = [
-  {
-    title: 'Mis Tesis',
-    href: '/mis-tesis',
-    icon: GraduationCap,
-    moduleCode: 'mis-tesis',
-  },
-  {
-    title: 'Mis Invitaciones',
-    href: '/mis-invitaciones',
-    icon: Mail,
-    moduleCode: 'mis-invitaciones',
-  },
+  { title: 'Mis Tesis', href: '/mis-tesis', icon: GraduationCap, moduleCode: 'mis-tesis' },
+  { title: 'Mis Invitaciones', href: '/mis-invitaciones', icon: Mail, moduleCode: 'mis-invitaciones' },
 ]
 
 const docenteNavItems: NavItem[] = [
-  {
-    title: 'Mis Asesorías',
-    href: '/mis-asesorias',
-    icon: GraduationCap,
-    moduleCode: 'mis-asesorias',
-  },
-  {
-    title: 'Mis Evaluaciones',
-    href: '/mis-evaluaciones',
-    icon: ClipboardCheck,
-    moduleCode: 'mis-evaluaciones',
-  },
+  { title: 'Mis Asesorías', href: '/mis-asesorias', icon: GraduationCap, moduleCode: 'mis-asesorias' },
+  { title: 'Mis Evaluaciones', href: '/mis-evaluaciones', icon: ClipboardCheck, moduleCode: 'mis-evaluaciones' },
 ]
 
 const mesaPartesNavItems: NavItem[] = [
-  {
-    title: 'Mesa de Partes',
-    href: '/mesa-partes',
-    icon: Inbox,
-    moduleCode: 'mesa-partes',
-  },
-  {
-    title: 'Reportes MP',
-    href: '/mesa-partes/reportes',
-    icon: FileSpreadsheet,
-    moduleCode: 'mesa-partes',
-  },
+  { title: 'Mesa de Partes', href: '/mesa-partes', icon: Inbox, moduleCode: 'mesa-partes' },
+  { title: 'Reportes MP', href: '/mesa-partes/reportes', icon: FileSpreadsheet, moduleCode: 'mesa-partes' },
 ]
 
 const adminNavItems: NavItem[] = [
-  {
-    title: 'Usuarios',
-    href: '/admin/usuarios',
-    icon: Users,
-    moduleCode: 'usuarios',
-  },
-  {
-    title: 'Roles',
-    href: '/admin/roles',
-    icon: Shield,
-    moduleCode: 'roles',
-  },
-  {
-    title: 'Módulos',
-    href: '/admin/modulos',
-    icon: Boxes,
-    moduleCode: 'modulos',
-  },
-  {
-    title: 'Permisos',
-    href: '/admin/permisos',
-    icon: Key,
-    moduleCode: 'permisos',
-  },
-  {
-    title: 'Auditoría',
-    href: '/admin/auditoria',
-    icon: FileSearch,
-    moduleCode: 'auditoria',
-  },
-  {
-    title: 'Configuración',
-    href: '/admin/configuracion',
-    icon: Settings,
-    moduleCode: 'configuracion',
-  },
+  { title: 'Usuarios', href: '/admin/usuarios', icon: Users, moduleCode: 'usuarios' },
+  { title: 'Roles', href: '/admin/roles', icon: Shield, moduleCode: 'roles' },
+  { title: 'Módulos', href: '/admin/modulos', icon: Boxes, moduleCode: 'modulos' },
+  { title: 'Permisos', href: '/admin/permisos', icon: Key, moduleCode: 'permisos' },
+  { title: 'Auditoría', href: '/admin/auditoria', icon: FileSearch, moduleCode: 'auditoria' },
+  { title: 'Configuración', href: '/admin/configuracion', icon: Settings, moduleCode: 'configuracion' },
 ]
 
-// Contenido compartido del sidebar
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname()
-  const { hasPermission, logout } = useAuth()
+interface NavSection {
+  label: string
+  items: NavItem[]
+}
 
-  const visibleMainItems = mainNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
+const allSections: NavSection[] = [
+  { label: 'Principal', items: mainNavItems },
+  { label: 'Estudiante', items: studentNavItems },
+  { label: 'Docente', items: docenteNavItems },
+  { label: 'Gestión', items: mesaPartesNavItems },
+  { label: 'Administración', items: adminNavItems },
+]
+
+// ─── Shared subcomponents ───────────────────────────────────────────────────────
+
+function SidebarNavLink({
+  item,
+  collapsed,
+  pathname,
+  onNavigate,
+}: {
+  item: NavItem
+  collapsed?: boolean
+  pathname: string
+  onNavigate?: () => void
+}) {
+  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+  const Icon = item.icon
+
+  const linkContent = (
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      className={cn(
+        'relative flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors duration-150',
+        isActive
+          ? 'bg-sidebar-primary/10 text-sidebar-primary font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-full before:bg-sidebar-primary'
+          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+        collapsed && 'flex-col justify-center px-0 py-2.5 gap-1'
+      )}
+    >
+      <Icon className={cn(
+        'flex-shrink-0',
+        collapsed ? 'h-5 w-5' : 'h-[18px] w-[18px]',
+        isActive && 'text-sidebar-primary'
+      )} />
+      {!collapsed && (
+        <>
+          <span className="flex-1 truncate">{item.title}</span>
+          {item.badge && (
+            <span className="ml-auto rounded-md px-1.5 py-0.5 text-[11px] font-medium bg-sidebar-primary/10 text-sidebar-primary">
+              {item.badge}
+            </span>
+          )}
+        </>
+      )}
+      {collapsed && isActive && (
+        <span className="h-1 w-1 rounded-full bg-sidebar-primary" />
+      )}
+    </Link>
   )
 
-  const visibleStudentItems = studentNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const visibleDocenteItems = docenteNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const visibleMesaPartesItems = mesaPartesNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const visibleAdminItems = adminNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const NavLink = ({ item }: { item: NavItem }) => {
-    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-    const Icon = item.icon
-
+  if (collapsed) {
     return (
-      <Link
-        href={item.href}
-        onClick={onNavigate}
-        className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
-          isActive
-            ? 'bg-primary text-primary-foreground shadow-sm'
-            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-        )}
-      >
-        <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary-foreground')} />
-        <span className="flex-1">{item.title}</span>
-        {item.badge && (
-          <span className={cn(
-            'ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium',
-            isActive
-              ? 'bg-primary-foreground/20 text-primary-foreground'
-              : 'bg-primary/10 text-primary'
-          )}>
-            {item.badge}
-          </span>
-        )}
-      </Link>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipContent side="right" className="flex items-center gap-2">
+          {item.title}
+          {item.badge && (
+            <span className="ml-1 rounded-md bg-sidebar-primary/10 px-1.5 py-0.5 text-xs text-sidebar-primary">
+              {item.badge}
+            </span>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
+  return linkContent
+}
+
+function SidebarNavSections({
+  collapsed,
+  pathname,
+  onNavigate,
+  onToggleCollapse,
+}: {
+  collapsed?: boolean
+  pathname: string
+  onNavigate?: () => void
+  onToggleCollapse?: () => void
+}) {
+  const { hasPermission } = useAuth()
+
+  const visibleSections = allSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => hasPermission(item.moduleCode, 'view')),
+    }))
+    .filter((section) => section.items.length > 0)
+
+  return (
+    <>
+      {visibleSections.map((section, idx) => (
+        <div key={section.label}>
+          {collapsed ? (
+            idx > 0 && <div className="h-px w-6 mx-auto bg-sidebar-border my-3" />
+          ) : (
+            <div className={cn(
+              'flex items-center px-3 pb-1.5',
+              idx > 0 ? 'pt-5' : 'pt-0'
+            )}>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/40 flex-1">
+                {section.label}
+              </p>
+              {idx === 0 && onToggleCollapse && (
+                <button
+                  onClick={onToggleCollapse}
+                  className="h-6 w-6 flex items-center justify-center rounded-full border border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          )}
+          <div className="space-y-0.5">
+            {section.items.map((item) => (
+              <SidebarNavLink
+                key={item.href}
+                item={item}
+                collapsed={collapsed}
+                pathname={pathname}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Ayuda — último item de la nav */}
+      {collapsed ? (
+        <>
+          <div className="h-px w-6 mx-auto bg-sidebar-border my-3" />
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button className="flex w-full items-center justify-center rounded-md py-2.5 text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-150">
+                <HelpCircle className="h-5 w-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Ayuda</TooltipContent>
+          </Tooltip>
+        </>
+      ) : (
+        <div className="pt-5">
+          <button
+            onClick={onNavigate}
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-150"
+          >
+            <HelpCircle className="h-[18px] w-[18px]" />
+            <span>Ayuda</span>
+          </button>
+        </div>
+      )}
+    </>
+  )
+}
+
+function UserFooter({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
+  const { user, logout } = useAuth()
+
+  const initials = user
+    ? `${user.nombres.charAt(0)}${user.apellidoPaterno.charAt(0)}`
+    : 'U'
+
+  const nombreCompleto = user
+    ? `${user.nombres} ${user.apellidoPaterno}`
+    : ''
+
+  const primerRol = user?.roles?.[0]?.nombre ?? 'Usuario'
+
+  if (collapsed) {
+    return (
+      <div className="border-t border-sidebar-border p-2 space-y-1">
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <Link href="/perfil" onClick={onNavigate} className="flex justify-center py-1.5 rounded-md hover:bg-sidebar-accent transition-colors">
+              <Avatar className="h-8 w-8">
+                {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={nombreCompleto} />}
+                <AvatarFallback className="bg-sidebar-primary/10 text-sidebar-primary text-xs font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p className="font-medium">{nombreCompleto}</p>
+            <p className="text-xs text-muted-foreground">{primerRol}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => { logout(); onNavigate?.() }}
+              className="flex w-full justify-center rounded-md py-2 text-sidebar-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Cerrar sesión</TooltipContent>
+        </Tooltip>
+      </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Navegación principal */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Principal
-        </p>
-        {visibleMainItems.map((item) => (
-          <NavLink key={item.href} item={item} />
-        ))}
-
-        {visibleStudentItems.length > 0 && (
-          <>
-            <Separator className="my-4" />
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Estudiante
-            </p>
-            {visibleStudentItems.map((item) => (
-              <NavLink key={item.href} item={item} />
-            ))}
-          </>
-        )}
-
-        {visibleDocenteItems.length > 0 && (
-          <>
-            <Separator className="my-4" />
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Docente
-            </p>
-            {visibleDocenteItems.map((item) => (
-              <NavLink key={item.href} item={item} />
-            ))}
-          </>
-        )}
-
-        {visibleMesaPartesItems.length > 0 && (
-          <>
-            <Separator className="my-4" />
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Gestión
-            </p>
-            {visibleMesaPartesItems.map((item) => (
-              <NavLink key={item.href} item={item} />
-            ))}
-          </>
-        )}
-
-        {visibleAdminItems.length > 0 && (
-          <>
-            <Separator className="my-4" />
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Administración
-            </p>
-            {visibleAdminItems.map((item) => (
-              <NavLink key={item.href} item={item} />
-            ))}
-          </>
-        )}
-      </nav>
-
-      {/* Footer */}
-      <div className="border-t p-3 space-y-1">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-muted-foreground"
-          onClick={onNavigate}
+    <div className="border-t border-sidebar-border p-3 space-y-2">
+      <Link
+        href="/perfil"
+        onClick={onNavigate}
+        className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-sidebar-accent transition-colors"
+      >
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={nombreCompleto} />}
+          <AvatarFallback className="bg-sidebar-primary/10 text-sidebar-primary text-xs font-semibold">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-medium text-sidebar-foreground truncate">{nombreCompleto}</p>
+          <p className="text-[11px] text-sidebar-foreground/50 truncate">{primerRol}</p>
+        </div>
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); logout(); onNavigate?.() }}
+          className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md text-sidebar-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors"
         >
-          <HelpCircle className="h-5 w-5" />
-          Ayuda
-        </Button>
+          <LogOut className="h-4 w-4" />
+        </button>
+      </Link>
 
-        <Button
-          variant="ghost"
-          onClick={() => {
-            logout()
-            onNavigate?.()
-          }}
-          className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-        >
-          <LogOut className="h-5 w-5" />
-          Cerrar sesión
-        </Button>
-
-        <p className="px-3 pt-2 text-xs text-muted-foreground text-center">
-          v1.0.0
-        </p>
-      </div>
+      <p className="text-[10px] text-sidebar-foreground/30 text-center">v1.0.0</p>
     </div>
   )
 }
 
-// Sidebar para móvil (Sheet/Drawer)
+// ─── Mobile sidebar ─────────────────────────────────────────────────────────────
+
 export function MobileSidebar() {
   const { isOpen, close } = useSidebar()
+  const pathname = usePathname()
 
   return (
     <Sheet open={isOpen} onOpenChange={close}>
-      <SheetContent side="left" className="w-[280px] p-0">
-        <SheetHeader className="px-4 py-4 border-b">
-          <SheetTitle className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Image
-                src="/logo/logounamad.png"
-                alt="UNAMAD"
-                width={28}
-                height={28}
-                className="rounded"
-              />
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold">Sistema de Tesis</span>
-              <span className="text-xs text-muted-foreground font-normal">UNAMAD</span>
-            </div>
-          </SheetTitle>
+      <SheetContent side="left" className="w-[280px] p-0 bg-sidebar border-sidebar-border">
+        <SheetHeader className="sr-only">
+          <SheetTitle>Menú de navegación</SheetTitle>
         </SheetHeader>
-        <SidebarContent onNavigate={close} />
+        <div className="flex flex-col h-full">
+          <ScrollArea className="flex-1">
+            <nav className="px-3 py-3">
+              <SidebarNavSections pathname={pathname} onNavigate={close} />
+            </nav>
+          </ScrollArea>
+          <UserFooter onNavigate={close} />
+        </div>
       </SheetContent>
     </Sheet>
   )
 }
 
-// Sidebar para desktop
+// ─── Desktop sidebar ────────────────────────────────────────────────────────────
+
 export function DesktopSidebar() {
   const pathname = usePathname()
-  const { hasPermission, logout } = useAuth()
   const { isCollapsed, setIsCollapsed } = useSidebar()
-
-  const visibleMainItems = mainNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const visibleStudentItems = studentNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const visibleDocenteItems = docenteNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const visibleMesaPartesItems = mesaPartesNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const visibleAdminItems = adminNavItems.filter((item) =>
-    hasPermission(item.moduleCode, 'view')
-  )
-
-  const NavLink = ({ item }: { item: NavItem }) => {
-    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-    const Icon = item.icon
-
-    const linkContent = (
-      <Link
-        href={item.href}
-        className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
-          isActive
-            ? 'bg-primary text-primary-foreground shadow-sm'
-            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-          isCollapsed && 'justify-center px-2'
-        )}
-      >
-        <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary-foreground')} />
-        {!isCollapsed && (
-          <>
-            <span className="flex-1">{item.title}</span>
-            {item.badge && (
-              <span className={cn(
-                'ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium',
-                isActive
-                  ? 'bg-primary-foreground/20 text-primary-foreground'
-                  : 'bg-primary/10 text-primary'
-              )}>
-                {item.badge}
-              </span>
-            )}
-          </>
-        )}
-      </Link>
-    )
-
-    if (isCollapsed) {
-      return (
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-          <TooltipContent side="right" className="flex items-center gap-2">
-            {item.title}
-            {item.badge && (
-              <span className="ml-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
-                {item.badge}
-              </span>
-            )}
-          </TooltipContent>
-        </Tooltip>
-      )
-    }
-
-    return linkContent
-  }
 
   return (
     <TooltipProvider>
       <aside
         className={cn(
-          'hidden lg:flex border-r bg-card transition-[width] duration-300 flex-col overflow-hidden',
-          isCollapsed ? 'w-[70px]' : 'w-[260px]'
+          'hidden lg:flex border-r border-sidebar-border bg-sidebar shadow-sm transition-[width] duration-300 ease-in-out flex-col overflow-hidden',
+          isCollapsed ? 'w-[72px]' : 'w-[260px]'
         )}
       >
-        {/* Header del sidebar */}
-        <div className={cn(
-          'flex items-center gap-3 px-4 py-4 border-b',
-          isCollapsed && 'justify-center px-2'
-        )}>
-          {!isCollapsed && (
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Image
-                  src="/logo/logounamad.png"
-                  alt="UNAMAD"
-                  width={28}
-                  height={28}
-                  className="rounded"
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Sistema de Tesis</span>
-                <span className="text-xs text-muted-foreground">UNAMAD</span>
-              </div>
-            </div>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className={cn('h-8 w-8 ml-auto', isCollapsed && 'ml-0')}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        {/* Expand button when collapsed */}
+        {isCollapsed && (
+          <div className="flex justify-center py-3 border-b border-sidebar-border">
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setIsCollapsed(false)}
+                  className="h-7 w-7 flex items-center justify-center rounded-full border border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Expandir menú</TooltipContent>
+            </Tooltip>
+          </div>
+        )}
 
-        {/* Navegación principal */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hidden whitespace-nowrap">
-          {!isCollapsed && (
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Principal
-            </p>
-          )}
-          {visibleMainItems.map((item) => (
-            <NavLink key={item.href} item={item} />
-          ))}
-
-          {visibleStudentItems.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              {!isCollapsed && (
-                <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Estudiante
-                </p>
-              )}
-              {visibleStudentItems.map((item) => (
-                <NavLink key={item.href} item={item} />
-              ))}
-            </>
-          )}
-
-          {visibleDocenteItems.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              {!isCollapsed && (
-                <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Docente
-                </p>
-              )}
-              {visibleDocenteItems.map((item) => (
-                <NavLink key={item.href} item={item} />
-              ))}
-            </>
-          )}
-
-          {visibleMesaPartesItems.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              {!isCollapsed && (
-                <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Gestión
-                </p>
-              )}
-              {visibleMesaPartesItems.map((item) => (
-                <NavLink key={item.href} item={item} />
-              ))}
-            </>
-          )}
-
-          {visibleAdminItems.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              {!isCollapsed && (
-                <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Administración
-                </p>
-              )}
-              {visibleAdminItems.map((item) => (
-                <NavLink key={item.href} item={item} />
-              ))}
-            </>
-          )}
-        </nav>
+        {/* Navigation */}
+        <ScrollArea className="flex-1">
+          <nav className={cn('py-3 whitespace-nowrap', isCollapsed ? 'px-2' : 'px-3')}>
+            <SidebarNavSections
+              collapsed={isCollapsed}
+              pathname={pathname}
+              onToggleCollapse={() => setIsCollapsed(true)}
+            />
+          </nav>
+        </ScrollArea>
 
         {/* Footer */}
-        <div className="border-t p-3 space-y-1">
-          {isCollapsed ? (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-full h-10">
-                  <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Ayuda</TooltipContent>
-            </Tooltip>
-          ) : (
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-muted-foreground"
-            >
-              <HelpCircle className="h-5 w-5" />
-              Ayuda
-            </Button>
-          )}
-
-          {isCollapsed ? (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => logout()}
-                  className="w-full h-10 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Cerrar sesión</TooltipContent>
-            </Tooltip>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={() => logout()}
-              className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-            >
-              <LogOut className="h-5 w-5" />
-              Cerrar sesión
-            </Button>
-          )}
-
-          {!isCollapsed && (
-            <p className="px-3 pt-2 text-xs text-muted-foreground text-center">
-              v1.0.0
-            </p>
-          )}
-        </div>
+        <UserFooter collapsed={isCollapsed} />
       </aside>
     </TooltipProvider>
   )
 }
 
-// Export combinado para compatibilidad
+// ─── Combined export ────────────────────────────────────────────────────────────
+
 export function DashboardSidebar() {
   return (
     <>

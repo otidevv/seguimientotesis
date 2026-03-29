@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { moduleService } from '@/lib/admin/services/module.service'
 import { AdminError } from '@/lib/admin/types'
 import { updateModuleSchema } from '@/lib/validators/module.schema'
+import { requirePermission } from '@/lib/admin/require-permission'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -9,6 +10,9 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await requirePermission(request, 'modulos', 'view')
+    if (auth instanceof NextResponse) return auth
+
     const { id } = await params
     const module = await moduleService.getById(id)
 
@@ -35,14 +39,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const adminId = request.headers.get('x-user-id')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      )
-    }
+    const auth = await requirePermission(request, 'modulos', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const { id } = await params
     const body = await request.json()
@@ -55,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const module = await moduleService.update(id, result.data, adminId)
+    const module = await moduleService.update(id, result.data, auth.userId)
 
     return NextResponse.json({
       success: true,
@@ -80,17 +78,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const adminId = request.headers.get('x-user-id')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      )
-    }
+    const auth = await requirePermission(request, 'modulos', 'delete')
+    if (auth instanceof NextResponse) return auth
 
     const { id } = await params
-    await moduleService.delete(id, adminId)
+    await moduleService.delete(id, auth.userId)
 
     return NextResponse.json({
       success: true,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, use } from 'react'
+import { useState, useEffect, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -32,7 +32,6 @@ import {
   ChevronRight,
   Clock,
   ClipboardCheck,
-  Download,
   Eye,
   FileCheck,
   FileText,
@@ -47,219 +46,22 @@ import {
   Upload,
   User,
   UserPlus,
-  Users,
   X,
   XCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-
-interface Documento {
-  id: string
-  tipo: string
-  nombre: string
-  url: string
-  mimeType: string
-  tamano: number
-  firmado: boolean
-  fechaFirma: string | null
-  fechaSubida: string
-  subidoPor: string | null
-}
-
-interface Autor {
-  id: string
-  tipoParticipante: string
-  estado: string
-  nombre: string
-  email: string
-  dni: string
-  codigo: string
-  carrera: string
-}
-
-interface Asesor {
-  id: string
-  tipo: string
-  estado: string
-  nombre: string
-  email: string
-}
-
-interface EvaluacionJurado {
-  id: string
-  ronda: number
-  resultado: string
-  observaciones: string | null
-  archivoUrl: string | null
-  fecha: string
-}
-
-interface Jurado {
-  id: string
-  tipo: string
-  fase: string
-  nombre: string
-  email: string
-  userId: string
-  evaluaciones: EvaluacionJurado[]
-}
-
-interface HistorialItem {
-  id: string
-  estadoAnterior: string | null
-  estadoNuevo: string
-  comentario: string | null
-  fecha: string
-  realizadoPor: string
-}
-
-interface Proyecto {
-  id: string
-  codigo: string
-  titulo: string
-  resumen: string | null
-  palabrasClave: string[]
-  estado: string
-  lineaInvestigacion: string | null
-  voucherFisicoEntregado: boolean
-  voucherFisicoFecha: string | null
-  voucherInformeFisicoEntregado: boolean
-  voucherInformeFisicoFecha: string | null
-  voucherSustentacionFisicoEntregado: boolean
-  voucherSustentacionFisicoFecha: string | null
-  ejemplaresEntregados: boolean
-  ejemplaresEntregadosFecha: string | null
-  fechaSustentacion: string | null
-  lugarSustentacion: string | null
-  modalidadSustentacion: string | null
-  createdAt: string
-  carrera: string
-  facultad: {
-    id: string
-    nombre: string
-    codigo: string
-  } | null
-  autores: Autor[]
-  asesores: Asesor[]
-  documentos: Documento[]
-  jurados: Jurado[]
-  historial: HistorialItem[]
-  rondaActual: number
-  faseActual: string | null
-  fechaLimiteEvaluacion: string | null
-  fechaLimiteCorreccion: string | null
-}
-
-interface BusquedaJurado {
-  id: string
-  nombreCompleto: string
-  email: string
-  numeroDocumento: string
-  esDocente: boolean
-  codigoDocente: string | null
-  departamento: string | null
-  facultad: string | null
-  roles: string[]
-}
-
-const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
-  EN_REVISION: {
-    label: 'En Revision',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-    icon: <Clock className="w-4 h-4" />,
-  },
-  OBSERVADA: {
-    label: 'Observada',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: <AlertCircle className="w-4 h-4" />,
-  },
-  ASIGNANDO_JURADOS: {
-    label: 'Asignando Jurados',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-    icon: <UserPlus className="w-4 h-4" />,
-  },
-  EN_EVALUACION_JURADO: {
-    label: 'En Evaluacion (Jurado)',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
-    icon: <ClipboardCheck className="w-4 h-4" />,
-  },
-  OBSERVADA_JURADO: {
-    label: 'Observada por Jurado',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: <AlertCircle className="w-4 h-4" />,
-  },
-  PROYECTO_APROBADO: {
-    label: 'Proyecto Aprobado',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
-    icon: <CheckCircle className="w-4 h-4" />,
-  },
-  INFORME_FINAL: {
-    label: 'Informe Final',
-    color: 'text-cyan-600',
-    bgColor: 'bg-cyan-100 dark:bg-cyan-900/30',
-    icon: <FileText className="w-4 h-4" />,
-  },
-  EN_REVISION_INFORME: {
-    label: 'Revisión Informe',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-    icon: <Clock className="w-4 h-4" />,
-  },
-  EN_EVALUACION_INFORME: {
-    label: 'Evaluando Informe',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
-    icon: <ClipboardCheck className="w-4 h-4" />,
-  },
-  OBSERVADA_INFORME: {
-    label: 'Informe Observado',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: <AlertCircle className="w-4 h-4" />,
-  },
-  APROBADA: {
-    label: 'Aprobada',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100 dark:bg-green-900/30',
-    icon: <CheckCircle className="w-4 h-4" />,
-  },
-  EN_SUSTENTACION: {
-    label: 'En Sustentación',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30',
-    icon: <GraduationCap className="w-4 h-4" />,
-  },
-  RECHAZADA: {
-    label: 'Rechazada',
-    color: 'text-red-600',
-    bgColor: 'bg-red-100 dark:bg-red-900/30',
-    icon: <X className="w-4 h-4" />,
-  },
-}
-
-const TIPO_JURADO_LABELS: Record<string, string> = {
-  PRESIDENTE: 'Presidente',
-  VOCAL: 'Vocal',
-  SECRETARIO: 'Secretario',
-  ACCESITARIO: 'Accesitario',
-}
-
-const TIPO_JURADO_COLORS: Record<string, string> = {
-  PRESIDENTE: 'border-amber-500 text-amber-700 bg-amber-50',
-  VOCAL: 'border-blue-500 text-blue-700 bg-blue-50',
-  SECRETARIO: 'border-green-500 text-green-700 bg-green-50',
-  ACCESITARIO: 'border-gray-500 text-gray-700 bg-gray-50',
-}
+import {
+  ESTADO_CONFIG, TIPO_JURADO_LABELS, TIPO_JURADO_COLORS,
+  ProjectSidebar, DocumentoCard,
+} from '@/components/mesa-partes'
+import type { Documento, Proyecto, BusquedaJurado, Jurado } from '@/components/mesa-partes'
+import { useResolutionUploadInstance } from '@/hooks/use-resolution-upload'
+import { useJuradoManager } from '@/hooks/use-jurado-manager'
 
 export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -275,58 +77,50 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const [accionActual, setAccionActual] = useState<'APROBAR' | 'OBSERVAR' | 'RECHAZAR' | null>(null)
   const [comentario, setComentario] = useState('')
 
-  // Busqueda de jurados
-  const [busquedaJurado, setBusquedaJurado] = useState('')
-  const [resultadosBusqueda, setResultadosBusqueda] = useState<BusquedaJurado[]>([
-  ])
-  const [buscando, setBuscando] = useState(false)
-  const [tipoJurado, setTipoJurado] = useState<string>('PRESIDENTE')
-  const debounceRef = useRef<NodeJS.Timeout>(null)
+  const loadProyecto = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await api.get<{ data: Proyecto }>(`/api/mesa-partes/${id}`)
+      setProyecto(data.data)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al cargar proyecto')
+      router.push('/mesa-partes')
+    } finally {
+      setLoading(false)
+    }
+  }, [id, router])
 
-  // Upload resolucion
-  const [archivoResolucion, setArchivoResolucion] = useState<File | null>(null)
-  const [nombreResolucionAprobacion, setNombreResolucionAprobacion] = useState('')
-  const [subiendoResolucion, setSubiendoResolucion] = useState(false)
+  // Jurado manager hook
+  const jurados = useJuradoManager(id, proyecto?.estado, loadProyecto)
 
-  // Upload resolucion sustentacion
-  const [archivoResolucionSustentacion, setArchivoResolucionSustentacion] = useState<File | null>(null)
-  const [nombreResolucionSustentacion, setNombreResolucionSustentacion] = useState('')
-  const [subiendoResolucionSustentacion, setSubiendoResolucionSustentacion] = useState(false)
+  // Resolution upload hooks
+  const resAprobacion = useResolutionUploadInstance(id, id, {
+    tipoDocumento: 'RESOLUCION_APROBACION',
+    accion: 'SUBIR_RESOLUCION',
+    comentario: 'Resolucion de aprobacion subida por Mesa de Partes',
+  }, loadProyecto)
 
-  // Upload resolucion de jurado
-  const [archivoResolucionJurado, setArchivoResolucionJurado] = useState<File | null>(null)
-  const [nombreResolucionJurado, setNombreResolucionJurado] = useState('')
-  const [subiendoResolucionJurado, setSubiendoResolucionJurado] = useState(false)
+  const resSustentacion = useResolutionUploadInstance(id, id, {
+    tipoDocumento: 'RESOLUCION_SUSTENTACION',
+    accion: 'SUBIR_RESOLUCION_SUSTENTACION',
+    comentario: 'Resolución de sustentación subida por Mesa de Partes',
+  }, loadProyecto)
 
-  // Upload resolucion de jurado informe final
-  const [archivoResolucionJuradoInforme, setArchivoResolucionJuradoInforme] = useState<File | null>(null)
-  const [nombreResolucionJuradoInforme, setNombreResolucionJuradoInforme] = useState('')
-  const [subiendoResolucionJuradoInforme, setSubiendoResolucionJuradoInforme] = useState(false)
+  const resJurado = useResolutionUploadInstance(id, id, {
+    tipoDocumento: 'RESOLUCION_JURADO',
+    successMessage: 'Resolucion de conformacion de jurado subida correctamente',
+  }, loadProyecto)
+
+  const resJuradoInforme = useResolutionUploadInstance(id, id, {
+    tipoDocumento: 'RESOLUCION_JURADO_INFORME',
+    successMessage: 'Resolucion de conformacion de jurado de informe final subida correctamente',
+  }, loadProyecto)
 
   useEffect(() => {
     if (!authLoading && user) {
       loadProyecto()
     }
-  }, [authLoading, user, id])
-
-  const loadProyecto = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/mesa-partes/${id}`)
-      const data = await response.json()
-
-      if (data.success) {
-        setProyecto(data.data)
-      } else {
-        toast.error(data.error || 'Proyecto no encontrado')
-        router.push('/mesa-partes')
-      }
-    } catch {
-      toast.error('Error al cargar proyecto')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [authLoading, user, loadProyecto])
 
   const abrirDialogo = (accion: 'APROBAR' | 'OBSERVAR' | 'RECHAZAR') => {
     setAccionActual(accion)
@@ -344,62 +138,30 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
 
     setProcesando(true)
     try {
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accion: accionActual,
-          comentario: comentario.trim(),
-        }),
+      const data = await api.put<{ message: string }>(`/api/mesa-partes/${id}`, {
+        accion: accionActual,
+        comentario: comentario.trim(),
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        setDialogOpen(false)
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al procesar accion')
+      toast.success(data.message)
+      setDialogOpen(false)
+      loadProyecto()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al procesar accion')
     } finally {
       setProcesando(false)
     }
   }
 
-  const validarArchivoPDF = (file: File, maxMB = 25): boolean => {
-    if (file.size > maxMB * 1024 * 1024) {
-      toast.error(`El archivo "${file.name}" excede el límite de ${maxMB}MB (${(file.size / 1024 / 1024).toFixed(1)}MB)`)
-      return false
-    }
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Solo se permiten archivos PDF')
-      return false
-    }
-    return true
-  }
 
   const confirmarVoucher = async () => {
     setProcesando(true)
     try {
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'CONFIRMAR_VOUCHER' }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al confirmar voucher')
+      const data = await api.put<{ message: string }>(`/api/mesa-partes/${id}`, { accion: 'CONFIRMAR_VOUCHER' })
+      toast.success(data.message)
+      loadProyecto()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al confirmar voucher')
     } finally {
       setProcesando(false)
     }
@@ -408,22 +170,11 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const confirmarVoucherInforme = async () => {
     setProcesando(true)
     try {
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'CONFIRMAR_VOUCHER_INFORME' }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al confirmar voucher del informe final')
+      const data = await api.put<{ message: string }>(`/api/mesa-partes/${id}`, { accion: 'CONFIRMAR_VOUCHER_INFORME' })
+      toast.success(data.message)
+      loadProyecto()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al confirmar voucher del informe final')
     } finally {
       setProcesando(false)
     }
@@ -433,20 +184,11 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const confirmarVoucherSustentacion = async () => {
     setProcesando(true)
     try {
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'CONFIRMAR_VOUCHER_SUSTENTACION' }),
-      })
-      const data = await response.json()
-      if (data.success) {
-        toast.success(data.message)
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al confirmar vouchers de sustentación')
+      const data = await api.put<{ message: string }>(`/api/mesa-partes/${id}`, { accion: 'CONFIRMAR_VOUCHER_SUSTENTACION' })
+      toast.success(data.message)
+      loadProyecto()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al confirmar vouchers de sustentación')
     } finally {
       setProcesando(false)
     }
@@ -456,325 +198,16 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const confirmarEjemplares = async () => {
     setProcesando(true)
     try {
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'CONFIRMAR_EJEMPLARES' }),
-      })
-      const data = await response.json()
-      if (data.success) {
-        toast.success(data.message)
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al confirmar ejemplares')
+      const data = await api.put<{ message: string }>(`/api/mesa-partes/${id}`, { accion: 'CONFIRMAR_EJEMPLARES' })
+      toast.success(data.message)
+      loadProyecto()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al confirmar ejemplares')
     } finally {
       setProcesando(false)
     }
   }
 
-  // Subir resolucion de sustentacion
-  const subirResolucionSustentacion = async () => {
-    if (!archivoResolucionSustentacion) {
-      toast.error('Seleccione un archivo de resolución')
-      return
-    }
-    if (!validarArchivoPDF(archivoResolucionSustentacion)) return
-    if (!nombreResolucionSustentacion.trim()) {
-      toast.error('Ingrese el título de la resolución')
-      return
-    }
-
-    setSubiendoResolucionSustentacion(true)
-    try {
-      // Subir el documento primero
-      const formData = new FormData()
-      formData.append('file', archivoResolucionSustentacion)
-      formData.append('tipoDocumento', 'RESOLUCION_SUSTENTACION')
-      formData.append('nombreDocumento', nombreResolucionSustentacion.trim())
-
-      const uploadResponse = await fetch(`/api/tesis/${id}/documentos`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      const uploadData = await uploadResponse.json()
-
-      if (!uploadData.success) {
-        toast.error(uploadData.error || 'Error al subir el archivo de resolución')
-        return
-      }
-
-      // Registrar en historial
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accion: 'SUBIR_RESOLUCION_SUSTENTACION',
-          comentario: 'Resolución de sustentación subida por Mesa de Partes',
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        setArchivoResolucionSustentacion(null)
-        setNombreResolucionSustentacion('')
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al subir resolución de sustentación')
-    } finally {
-      setSubiendoResolucionSustentacion(false)
-    }
-  }
-
-  // Buscar jurados
-  const buscarJurados = useCallback(async (query: string) => {
-    if (query.length < 2) {
-      setResultadosBusqueda([])
-      return
-    }
-
-    setBuscando(true)
-    try {
-      const fase = proyecto?.estado === 'INFORME_FINAL' ? 'INFORME_FINAL' : 'PROYECTO'
-      const response = await fetch(`/api/buscar-jurados?q=${encodeURIComponent(query)}&tesisId=${id}&fase=${fase}`)
-      const data = await response.json()
-      if (data.success) {
-        setResultadosBusqueda(data.data)
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setBuscando(false)
-    }
-  }, [id, proyecto?.estado])
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => buscarJurados(busquedaJurado), 300)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [busquedaJurado, buscarJurados])
-
-  const asignarJurado = async (userId: string) => {
-    setProcesando(true)
-    try {
-      const response = await fetch(`/api/mesa-partes/${id}/jurados`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, tipo: tipoJurado }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        setBusquedaJurado('')
-        setResultadosBusqueda([])
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al asignar jurado')
-    } finally {
-      setProcesando(false)
-    }
-  }
-
-  const removerJurado = async (juradoId: string) => {
-    setProcesando(true)
-    try {
-      const response = await fetch(`/api/mesa-partes/${id}/jurados`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ juradoId }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al remover jurado')
-    } finally {
-      setProcesando(false)
-    }
-  }
-
-  const confirmarJurados = async () => {
-    setProcesando(true)
-    try {
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'CONFIRMAR_JURADOS' }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al confirmar jurados')
-    } finally {
-      setProcesando(false)
-    }
-  }
-
-  const subirResolucionYPasar = async () => {
-    if (!archivoResolucion) {
-      toast.error('Seleccione un archivo de resolucion')
-      return
-    }
-    if (!validarArchivoPDF(archivoResolucion)) return
-    if (!nombreResolucionAprobacion.trim()) {
-      toast.error('Ingrese el título de la resolución')
-      return
-    }
-
-    setSubiendoResolucion(true)
-    try {
-      // Subir el documento primero
-      const formData = new FormData()
-      formData.append('file', archivoResolucion)
-      formData.append('tipoDocumento', 'RESOLUCION_APROBACION')
-      formData.append('nombreDocumento', nombreResolucionAprobacion.trim())
-
-      const uploadResponse = await fetch(`/api/tesis/${id}/documentos`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      const uploadData = await uploadResponse.json()
-
-      if (!uploadData.success) {
-        toast.error(uploadData.error || 'Error al subir el archivo de resolución')
-        return
-      }
-
-      // Transicionar estado
-      const response = await fetch(`/api/mesa-partes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accion: 'SUBIR_RESOLUCION',
-          comentario: 'Resolucion de aprobacion subida por Mesa de Partes',
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success(data.message)
-        setArchivoResolucion(null)
-        setNombreResolucionAprobacion('')
-        loadProyecto()
-      } else {
-        toast.error(data.error)
-      }
-    } catch {
-      toast.error('Error al subir resolucion')
-    } finally {
-      setSubiendoResolucion(false)
-    }
-  }
-
-  const subirResolucionJurado = async () => {
-    if (!nombreResolucionJurado.trim()) {
-      toast.error('Ingrese el nombre/numero de la resolucion')
-      return
-    }
-    if (!archivoResolucionJurado) {
-      toast.error('Seleccione el archivo de resolucion')
-      return
-    }
-    if (!validarArchivoPDF(archivoResolucionJurado)) return
-
-    setSubiendoResolucionJurado(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', archivoResolucionJurado)
-      formData.append('tipoDocumento', 'RESOLUCION_JURADO')
-      formData.append('nombreDocumento', nombreResolucionJurado.trim())
-
-      const response = await fetch(`/api/tesis/${id}/documentos`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Resolucion de conformacion de jurado subida correctamente')
-        setArchivoResolucionJurado(null)
-        setNombreResolucionJurado('')
-        loadProyecto()
-      } else {
-        toast.error(data.error || 'Error al subir la resolucion')
-      }
-    } catch {
-      toast.error('Error al subir la resolucion')
-    } finally {
-      setSubiendoResolucionJurado(false)
-    }
-  }
-
-  const subirResolucionJuradoInforme = async () => {
-    if (!nombreResolucionJuradoInforme.trim()) {
-      toast.error('Ingrese el nombre/numero de la resolucion')
-      return
-    }
-    if (!archivoResolucionJuradoInforme) {
-      toast.error('Seleccione el archivo de resolucion')
-      return
-    }
-    if (!validarArchivoPDF(archivoResolucionJuradoInforme)) return
-
-    setSubiendoResolucionJuradoInforme(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', archivoResolucionJuradoInforme)
-      formData.append('tipoDocumento', 'RESOLUCION_JURADO_INFORME')
-      formData.append('nombreDocumento', nombreResolucionJuradoInforme.trim())
-
-      const response = await fetch(`/api/tesis/${id}/documentos`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        toast.success('Resolucion de conformacion de jurado de informe final subida correctamente')
-        setArchivoResolucionJuradoInforme(null)
-        setNombreResolucionJuradoInforme('')
-        loadProyecto()
-      } else {
-        toast.error(data.error || 'Error al subir la resolucion')
-      }
-    } catch {
-      toast.error('Error al subir la resolucion')
-    } finally {
-      setSubiendoResolucionJuradoInforme(false)
-    }
-  }
 
   if (authLoading || loading) {
     return (
@@ -1131,23 +564,23 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                           accept=".pdf"
                           onChange={(e) => {
                             const file = e.target.files?.[0] || null
-                            setArchivoResolucionJurado(file)
-                            if (file && !nombreResolucionJurado.trim()) {
-                              setNombreResolucionJurado(file.name.replace(/\.pdf$/i, ''))
+                            resJurado.setArchivo(file)
+                            if (file && !resJurado.nombre.trim()) {
+                              resJurado.setNombre(file.name.replace(/\.pdf$/i, ''))
                             }
                           }}
                           className="mt-1 cursor-pointer file:cursor-pointer"
                         />
                       </div>
-                      {archivoResolucionJurado && (
+                      {resJurado.archivo && (
                         <div>
                           <Label htmlFor="nombre-resolucion-jurado">Nombre / Numero de Resolucion</Label>
                           <Input
                             id="nombre-resolucion-jurado"
                             type="text"
                             placeholder="Ej: Resolucion 085-2026-UNAMAD"
-                            value={nombreResolucionJurado}
-                            onChange={(e) => setNombreResolucionJurado(e.target.value)}
+                            value={resJurado.nombre}
+                            onChange={(e) => resJurado.setNombre(e.target.value)}
                             className="mt-1"
                           />
                           <span className="text-xs text-amber-700 dark:text-amber-400 mt-1 block">
@@ -1157,10 +590,10 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       )}
                       <Button
                         className="w-full bg-amber-600 hover:bg-amber-700"
-                        onClick={subirResolucionJurado}
-                        disabled={subiendoResolucionJurado || !archivoResolucionJurado || !nombreResolucionJurado.trim()}
+                        onClick={resJurado.submit}
+                        disabled={resJurado.subiendo || !resJurado.archivo || !resJurado.nombre.trim()}
                       >
-                        {subiendoResolucionJurado ? (
+                        {resJurado.subiendo ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             Subiendo...
@@ -1213,8 +646,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 sm:h-8 sm:w-8 text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
-                            onClick={() => removerJurado(jurado.id)}
-                            disabled={procesando}
+                            onClick={() => jurados.remover(jurado.id)}
+                            disabled={jurados.procesando}
                           >
                             <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
@@ -1249,7 +682,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   <div className="space-y-3">
                     <p className="text-sm font-medium">Buscar y agregar jurado:</p>
                     <div className="flex flex-col sm:flex-row gap-2">
-                      <Select value={tipoJurado} onValueChange={setTipoJurado}>
+                      <Select value={jurados.tipoJurado} onValueChange={jurados.setTipoJurado}>
                         <SelectTrigger className="w-full sm:w-[160px]">
                           <SelectValue />
                         </SelectTrigger>
@@ -1264,31 +697,31 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                           placeholder="Buscar por nombre, DNI o email..."
-                          value={busquedaJurado}
-                          onChange={(e) => setBusquedaJurado(e.target.value)}
+                          value={jurados.busqueda}
+                          onChange={(e) => jurados.setBusqueda(e.target.value)}
                           className="pl-10"
                         />
                       </div>
                     </div>
 
                     {/* Resultados de busqueda */}
-                    {(buscando || resultadosBusqueda.length > 0) && busquedaJurado.length >= 2 && (
+                    {(jurados.buscando || jurados.resultados.length > 0) && jurados.busqueda.length >= 2 && (
                       <div className="border rounded-lg max-h-60 overflow-y-auto">
-                        {buscando ? (
+                        {jurados.buscando ? (
                           <div className="flex items-center justify-center py-4">
                             <Loader2 className="w-4 h-4 animate-spin mr-2" />
                             <span className="text-sm text-muted-foreground">Buscando...</span>
                           </div>
-                        ) : resultadosBusqueda.length === 0 ? (
+                        ) : jurados.resultados.length === 0 ? (
                           <div className="text-center py-4 text-sm text-muted-foreground">
                             No se encontraron resultados
                           </div>
                         ) : (
-                          resultadosBusqueda.map((resultado) => (
+                          jurados.resultados.map((resultado) => (
                             <div
                               key={resultado.id}
                               className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0"
-                              onClick={() => asignarJurado(resultado.id)}
+                              onClick={() => jurados.asignar(resultado.id)}
                             >
                               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                                 <User className="w-4 h-4" />
@@ -1304,7 +737,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                                   </p>
                                 )}
                               </div>
-                              <Button variant="outline" size="sm" disabled={procesando} className="shrink-0">
+                              <Button variant="outline" size="sm" disabled={jurados.procesando} className="shrink-0">
                                 <UserPlus className="w-3 h-3 sm:mr-1" />
                                 <span className="hidden sm:inline">Asignar</span>
                               </Button>
@@ -1320,10 +753,10 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   {/* Boton confirmar jurados */}
                   <Button
                     className="w-full bg-purple-600 hover:bg-purple-700"
-                    onClick={confirmarJurados}
-                    disabled={procesando || !juradosCompletos || !docResolucionJurado}
+                    onClick={jurados.confirmar}
+                    disabled={jurados.procesando || !juradosCompletos || !docResolucionJurado}
                   >
-                    {procesando ? (
+                    {jurados.procesando ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Confirmando...
@@ -1369,8 +802,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       type="text"
                       placeholder="Ej: Resolución N° 001-2026-UNAMAD-FI"
                       className="mt-2"
-                      value={nombreResolucionAprobacion}
-                      onChange={(e) => setNombreResolucionAprobacion(e.target.value)}
+                      value={resAprobacion.nombre}
+                      onChange={(e) => resAprobacion.setNombre(e.target.value)}
                     />
                   </div>
                   <div>
@@ -1380,15 +813,15 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       type="file"
                       accept=".pdf"
                       className="mt-2 cursor-pointer file:cursor-pointer"
-                      onChange={(e) => setArchivoResolucion(e.target.files?.[0] || null)}
+                      onChange={(e) => resAprobacion.setArchivo(e.target.files?.[0] || null)}
                     />
                   </div>
                   <Button
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
-                    onClick={subirResolucionYPasar}
-                    disabled={subiendoResolucion || !archivoResolucion || !nombreResolucionAprobacion.trim()}
+                    onClick={resAprobacion.submit}
+                    disabled={resAprobacion.subiendo || !resAprobacion.archivo || !resAprobacion.nombre.trim()}
                   >
-                    {subiendoResolucion ? (
+                    {resAprobacion.subiendo ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Subiendo...
@@ -1424,8 +857,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       type="text"
                       placeholder="Ej: Resolución N° 001-2026-UNAMAD-FI"
                       className="mt-2"
-                      value={nombreResolucionAprobacion}
-                      onChange={(e) => setNombreResolucionAprobacion(e.target.value)}
+                      value={resAprobacion.nombre}
+                      onChange={(e) => resAprobacion.setNombre(e.target.value)}
                     />
                   </div>
                   <div>
@@ -1435,49 +868,15 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       type="file"
                       accept=".pdf"
                       className="mt-2 cursor-pointer file:cursor-pointer"
-                      onChange={(e) => setArchivoResolucion(e.target.files?.[0] || null)}
+                      onChange={(e) => resAprobacion.setArchivo(e.target.files?.[0] || null)}
                     />
                   </div>
                   <Button
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
-                    onClick={async () => {
-                      if (!archivoResolucion) {
-                        toast.error('Seleccione un archivo de resolución')
-                        return
-                      }
-                      if (!validarArchivoPDF(archivoResolucion)) return
-                      if (!nombreResolucionAprobacion.trim()) {
-                        toast.error('Ingrese el título de la resolución')
-                        return
-                      }
-                      setSubiendoResolucion(true)
-                      try {
-                        const formData = new FormData()
-                        formData.append('file', archivoResolucion)
-                        formData.append('tipoDocumento', 'RESOLUCION_APROBACION')
-                        formData.append('nombreDocumento', nombreResolucionAprobacion.trim())
-                        const res = await fetch(`/api/tesis/${id}/documentos`, {
-                          method: 'POST',
-                          body: formData,
-                        })
-                        const data = await res.json()
-                        if (data.success) {
-                          toast.success('Resolución subida exitosamente')
-                          setArchivoResolucion(null)
-                          setNombreResolucionAprobacion('')
-                          loadProyecto()
-                        } else {
-                          toast.error(data.error || 'Error al subir resolución')
-                        }
-                      } catch {
-                        toast.error('Error al subir resolución')
-                      } finally {
-                        setSubiendoResolucion(false)
-                      }
-                    }}
-                    disabled={subiendoResolucion || !archivoResolucion || !nombreResolucionAprobacion.trim()}
+                    onClick={resAprobacion.submit}
+                    disabled={resAprobacion.subiendo || !resAprobacion.archivo || !resAprobacion.nombre.trim()}
                   >
-                    {subiendoResolucion ? (
+                    {resAprobacion.subiendo ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Subiendo...
@@ -1526,8 +925,8 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 sm:h-8 sm:w-8 text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
-                            onClick={() => removerJurado(jurado.id)}
-                            disabled={procesando}
+                            onClick={() => jurados.remover(jurado.id)}
+                            disabled={jurados.procesando}
                           >
                             <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
@@ -1562,7 +961,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   <div className="space-y-3">
                     <p className="text-sm font-medium">Buscar y agregar jurado:</p>
                     <div className="flex flex-col sm:flex-row gap-2">
-                      <Select value={tipoJurado} onValueChange={setTipoJurado}>
+                      <Select value={jurados.tipoJurado} onValueChange={jurados.setTipoJurado}>
                         <SelectTrigger className="w-full sm:w-[160px]">
                           <SelectValue />
                         </SelectTrigger>
@@ -1577,31 +976,31 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                           placeholder="Buscar por nombre, DNI o email..."
-                          value={busquedaJurado}
-                          onChange={(e) => setBusquedaJurado(e.target.value)}
+                          value={jurados.busqueda}
+                          onChange={(e) => jurados.setBusqueda(e.target.value)}
                           className="pl-10"
                         />
                       </div>
                     </div>
 
                     {/* Resultados de busqueda */}
-                    {(buscando || resultadosBusqueda.length > 0) && busquedaJurado.length >= 2 && (
+                    {(jurados.buscando || jurados.resultados.length > 0) && jurados.busqueda.length >= 2 && (
                       <div className="border rounded-lg max-h-60 overflow-y-auto">
-                        {buscando ? (
+                        {jurados.buscando ? (
                           <div className="flex items-center justify-center py-4">
                             <Loader2 className="w-4 h-4 animate-spin mr-2" />
                             <span className="text-sm text-muted-foreground">Buscando...</span>
                           </div>
-                        ) : resultadosBusqueda.length === 0 ? (
+                        ) : jurados.resultados.length === 0 ? (
                           <div className="text-center py-4 text-sm text-muted-foreground">
                             No se encontraron resultados
                           </div>
                         ) : (
-                          resultadosBusqueda.map((resultado) => (
+                          jurados.resultados.map((resultado) => (
                             <div
                               key={resultado.id}
                               className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0"
-                              onClick={() => asignarJurado(resultado.id)}
+                              onClick={() => jurados.asignar(resultado.id)}
                             >
                               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                                 <User className="w-4 h-4" />
@@ -1617,7 +1016,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                                   </p>
                                 )}
                               </div>
-                              <Button variant="outline" size="sm" disabled={procesando} className="shrink-0">
+                              <Button variant="outline" size="sm" disabled={jurados.procesando} className="shrink-0">
                                 <UserPlus className="w-3 h-3 sm:mr-1" />
                                 <span className="hidden sm:inline">Asignar</span>
                               </Button>
@@ -1652,23 +1051,23 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                           accept=".pdf"
                           onChange={(e) => {
                             const file = e.target.files?.[0] || null
-                            setArchivoResolucionJuradoInforme(file)
-                            if (file && !nombreResolucionJuradoInforme.trim()) {
-                              setNombreResolucionJuradoInforme(file.name.replace(/\.pdf$/i, ''))
+                            resJuradoInforme.setArchivo(file)
+                            if (file && !resJuradoInforme.nombre.trim()) {
+                              resJuradoInforme.setNombre(file.name.replace(/\.pdf$/i, ''))
                             }
                           }}
                           className="mt-1 cursor-pointer file:cursor-pointer"
                         />
                       </div>
-                      {archivoResolucionJuradoInforme && (
+                      {resJuradoInforme.archivo && (
                         <div>
                           <Label htmlFor="nombre-resolucion-jurado-informe">Título / Número de Resolución</Label>
                           <Input
                             id="nombre-resolucion-jurado-informe"
                             type="text"
                             placeholder="Ej: Resolución 090-2026-UNAMAD"
-                            value={nombreResolucionJuradoInforme}
-                            onChange={(e) => setNombreResolucionJuradoInforme(e.target.value)}
+                            value={resJuradoInforme.nombre}
+                            onChange={(e) => resJuradoInforme.setNombre(e.target.value)}
                             className="mt-1"
                           />
                           <span className="text-xs text-purple-700 dark:text-purple-400 mt-1 block">
@@ -1678,10 +1077,10 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       )}
                       <Button
                         className="w-full bg-purple-600 hover:bg-purple-700"
-                        onClick={subirResolucionJuradoInforme}
-                        disabled={subiendoResolucionJuradoInforme || !archivoResolucionJuradoInforme || !nombreResolucionJuradoInforme.trim()}
+                        onClick={resJuradoInforme.submit}
+                        disabled={resJuradoInforme.subiendo || !resJuradoInforme.archivo || !resJuradoInforme.nombre.trim()}
                       >
-                        {subiendoResolucionJuradoInforme ? (
+                        {resJuradoInforme.subiendo ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             Subiendo...
@@ -2062,9 +1461,9 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                               id="nombre-resolucion-sustentacion"
                               type="text"
                               placeholder="Ej: Resolución N° 001-2026-UNAMAD-FI"
-                              disabled={!todasConfirmaciones || subiendoResolucionSustentacion}
-                              value={nombreResolucionSustentacion}
-                              onChange={(e) => setNombreResolucionSustentacion(e.target.value)}
+                              disabled={!todasConfirmaciones || resSustentacion.subiendo}
+                              value={resSustentacion.nombre}
+                              onChange={(e) => resSustentacion.setNombre(e.target.value)}
                             />
                           </div>
                           <div className="space-y-2">
@@ -2073,13 +1472,13 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                               id="archivo-resolucion-sustentacion"
                               type="file"
                               accept=".pdf"
-                              disabled={!todasConfirmaciones || subiendoResolucionSustentacion}
-                              onChange={(e) => setArchivoResolucionSustentacion(e.target.files?.[0] || null)}
+                              disabled={!todasConfirmaciones || resSustentacion.subiendo}
+                              onChange={(e) => resSustentacion.setArchivo(e.target.files?.[0] || null)}
                             />
                           </div>
                           <Button
-                            onClick={subirResolucionSustentacion}
-                            disabled={!todasConfirmaciones || !archivoResolucionSustentacion || !nombreResolucionSustentacion.trim() || subiendoResolucionSustentacion}
+                            onClick={resSustentacion.submit}
+                            disabled={!todasConfirmaciones || !resSustentacion.archivo || !resSustentacion.nombre.trim() || resSustentacion.subiendo}
                             className={cn(
                               'w-full',
                               todasConfirmaciones
@@ -2087,7 +1486,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                                 : 'bg-gray-400 cursor-not-allowed'
                             )}
                           >
-                            {subiendoResolucionSustentacion ? (
+                            {resSustentacion.subiendo ? (
                               <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                 Subiendo...
@@ -2542,189 +1941,12 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-            {/* Autores */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="w-4 h-4 text-primary" />
-                  Tesistas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {proyecto.autores.map((autor) => (
-                  <div key={autor.id} className="flex items-start gap-3">
-                    <div className={cn(
-                      'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                      autor.tipoParticipante === 'AUTOR_PRINCIPAL'
-                        ? 'bg-primary/10'
-                        : 'bg-blue-100 dark:bg-blue-900/50'
-                    )}>
-                      <User className={cn(
-                        'w-4 h-4',
-                        autor.tipoParticipante === 'AUTOR_PRINCIPAL'
-                          ? 'text-primary'
-                          : 'text-blue-600'
-                      )} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{autor.nombre}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {autor.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{autor.codigo}</p>
-                      <p className="text-xs text-muted-foreground truncate">{autor.email}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Asesores */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-primary" />
-                  Asesores
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {proyecto.asesores.map((asesor) => (
-                  <div key={asesor.id} className="flex items-start gap-3">
-                    <div className={cn(
-                      'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                      asesor.estado === 'ACEPTADO'
-                        ? 'bg-green-100 dark:bg-green-900/50'
-                        : 'bg-yellow-100 dark:bg-yellow-900/50'
-                    )}>
-                      <GraduationCap className={cn(
-                        'w-4 h-4',
-                        asesor.estado === 'ACEPTADO' ? 'text-green-600' : 'text-yellow-600'
-                      )} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{asesor.nombre}</p>
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs text-muted-foreground">{asesor.tipo}</p>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'text-[10px] px-1.5 py-0',
-                            asesor.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                            asesor.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600'
-                          )}
-                        >
-                          {asesor.estado === 'ACEPTADO' ? 'Aceptado' : 'Pendiente'}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{asesor.email}</p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Jurados (sidebar, cuando no es estado de asignacion) */}
-            {!esAsignandoJurados && (proyecto.jurados || []).length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Gavel className="w-4 h-4 text-primary" />
-                    Jurados
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Jurados fase PROYECTO */}
-                  {juradosProyecto.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Aprobación de Proyecto</p>
-                      {juradosProyecto.map((jurado: any) => (
-                        <div key={jurado.id} className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center flex-shrink-0">
-                            <User className="w-4 h-4 text-purple-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{jurado.nombre}</p>
-                            <Badge className={cn('text-[10px] px-1.5 py-0', TIPO_JURADO_COLORS[jurado.tipo])}>
-                              {TIPO_JURADO_LABELS[jurado.tipo]}
-                            </Badge>
-                            <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Separador si hay ambas fases */}
-                  {juradosProyecto.length > 0 && juradosInforme.length > 0 && (
-                    <Separator />
-                  )}
-
-                  {/* Jurados fase INFORME_FINAL */}
-                  {juradosInforme.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Informe Final</p>
-                      {juradosInforme.map((jurado: any) => (
-                        <div key={jurado.id} className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
-                            <User className="w-4 h-4 text-cyan-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{jurado.nombre}</p>
-                            <Badge className={cn('text-[10px] px-1.5 py-0', TIPO_JURADO_COLORS[jurado.tipo])}>
-                              {TIPO_JURADO_LABELS[jurado.tipo]}
-                            </Badge>
-                            <p className="text-xs text-muted-foreground truncate">{jurado.email}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Info */}
-            <Card>
-              <CardContent className="pt-4">
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Fecha de registro</span>
-                    <span className="font-medium">
-                      {new Date(proyecto.createdAt).toLocaleDateString('es-PE')}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Documentos</span>
-                    <span className="font-medium">{proyecto.documentos.length}</span>
-                  </div>
-                  {proyecto.fechaLimiteEvaluacion && (
-                    <>
-                      <Separator />
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Limite evaluacion (d.h.)</span>
-                        <span className="font-medium">
-                          {new Date(proyecto.fechaLimiteEvaluacion).toLocaleDateString('es-PE')}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                  {proyecto.fechaLimiteCorreccion && (
-                    <>
-                      <Separator />
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Limite correccion (d.h.)</span>
-                        <span className="font-medium">
-                          {new Date(proyecto.fechaLimiteCorreccion).toLocaleDateString('es-PE')}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <ProjectSidebar
+            proyecto={proyecto}
+            esAsignandoJurados={esAsignandoJurados}
+            juradosProyecto={juradosProyecto}
+            juradosInforme={juradosInforme}
+          />
         </div>
       </div>
 
@@ -2792,88 +2014,6 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  )
-}
-
-// Componente para mostrar documento
-function DocumentoCard({
-  titulo,
-  documento,
-  iconColor,
-  iconBg,
-}: {
-  titulo: string
-  documento?: Documento
-  iconColor: string
-  iconBg: string
-}) {
-  const formatFileSize = (bytes: number) => {
-    if (!bytes) return '0 B'
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-  }
-
-  return (
-    <div className={cn(
-      'rounded-xl border-2 p-3 sm:p-4 overflow-hidden',
-      documento ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20' : 'border-muted'
-    )}>
-      <div className="flex items-start gap-2 sm:gap-3">
-        <div className={cn(
-          'w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
-          documento ? 'bg-green-100 dark:bg-green-900/50' : iconBg
-        )}>
-          {documento ? (
-            <FileCheck className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-          ) : (
-            <FileText className={cn('w-4 h-4 sm:w-5 sm:h-5', iconColor)} />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
-            <p className="font-semibold text-xs sm:text-sm leading-tight">{titulo}</p>
-            {documento ? (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600 shrink-0">
-                {documento.firmado ? 'Firmado' : 'Subido'}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground shrink-0">
-                No subido
-              </Badge>
-            )}
-          </div>
-          {documento ? (
-            <div className="flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 rounded-lg bg-white dark:bg-background border mt-1.5 sm:mt-2 min-w-0">
-              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
-              <span className="text-xs sm:text-sm flex-1 truncate">{documento.nombre}</span>
-              <span className="text-xs text-muted-foreground hidden sm:inline shrink-0">
-                {formatFileSize(documento.tamano)}
-              </span>
-              <a
-                href={documento.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1 sm:p-1.5 hover:bg-muted rounded-md transition-colors shrink-0"
-                title="Ver documento"
-              >
-                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </a>
-              <a
-                href={documento.url}
-                download
-                className="p-1 sm:p-1.5 hover:bg-muted rounded-md transition-colors shrink-0"
-                title="Descargar"
-              >
-                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </a>
-            </div>
-          ) : (
-            <p className="text-xs sm:text-sm text-muted-foreground">El documento no ha sido subido</p>
-          )}
-        </div>
-      </div>
     </div>
   )
 }

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { settingsService } from '@/lib/admin/services/settings.service'
+import { requirePermission } from '@/lib/admin/require-permission'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await requirePermission(request, 'configuracion', 'view')
+    if (auth instanceof NextResponse) return auth
     const configs = await settingsService.getAll()
 
     // Agrupar por categoría
@@ -30,14 +33,8 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const adminId = request.headers.get('x-user-id')
-
-    if (!adminId) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado' },
-        { status: 401 }
-      )
-    }
+    const auth = await requirePermission(request, 'configuracion', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const body = await request.json()
 
@@ -63,7 +60,7 @@ export async function PUT(request: NextRequest) {
         key: u.key,
         value: String(u.value),
       })),
-      adminId
+      auth.userId
     )
 
     return NextResponse.json({

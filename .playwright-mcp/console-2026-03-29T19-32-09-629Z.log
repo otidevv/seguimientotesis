@@ -1,0 +1,2599 @@
+[  126633ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  126924ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  126996ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127048ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127108ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127187ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127257ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127321ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127390ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127507ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  127964ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128040ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128188ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128257ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128316ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128393ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128478ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128550ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128625ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128718ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128832ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128924ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  128995ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129061ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129123ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129180ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129243ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129305ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129361ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129477ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129553ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129624ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129681ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129743ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129804ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129864ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129926ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  129994ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130053ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130110ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130169ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130228ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130292ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130348ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130417ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130480ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130547ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130610ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130664ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130726ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130793ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130866ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130916ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  130976ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131030ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131098ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131162ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131224ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131283ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131344ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131398ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131465ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131528ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131594ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131655ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131723ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131782ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131841ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131903ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  131962ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132027ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132095ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132158ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132220ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132272ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132333ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132394ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132451ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132512ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132576ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132643ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132704ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132778ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132849ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132908ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  132972ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133027ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133092ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133151ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133214ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133268ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133327ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133392ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133467ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133546ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133616ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133676ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133748ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133815ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133876ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133933ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  133992ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134050ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134111ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134180ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134236ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134296ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134364ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134433ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134506ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134573ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134673ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  134775ms] [ERROR] ./app/(dashboard)/mis-tesis/nuevo/page.tsx:574:27
+Parsing ecmascript source code failed
+  572 |                 </div>
+  573 |               </div>
+> 574 |             </CardContent>
+      |                           ^
+> 575 |           </Card>
+      | ^^^^^^^^^^^
+  576 |
+  577 |           {/* Main Content */}
+  578 |           <div className="grid lg:grid-cols-3 gap-6">
+
+Expected '</', got 'jsx text (
+          )'
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component Browser]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Client Component SSR]
+    ./app/(dashboard)/mis-tesis/nuevo/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127

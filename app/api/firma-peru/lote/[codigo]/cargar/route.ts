@@ -334,6 +334,7 @@ export async function POST(
     console.log(`[Firma Perú] Lote completado: ${procesados.length}/${archivoIds.length} archivos`);
 
     return NextResponse.json({
+      success: true,
       message: 'Lote procesado correctamente',
       procesados: procesados.length,
       total: archivoIds.length,

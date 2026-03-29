@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { userService } from '@/lib/admin/services/user.service'
 import { AdminError } from '@/lib/admin/types'
 import { updateUserSchema } from '@/lib/validators/user.schema'
+import { requirePermission } from '@/lib/admin/require-permission'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requirePermission(request, 'usuarios', 'view')
+    if (auth instanceof NextResponse) return auth
+
     const { id } = await params
     const user = await userService.getById(id)
 
@@ -37,10 +41,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const adminId = request.headers.get('x-user-id')
-    if (!adminId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
-    }
+    const auth = await requirePermission(request, 'usuarios', 'edit')
+    if (auth instanceof NextResponse) return auth
 
     const { id } = await params
     const body = await request.json()
@@ -53,7 +55,7 @@ export async function PUT(
       )
     }
 
-    const user = await userService.update(id, result.data, adminId)
+    const user = await userService.update(id, result.data, auth.userId)
 
     return NextResponse.json({
       success: true,
@@ -81,17 +83,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const adminId = request.headers.get('x-user-id')
-    if (!adminId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
-    }
+    const auth = await requirePermission(request, 'usuarios', 'delete')
+    if (auth instanceof NextResponse) return auth
 
     const { id } = await params
-    await userService.delete(id, adminId)
+    await userService.delete(id, auth.userId)
 
     return NextResponse.json({
       success: true,
-      message: 'Usuario eliminado correctamente',
+      message: 'Usuario desactivado correctamente',
     })
   } catch (error) {
     console.error('[DELETE /api/admin/usuarios/[id]] Error:', error)

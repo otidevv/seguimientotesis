@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
 
 const ESTADOS_VALIDOS: EstadoTesis[] = [
@@ -21,19 +21,17 @@ const ESTADOS_VALIDOS: EstadoTesis[] = [
   'RECHAZADA',
 ]
 
-async function verificarAdmin(request: NextRequest) {
+async function verificarAcceso(request: NextRequest, action: 'view' | 'edit' = 'view') {
   const user = await getCurrentUser(request)
 
   if (!user) {
     return { error: NextResponse.json({ error: 'No autorizado' }, { status: 401 }), user: null }
   }
 
-  const tieneAcceso = user.roles?.some(
-    (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-  )
+  const tieneAcceso = await checkPermission(user.id, 'tesis', action)
 
   if (!tieneAcceso) {
-    return { error: NextResponse.json({ error: 'No tienes permisos para esta accion' }, { status: 403 }), user: null }
+    return { error: NextResponse.json({ error: 'No tienes permisos para esta acción' }, { status: 403 }), user: null }
   }
 
   return { error: null, user }
@@ -45,7 +43,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error, user } = await verificarAdmin(request)
+    const { error, user } = await verificarAcceso(request, 'edit')
     if (error) return error
 
     const { id } = await params
@@ -166,7 +164,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error, user } = await verificarAdmin(request)
+    const { error, user } = await verificarAcceso(request, 'edit')
     if (error) return error
 
     const { id } = await params
