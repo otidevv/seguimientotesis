@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 
 const facultades = [
@@ -33,6 +34,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 export function WhatsAppFloat() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +49,8 @@ export function WhatsAppFloat() {
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
+
+  if (pathname !== "/") return null;
 
   return (
     <div ref={menuRef} className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
