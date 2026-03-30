@@ -155,10 +155,7 @@ export default function Home() {
 
               {/* Lottie animation with decorative frame */}
               <div data-gsap="hero-lottie" data-speed="0.85" className="hidden lg:flex items-center justify-center animate-in fade-in zoom-in-95 duration-1000 delay-300 fill-mode-backwards">
-                <div className="relative">
-                  <div className="absolute -inset-8 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 rounded-[2rem] blur-2xl" />
-                  <LottieBook className="w-[400px] h-[420px] drop-shadow-2xl relative z-10" />
-                </div>
+                <LottieBook className="w-[400px] h-[420px] drop-shadow-2xl" />
               </div>
             </div>
           </div>
@@ -182,33 +179,46 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         {/* STATS SECTION                                   */}
         {/* ═══════════════════════════════════════════════ */}
-        <section data-gsap="stats" className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-muted/80 to-muted/30" />
-          <div className="container mx-auto px-4 py-16 lg:py-20 relative z-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        {/* Wave top */}
+        <div style={{ height: 150, overflow: 'hidden', marginBottom: -1 }}>
+          <svg aria-hidden="true" viewBox="0 0 500 150" preserveAspectRatio="none" style={{ height: '100%', width: '100%' }}>
+            <path d="M-0.00,49.85 C150.00,149.60 349.20,-49.85 500.00,49.85 L507.56,166.82 L-8.23,167.80 Z" style={{ stroke: 'none', fill: '#db0455' }} />
+          </svg>
+        </div>
+
+        <section data-gsap="stats" style={{ backgroundColor: '#db0455' }}>
+          <div className="container mx-auto px-4 py-10 lg:py-16 relative z-10">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {[
-                { icon: BookOpen, value: "500+", label: "Tesis Registradas", delay: 0 },
-                { icon: Users, value: "150+", label: "Asesores Activos", delay: 1 },
-                { icon: GraduationCap, value: "12", label: "Facultades", delay: 2 },
-                { icon: Target, value: "95%", label: "Tasa de Éxito", delay: 3 },
+                { icon: BookOpen, value: "500+", label: "Tesis Registradas" },
+                { icon: Users, value: "150+", label: "Asesores Activos" },
+                { icon: GraduationCap, value: "12", label: "Facultades" },
+                { icon: Target, value: "95%", label: "Tasa de Éxito" },
               ].map((stat) => (
                 <div
                   key={stat.label}
                   data-gsap="stat-card"
-                  className="text-center group gradient-border bg-card p-6 lg:p-8 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="text-center group"
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 mb-4 group-hover:from-primary group-hover:to-primary/80 group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/20 group-hover:scale-110 transition-all duration-300">
-                    <stat.icon className="h-7 w-7 lg:h-8 lg:w-8" />
+                  <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-white/15 backdrop-blur-sm mb-4 group-hover:bg-white/25 group-hover:scale-110 transition-all duration-300">
+                    <stat.icon className="h-7 w-7 lg:h-8 lg:w-8 text-white" />
                   </div>
-                  <p data-gsap="stat-number" className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary font-[family-name:var(--font-syne)] tracking-tight">
+                  <p data-gsap="stat-number" className="text-3xl md:text-4xl lg:text-5xl font-bold text-white font-[family-name:var(--font-syne)] tracking-tight">
                     {stat.value}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1.5 font-medium">{stat.label}</p>
+                  <p className="text-sm text-white/70 mt-1.5 font-medium">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
+
+        {/* Wave bottom */}
+        <div className="bg-muted" style={{ height: 150, overflow: 'hidden', marginTop: -1 }}>
+          <svg aria-hidden="true" viewBox="0 0 500 150" preserveAspectRatio="none" style={{ height: '100%', width: '100%' }}>
+            <path d="M-0.00,49.85 C150.00,149.60 271.37,-49.85 500.00,49.85 L500.00,0.00 L-0.00,0.00 Z" style={{ stroke: 'none', fill: '#db0455' }} />
+          </svg>
+        </div>
 
         {/* ═══════════════════════════════════════════════ */}
         {/* FEATURES — BENTO GRID                           */}
@@ -263,13 +273,18 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div data-gsap="wave" className="absolute -bottom-24 left-0 w-full z-10 leading-[0]"><WaveDivider className="w-full h-24 block" flip /></div>
         </section>
+        {/* Wave bottom características — bg-muted color wave on white bg */}
+        <div style={{ height: 150, overflow: 'hidden', marginTop: -1 }}>
+          <svg aria-hidden="true" viewBox="0 0 500 150" preserveAspectRatio="none" style={{ height: '100%', width: '100%' }}>
+            <path d="M-0.00,49.85 C150.00,149.60 271.37,-49.85 500.00,49.85 L500.00,0.00 L-0.00,0.00 Z" className="fill-muted" style={{ stroke: 'none' }} />
+          </svg>
+        </div>
 
         {/* ═══════════════════════════════════════════════ */}
         {/* PROCESS SECTION                                 */}
         {/* ═══════════════════════════════════════════════ */}
-        <section id="proceso" className="pt-24 pb-24 relative overflow-hidden">
+        <section id="proceso" className="py-24 relative overflow-hidden">
           <GridPattern className="absolute inset-0 opacity-30" />
           <div className="container mx-auto px-4 relative z-10">
             <div data-gsap="section-header" className="text-center mb-16">
@@ -314,72 +329,6 @@ export default function Home() {
         </section>
 
         {/* ═══════════════════════════════════════════════ */}
-        {/* TESTIMONIALS SECTION                            */}
-        {/* ═══════════════════════════════════════════════ */}
-        <section id="testimonios" className="bg-muted py-24 relative">
-          <div data-gsap="wave" className="absolute -top-24 left-0 w-full leading-[0]"><WaveDivider className="w-full h-24 block" /></div>
-          <div className="container mx-auto px-4">
-            <div data-gsap="section-header" className="text-center mb-16">
-              <Badge variant="outline" className="mb-4 gap-1.5">
-                <Quote className="h-3 w-3" />
-                Testimonios
-              </Badge>
-              <h2 className="font-[family-name:var(--font-syne)] text-3xl md:text-4xl lg:text-5xl font-bold mb-3 tracking-tight">Lo que dicen nuestros usuarios</h2>
-              <SectionAccent className="w-28 h-2 mx-auto mb-4" />
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                Experiencias de estudiantes y asesores que usan nuestra plataforma
-              </p>
-            </div>
-            <InfiniteMovingCards speed="slow" pauseOnHover aria-label="Testimonios de usuarios" role="region">
-              {[
-                {
-                  text: "La plataforma me ayudó a organizar todo el proceso de mi tesis. El seguimiento con mi asesor fue mucho más fluido y pude graduarme a tiempo.",
-                  name: "María Castillo",
-                  role: "Ing. de Sistemas - 2024",
-                  peep: PeepMaria,
-                },
-                {
-                  text: "Como asesor, puedo dar seguimiento a múltiples tesistas de forma ordenada. Las notificaciones y el calendario son muy útiles.",
-                  name: "Dr. Juan Ríos",
-                  role: "Asesor - Fac. Ingeniería",
-                  peep: PeepJuan,
-                },
-                {
-                  text: "Excelente sistema para gestionar los documentos y ver el progreso. Recomiendo a todos los estudiantes que inicien su tesis aquí.",
-                  name: "Luis Paredes",
-                  role: "Administración - 2024",
-                  peep: PeepLuis,
-                },
-              ].map((testimonial) => (
-                <Card key={testimonial.name} className="relative hover:shadow-lg transition-all duration-300 w-[min(350px,85vw)] shrink-0 gradient-border">
-                  <CardContent className="pt-6">
-                    <Quote className="h-8 w-8 text-primary/15 absolute top-4 right-4" />
-                    <div className="flex gap-1 mb-4" role="img" aria-label="Calificación: 5 de 5 estrellas">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground mb-6 leading-relaxed">
-                      &quot;{testimonial.text}&quot;
-                    </p>
-                    <div className="flex items-center gap-3 pt-2 border-t border-border/50">
-                      <div className="w-11 h-11 rounded-full bg-primary/5 border border-primary/10 overflow-hidden shrink-0">
-                        <testimonial.peep className="w-full h-full" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm">{testimonial.name}</p>
-                        <p className="text-xs text-muted-foreground">{testimonial.role}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </InfiniteMovingCards>
-          </div>
-          <div data-gsap="wave" className="absolute -bottom-24 left-0 w-full z-10 leading-[0]"><WaveDivider className="w-full h-24 block" flip /></div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════ */}
         {/* FAQ SECTION                                     */}
         {/* ═══════════════════════════════════════════════ */}
         <section id="faq" className="py-24">
@@ -395,46 +344,47 @@ export default function Home() {
                 Respuestas a las dudas más comunes sobre nuestra plataforma
               </p>
             </div>
-            <div data-gsap="faq-content" className="max-w-3xl mx-auto relative">
-              <PeepThinking className="hidden lg:block absolute -right-52 top-8 w-40 h-52 opacity-50" />
-              <Accordion type="single" collapsible className="w-full">
-                {[
-                  {
-                    value: "item-1",
-                    question: "¿Cómo me registro en la plataforma?",
-                    answer: "Para registrarte, haz clic en el botón \"Registrarse\" y completa el formulario con tus datos institucionales. Necesitarás tu código de estudiante y correo institucional para verificar tu identidad.",
-                  },
-                  {
-                    value: "item-2",
-                    question: "¿Puedo cambiar de asesor durante el proceso?",
-                    answer: "Sí, es posible solicitar un cambio de asesor. Deberás presentar una solicitud formal a través de la plataforma, la cual será evaluada por la coordinación de tu facultad.",
-                  },
-                  {
-                    value: "item-3",
-                    question: "¿Qué formatos de archivo puedo subir?",
-                    answer: "Aceptamos documentos en formato PDF, DOC, DOCX para textos, y JPG, PNG para imágenes. El tamaño máximo por archivo es de 25MB.",
-                  },
-                  {
-                    value: "item-4",
-                    question: "¿Cómo puedo ver el avance de mi tesis?",
-                    answer: "En tu panel de control encontrarás una barra de progreso y un timeline detallado con todas las etapas de tu tesis. También recibirás notificaciones cuando tu asesor revise tus avances.",
-                  },
-                  {
-                    value: "item-5",
-                    question: "¿La plataforma es gratuita?",
-                    answer: "Sí, la plataforma es completamente gratuita para todos los estudiantes y docentes de la Universidad Nacional Amazónica de Madre de Dios.",
-                  },
-                ].map((faq) => (
-                  <AccordionItem key={faq.value} data-gsap="faq-item" value={faq.value}>
-                    <AccordionTrigger className="text-left hover:text-primary transition-colors">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground leading-relaxed">
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+            <div data-gsap="faq-content" className="max-w-3xl mx-auto">
+              <div className="rounded-2xl border bg-background p-1">
+                <Accordion type="single" collapsible className="w-full">
+                  {[
+                    {
+                      value: "item-1",
+                      question: "¿Cómo me registro en la plataforma?",
+                      answer: "Para registrarte, haz clic en el botón \"Registrarse\" y completa el formulario con tus datos institucionales. Necesitarás tu código de estudiante y correo institucional para verificar tu identidad.",
+                    },
+                    {
+                      value: "item-2",
+                      question: "¿Puedo cambiar de asesor durante el proceso?",
+                      answer: "Sí, es posible solicitar un cambio de asesor. Deberás presentar una solicitud formal a través de la plataforma, la cual será evaluada por la coordinación de tu facultad.",
+                    },
+                    {
+                      value: "item-3",
+                      question: "¿Qué formatos de archivo puedo subir?",
+                      answer: "Aceptamos documentos en formato PDF, DOC, DOCX para textos, y JPG, PNG para imágenes. El tamaño máximo por archivo es de 25MB.",
+                    },
+                    {
+                      value: "item-4",
+                      question: "¿Cómo puedo ver el avance de mi tesis?",
+                      answer: "En tu panel de control encontrarás una barra de progreso y un timeline detallado con todas las etapas de tu tesis. También recibirás notificaciones cuando tu asesor revise tus avances.",
+                    },
+                    {
+                      value: "item-5",
+                      question: "¿La plataforma es gratuita?",
+                      answer: "Sí, la plataforma es completamente gratuita para todos los estudiantes y docentes de la Universidad Nacional Amazónica de Madre de Dios.",
+                    },
+                  ].map((faq) => (
+                    <AccordionItem key={faq.value} data-gsap="faq-item" value={faq.value} className="border-b-0 px-4">
+                      <AccordionTrigger className="text-left hover:text-primary transition-colors text-[15px] py-5">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
             </div>
           </div>
         </section>
@@ -486,8 +436,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════ */}
       {/* FOOTER                                          */}
       {/* ═══════════════════════════════════════════════ */}
-      <footer className="border-t bg-background relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/30 to-transparent h-32 pointer-events-none" />
+      <footer className="border-t bg-muted/30 relative">
         <div data-gsap="footer" className="container mx-auto px-4 py-12 lg:py-16 relative z-10">
           <div className="grid md:grid-cols-4 gap-8 lg:gap-12">
             {/* Brand column */}
@@ -498,9 +447,12 @@ export default function Home() {
                   alt="UNAMAD Logo"
                   width={36}
                   height={36}
-                  className="rounded"
+                  className="rounded-xl ring-1 ring-border"
                 />
-                <span className="font-[family-name:var(--font-syne)] font-bold text-lg">Seguimiento de Tesis</span>
+                <div>
+                  <span className="font-[family-name:var(--font-syne)] font-bold text-sm block">Seguimiento de Tesis</span>
+                  <span className="text-[10px] text-muted-foreground tracking-widest uppercase">UNAMAD</span>
+                </div>
               </div>
               <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                 Plataforma integral para la gestión y seguimiento de tesis universitarias de la UNAMAD.
@@ -519,7 +471,6 @@ export default function Home() {
                   { href: "#top", label: "Inicio" },
                   { href: "#caracteristicas", label: "Características" },
                   { href: "#proceso", label: "Proceso" },
-                  { href: "#testimonios", label: "Testimonios" },
                   { href: "#faq", label: "Preguntas Frecuentes" },
                 ].map((link) => (
                   <li key={link.href}>

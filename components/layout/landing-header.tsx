@@ -12,7 +12,6 @@ const navItems = [
   { href: "#top", label: "Inicio" },
   { href: "#caracteristicas", label: "Características" },
   { href: "#proceso", label: "Proceso" },
-  { href: "#testimonios", label: "Testimonios" },
   { href: "#faq", label: "FAQ" },
   { href: "#contacto", label: "Contacto" },
 ];
