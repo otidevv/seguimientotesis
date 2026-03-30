@@ -576,11 +576,11 @@ export default function NuevoProyectoPage() {
           {/* Main Content */}
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Form Section */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 min-w-0">
               <div
                 key={currentStep}
                 className={cn(
-                  'space-y-6 animate-in fade-in duration-300',
+                  'space-y-6 animate-in fade-in duration-300 overflow-hidden',
                   slideDirection === 'right' ? 'slide-in-from-right-4' : 'slide-in-from-left-4'
                 )}
               >
@@ -888,13 +888,13 @@ export default function NuevoProyectoPage() {
                     <CardContent>
                       {coautorSeleccionado ? (
                         <div className="flex items-center gap-4 p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
                             <User className="w-6 h-6 text-green-600" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold truncate">{coautorSeleccionado.nombreCompleto}</p>
                             <p className="text-sm text-muted-foreground truncate">{coautorSeleccionado.email}</p>
-                            <p className="text-xs text-muted-foreground">{coautorSeleccionado.codigoEstudiante}</p>
+                            <p className="text-xs text-muted-foreground truncate">{coautorSeleccionado.codigoEstudiante}</p>
                           </div>
                           <Button
                             variant="ghost"
@@ -980,7 +980,7 @@ export default function NuevoProyectoPage() {
                     <CardContent>
                       {asesorSeleccionado ? (
                         <div className="flex items-center gap-4 p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
                             <GraduationCap className="w-6 h-6 text-green-600" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1074,7 +1074,7 @@ export default function NuevoProyectoPage() {
                     <CardContent>
                       {coasesorSeleccionado ? (
                         <div className="flex items-center gap-4 p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
                             <Users className="w-6 h-6 text-green-600" />
                           </div>
                           <div className="flex-1 min-w-0">
