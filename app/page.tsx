@@ -102,9 +102,9 @@ export default function Home() {
                 <div className="relative">
                   <GradientMesh variant="hero" className="z-0" />
                   <h1 className="font-[family-name:var(--font-syne)] text-[1.75rem] sm:text-4xl md:text-5xl lg:text-[4.25rem] font-bold tracking-tighter leading-[0.92] relative z-10">
-                    <div data-gsap="hero-line" className="hero-gradient-text opacity-0">Sistema de</div>
-                    <div data-gsap="hero-line" className="text-foreground opacity-0">Seguimiento de</div>
-                    <div data-gsap="hero-line" className="hero-gradient-text opacity-0">Tesis Universitarias</div>
+                    <div data-gsap="hero-line" className="hero-gradient-text hero-line-reveal" style={{ animationDelay: '0.1s' }}>Sistema de</div>
+                    <div data-gsap="hero-line" className="text-foreground hero-line-reveal" style={{ animationDelay: '0.35s' }}>Seguimiento de</div>
+                    <div data-gsap="hero-line" className="hero-gradient-text hero-line-reveal" style={{ animationDelay: '0.6s' }}>Tesis Universitarias</div>
                   </h1>
                 </div>
 
@@ -333,57 +333,67 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         <section id="faq" className="py-24">
           <div className="container mx-auto px-4">
-            <div data-gsap="section-header" className="text-center mb-16">
-              <Badge variant="outline" className="mb-4 gap-1.5">
-                <BookOpen className="h-3 w-3" />
-                FAQ
-              </Badge>
-              <h2 className="font-[family-name:var(--font-syne)] text-3xl md:text-4xl lg:text-5xl font-bold mb-3 tracking-tight">Preguntas Frecuentes</h2>
-              <SectionAccent className="w-28 h-2 mx-auto mb-4" />
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                Respuestas a las dudas más comunes sobre nuestra plataforma
-              </p>
-            </div>
-            <div data-gsap="faq-content" className="max-w-3xl mx-auto">
-              <div className="rounded-2xl border bg-background p-1">
-                <Accordion type="single" collapsible className="w-full">
-                  {[
-                    {
-                      value: "item-1",
-                      question: "¿Cómo me registro en la plataforma?",
-                      answer: "Para registrarte, haz clic en el botón \"Registrarse\" y completa el formulario con tus datos institucionales. Necesitarás tu código de estudiante y correo institucional para verificar tu identidad.",
-                    },
-                    {
-                      value: "item-2",
-                      question: "¿Puedo cambiar de asesor durante el proceso?",
-                      answer: "Sí, es posible solicitar un cambio de asesor. Deberás presentar una solicitud formal a través de la plataforma, la cual será evaluada por la coordinación de tu facultad.",
-                    },
-                    {
-                      value: "item-3",
-                      question: "¿Qué formatos de archivo puedo subir?",
-                      answer: "Aceptamos documentos en formato PDF, DOC, DOCX para textos, y JPG, PNG para imágenes. El tamaño máximo por archivo es de 25MB.",
-                    },
-                    {
-                      value: "item-4",
-                      question: "¿Cómo puedo ver el avance de mi tesis?",
-                      answer: "En tu panel de control encontrarás una barra de progreso y un timeline detallado con todas las etapas de tu tesis. También recibirás notificaciones cuando tu asesor revise tus avances.",
-                    },
-                    {
-                      value: "item-5",
-                      question: "¿La plataforma es gratuita?",
-                      answer: "Sí, la plataforma es completamente gratuita para todos los estudiantes y docentes de la Universidad Nacional Amazónica de Madre de Dios.",
-                    },
-                  ].map((faq) => (
-                    <AccordionItem key={faq.value} data-gsap="faq-item" value={faq.value} className="border-b-0 px-4">
-                      <AccordionTrigger className="text-left hover:text-primary transition-colors text-[15px] py-5">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
-                        {faq.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+              {/* Left — Header + Peep character */}
+              <div data-gsap="section-header" className="lg:sticky lg:top-24">
+                <Badge variant="outline" className="mb-4 gap-1.5">
+                  <BookOpen className="h-3 w-3" />
+                  FAQ
+                </Badge>
+                <h2 className="font-[family-name:var(--font-syne)] text-3xl md:text-4xl lg:text-5xl font-bold mb-3 tracking-tight">Preguntas Frecuentes</h2>
+                <SectionAccent className="w-28 h-2 mb-4" />
+                <p className="text-muted-foreground max-w-md text-lg mb-8">
+                  Respuestas a las dudas más comunes sobre nuestra plataforma
+                </p>
+
+                {/* Peep thinking character */}
+                <div className="flex justify-center lg:justify-start">
+                  <PeepThinking className="w-48 h-56 opacity-80" />
+                </div>
+              </div>
+
+              {/* Right — Accordion */}
+              <div data-gsap="faq-content">
+                <div className="rounded-2xl border bg-background p-1">
+                  <Accordion type="single" collapsible className="w-full">
+                    {[
+                      {
+                        value: "item-1",
+                        question: "¿Cómo me registro en la plataforma?",
+                        answer: "Para registrarte, haz clic en el botón \"Registrarse\" y completa el formulario con tus datos institucionales. Necesitarás tu código de estudiante y correo institucional para verificar tu identidad.",
+                      },
+                      {
+                        value: "item-2",
+                        question: "¿Puedo cambiar de asesor durante el proceso?",
+                        answer: "Sí, es posible solicitar un cambio de asesor. Deberás presentar una solicitud formal a través de la plataforma, la cual será evaluada por la coordinación de tu facultad.",
+                      },
+                      {
+                        value: "item-3",
+                        question: "¿Qué formatos de archivo puedo subir?",
+                        answer: "Aceptamos documentos en formato PDF, DOC, DOCX para textos, y JPG, PNG para imágenes. El tamaño máximo por archivo es de 25MB.",
+                      },
+                      {
+                        value: "item-4",
+                        question: "¿Cómo puedo ver el avance de mi tesis?",
+                        answer: "En tu panel de control encontrarás una barra de progreso y un timeline detallado con todas las etapas de tu tesis. También recibirás notificaciones cuando tu asesor revise tus avances.",
+                      },
+                      {
+                        value: "item-5",
+                        question: "¿La plataforma es gratuita?",
+                        answer: "Sí, la plataforma es completamente gratuita para todos los estudiantes y docentes de la Universidad Nacional Amazónica de Madre de Dios.",
+                      },
+                    ].map((faq) => (
+                      <AccordionItem key={faq.value} data-gsap="faq-item" value={faq.value} className="border-b-0 px-4">
+                        <AccordionTrigger className="text-left hover:text-primary transition-colors text-[15px] py-5">
+                          {faq.question}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
+                          {faq.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
               </div>
             </div>
           </div>

@@ -1,0 +1,362 @@
+- generic [active] [ref=e1]:
+  - link "Saltar al contenido principal" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "UNAMAD Logo Seguimiento de Tesis UNAMAD" [ref=e6] [cursor=pointer]:
+          - /url: "#top"
+          - img "UNAMAD Logo" [ref=e7]
+          - generic [ref=e8]:
+            - generic [ref=e9]: Seguimiento de Tesis
+            - generic [ref=e10]: UNAMAD
+        - navigation [ref=e12]:
+          - link "Inicio" [ref=e13] [cursor=pointer]:
+            - /url: "#top"
+          - link "Características" [ref=e14] [cursor=pointer]:
+            - /url: "#caracteristicas"
+          - link "Proceso" [ref=e15] [cursor=pointer]:
+            - /url: "#proceso"
+          - link "FAQ" [ref=e16] [cursor=pointer]:
+            - /url: "#faq"
+          - link "Contacto" [ref=e17] [cursor=pointer]:
+            - /url: "#contacto"
+          - link "Registrarse" [ref=e19] [cursor=pointer]:
+            - /url: /registrarse
+            - text: Registrarse
+            - img
+        - generic [ref=e20]:
+          - button "Cambiar tema" [ref=e21] [cursor=pointer]:
+            - img
+            - generic [ref=e22]: Cambiar tema
+          - link "Iniciar Sesión" [ref=e23] [cursor=pointer]:
+            - /url: /login
+    - main [ref=e24]:
+      - generic [ref=e25]:
+        - img [ref=e28]
+        - img [ref=e31]
+        - generic [ref=e37]:
+          - generic [ref=e39]: Plataforma de Gestión Académica
+          - heading "Sistema de Seguimiento de Tesis Universitarias" [level=1] [ref=e44]:
+            - generic [ref=e45]: Sistema de
+            - generic [ref=e46]: Seguimiento de
+            - generic [ref=e47]: Tesis Universitarias
+          - paragraph [ref=e48]: Gestiona, supervisa y da seguimiento al progreso de tesis de pregrado y posgrado. Una plataforma integral para tesistas, asesores y revisores.
+          - generic [ref=e49]:
+            - link "Iniciar Sesión" [ref=e50] [cursor=pointer]:
+              - /url: /login
+              - text: Iniciar Sesión
+              - img
+            - link "Crear Cuenta Gratis" [ref=e51] [cursor=pointer]:
+              - /url: /registrarse
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - img [ref=e55]
+              - generic [ref=e57]: Datos seguros
+            - generic [ref=e59]:
+              - img [ref=e61]
+              - generic [ref=e64]: Soporte 24/7
+            - generic [ref=e66]:
+              - img [ref=e68]
+              - generic [ref=e71]: Certificado
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+        - link "Explorar" [ref=e75] [cursor=pointer]:
+          - /url: "#caracteristicas"
+          - generic [ref=e76]: Explorar
+      - img [ref=e80]
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - img [ref=e87]
+          - paragraph [ref=e89]: 500+
+          - paragraph [ref=e90]: Tesis Registradas
+        - generic [ref=e91]:
+          - img [ref=e93]
+          - paragraph [ref=e98]: 150+
+          - paragraph [ref=e99]: Asesores Activos
+        - generic [ref=e100]:
+          - img [ref=e102]
+          - paragraph [ref=e105]: "12"
+          - paragraph [ref=e106]: Facultades
+        - generic [ref=e107]:
+          - img [ref=e109]
+          - paragraph [ref=e113]: 95%
+          - paragraph [ref=e114]: Tasa de Éxito
+      - img [ref=e116]
+      - generic [ref=e119]:
+        - generic [ref=e120]:
+          - generic [ref=e121]: Características
+          - heading "Todo lo que necesitas" [level=2] [ref=e122]
+          - img [ref=e123]
+          - paragraph [ref=e127]: Herramientas diseñadas para gestionar el proceso de tesis de forma eficiente
+        - generic [ref=e128]:
+          - generic [ref=e131]:
+            - img [ref=e133]
+            - generic [ref=e136]:
+              - generic [ref=e137]: Gestión de Documentos
+              - generic [ref=e138]: Sube, organiza y versiona todos los documentos relacionados con tu tesis en un solo lugar. Control de versiones automático y firma digital integrada.
+            - img [ref=e139]
+          - generic [ref=e143]:
+            - img [ref=e145]
+            - generic [ref=e150]:
+              - generic [ref=e151]: Asignación de Asesores
+              - generic [ref=e152]: Conecta tesistas con asesores especializados según líneas de investigación.
+          - generic [ref=e155]:
+            - img [ref=e157]
+            - generic [ref=e159]:
+              - generic [ref=e160]: Cronograma de Actividades
+              - generic [ref=e161]: Planifica y visualiza las etapas del desarrollo de la tesis con alertas automáticas.
+          - generic [ref=e164]:
+            - img [ref=e166]
+            - generic [ref=e169]:
+              - generic [ref=e170]: Seguimiento de Avances
+              - generic [ref=e171]: Registra el progreso y recibe retroalimentación continua de tu asesor.
+          - generic [ref=e174]:
+            - img [ref=e176]
+            - generic [ref=e179]:
+              - generic [ref=e180]: Evaluaciones y Revisiones
+              - generic [ref=e181]: Gestiona las observaciones y aprobaciones de los jurados con un flujo de trabajo estructurado. Historial completo de revisiones y notificaciones.
+            - img [ref=e182]
+          - generic [ref=e186]:
+            - img [ref=e188]
+            - generic [ref=e190]:
+              - generic [ref=e191]: Reportes y Estadísticas
+              - generic [ref=e192]: Visualiza métricas y genera reportes detallados del proceso académico.
+      - img [ref=e194]
+      - generic [ref=e196]:
+        - img [ref=e197]
+        - generic [ref=e199]:
+          - generic [ref=e200]:
+            - generic [ref=e201]: Proceso
+            - heading "Proceso de Tesis" [level=2] [ref=e202]
+            - img [ref=e203]
+            - paragraph [ref=e207]: Acompañamos cada etapa del desarrollo de tu investigación
+          - generic [ref=e208]:
+            - generic [ref=e209]:
+              - generic [ref=e210]:
+                - generic:
+                  - img
+                - generic: "1"
+              - generic [ref=e218]:
+                - heading "Registro del Proyecto" [level=3] [ref=e219]
+                - paragraph [ref=e220]: Inscribe tu tema de tesis y datos del proyecto
+              - img [ref=e223]
+            - generic [ref=e238]:
+              - generic [ref=e239]:
+                - generic:
+                  - img
+                - generic: "2"
+              - generic [ref=e247]:
+                - heading "Asignación de Asesor" [level=3] [ref=e248]
+                - paragraph [ref=e249]: Se asigna un asesor según tu línea de investigación
+              - img [ref=e252]
+            - generic [ref=e273]:
+              - generic [ref=e274]:
+                - generic:
+                  - img
+                - generic: "3"
+              - generic [ref=e284]:
+                - heading "Desarrollo y Seguimiento" [level=3] [ref=e285]
+                - paragraph [ref=e286]: Avanza en tu investigación con supervisión continua
+              - img [ref=e289]
+            - generic [ref=e306]:
+              - generic [ref=e307]:
+                - generic:
+                  - img
+                - generic: "4"
+              - generic [ref=e315]:
+                - heading "Sustentación" [level=3] [ref=e316]
+                - paragraph [ref=e317]: Programa y realiza la defensa de tu tesis
+              - img [ref=e320]
+      - generic [ref=e336]:
+        - generic [ref=e470]:
+          - generic [ref=e471]:
+            - img
+            - text: FAQ
+          - heading "Preguntas Frecuentes" [level=2] [ref=e472]
+          - img [ref=e473]
+          - paragraph [ref=e477]: Respuestas a las dudas más comunes sobre nuestra plataforma
+          - img [ref=e480]
+        - generic [ref=e498]:
+          - heading "¿Cómo me registro en la plataforma?" [level=3] [ref=e500]:
+            - button "¿Cómo me registro en la plataforma?" [ref=e501]:
+              - text: ¿Cómo me registro en la plataforma?
+              - img
+          - heading "¿Puedo cambiar de asesor durante el proceso?" [level=3] [ref=e503]:
+            - button "¿Puedo cambiar de asesor durante el proceso?" [ref=e504]:
+              - text: ¿Puedo cambiar de asesor durante el proceso?
+              - img
+          - heading "¿Qué formatos de archivo puedo subir?" [level=3] [ref=e506]:
+            - button "¿Qué formatos de archivo puedo subir?" [ref=e507]:
+              - text: ¿Qué formatos de archivo puedo subir?
+              - img
+          - heading "¿Cómo puedo ver el avance de mi tesis?" [level=3] [ref=e509]:
+            - button "¿Cómo puedo ver el avance de mi tesis?" [ref=e510]:
+              - text: ¿Cómo puedo ver el avance de mi tesis?
+              - img
+          - heading "¿La plataforma es gratuita?" [level=3] [ref=e512]:
+            - button "¿La plataforma es gratuita?" [ref=e513]:
+              - text: ¿La plataforma es gratuita?
+              - img
+      - generic [ref=e364]:
+        - generic [ref=e365]:
+          - img
+        - generic [ref=e367]:
+          - generic [ref=e368]:
+            - img [ref=e370]
+            - generic [ref=e372]: Empieza ahora
+          - heading "¿Listo para comenzar tu tesis?" [level=2] [ref=e373]:
+            - text: ¿Listo para comenzar
+            - text: tu tesis?
+          - paragraph [ref=e374]: Regístrate y comienza a gestionar tu proyecto de investigación hoy mismo.
+          - generic [ref=e375]:
+            - link "Crear Cuenta Gratis" [ref=e376] [cursor=pointer]:
+              - /url: /registrarse
+              - text: Crear Cuenta Gratis
+              - img
+            - link "Ya tengo cuenta" [ref=e377] [cursor=pointer]:
+              - /url: /login
+    - contentinfo [ref=e380]:
+      - generic [ref=e381]:
+        - generic [ref=e382]:
+          - generic [ref=e383]:
+            - generic [ref=e384]:
+              - img "UNAMAD Logo" [ref=e385]
+              - generic [ref=e386]:
+                - generic [ref=e387]: Seguimiento de Tesis
+                - text: UNAMAD
+            - paragraph [ref=e388]: Plataforma integral para la gestión y seguimiento de tesis universitarias de la UNAMAD.
+            - generic [ref=e389]:
+              - generic [ref=e390]: v1.0
+              - generic [ref=e391]: UNAMAD
+          - generic [ref=e392]:
+            - heading "Navegación" [level=4] [ref=e393]
+            - list [ref=e394]:
+              - listitem [ref=e395]:
+                - link "Inicio" [ref=e396] [cursor=pointer]:
+                  - /url: "#top"
+                  - img [ref=e397]
+                  - text: Inicio
+              - listitem [ref=e399]:
+                - link "Características" [ref=e400] [cursor=pointer]:
+                  - /url: "#caracteristicas"
+                  - img [ref=e401]
+                  - text: Características
+              - listitem [ref=e403]:
+                - link "Proceso" [ref=e404] [cursor=pointer]:
+                  - /url: "#proceso"
+                  - img [ref=e405]
+                  - text: Proceso
+              - listitem [ref=e407]:
+                - link "Preguntas Frecuentes" [ref=e408] [cursor=pointer]:
+                  - /url: "#faq"
+                  - img [ref=e409]
+                  - text: Preguntas Frecuentes
+          - generic [ref=e411]:
+            - heading "Acceso Rápido" [level=4] [ref=e412]
+            - list [ref=e413]:
+              - listitem [ref=e414]:
+                - link "Iniciar Sesión" [ref=e415] [cursor=pointer]:
+                  - /url: /login
+                  - img [ref=e416]
+                  - text: Iniciar Sesión
+              - listitem [ref=e418]:
+                - link "Registrarse" [ref=e419] [cursor=pointer]:
+                  - /url: /registrarse
+                  - img [ref=e420]
+                  - text: Registrarse
+          - generic [ref=e422]:
+            - heading "Contacto" [level=4] [ref=e423]
+            - list [ref=e424]:
+              - listitem [ref=e425]:
+                - img [ref=e427]
+                - generic [ref=e430]: Universidad Nacional Amazónica de Madre de Dios
+              - listitem [ref=e431]:
+                - img [ref=e433]
+                - link "soporte@unamad.edu.pe" [ref=e436] [cursor=pointer]:
+                  - /url: mailto:soporte@unamad.edu.pe
+              - listitem [ref=e437]:
+                - img [ref=e439]
+                - link "(082) 571-046" [ref=e441] [cursor=pointer]:
+                  - /url: tel:+5182571046
+              - listitem [ref=e442]:
+                - img [ref=e444]
+                - generic [ref=e447]: Puerto Maldonado, Perú
+        - generic [ref=e448]:
+          - paragraph [ref=e449]: © 2026 Seguimiento de Tesis - UNAMAD. Todos los derechos reservados.
+          - generic [ref=e450]:
+            - generic [ref=e451]: Hecho con
+            - generic [ref=e452]: ♥
+            - generic [ref=e453]: en Puerto Maldonado
+  - generic [ref=e454]:
+    - generic:
+      - generic:
+        - generic:
+          - img
+          - generic:
+            - paragraph: Mesa de Partes
+            - paragraph: Selecciona tu facultad
+        - button "Cerrar menú de contacto":
+          - img
+      - generic:
+        - link "Fac. de Ingeniería Mesa de Partes":
+          - /url: https://wa.me/51982876444?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Ingenier%C3%ADa.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Ingeniería
+            - paragraph: Mesa de Partes
+        - link "Fac. de Educación Mesa de Partes":
+          - /url: https://wa.me/51986092382?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Educaci%C3%B3n.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Educación
+            - paragraph: Mesa de Partes
+        - link "Fac. de Ciencias Empresariales Mesa de Partes":
+          - /url: https://wa.me/51975845277?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Ciencias%20Empresariales.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Ciencias Empresariales
+            - paragraph: Mesa de Partes
+      - generic:
+        - paragraph: "Horario de atención: Lun - Vie, 8:00 - 16:00"
+    - button "Contactar Mesa de Partes por WhatsApp" [ref=e455]:
+      - img [ref=e457]
+  - button "Open Next.js Dev Tools" [ref=e464] [cursor=pointer]:
+    - img [ref=e465]
+  - alert [ref=e469]

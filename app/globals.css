@@ -334,6 +334,35 @@ html {
   50% { text-shadow: 0 0 20px oklch(0.55 0.24 360 / 0.3); }
 }
 
+/* Hero line reveal — pure CSS, survives Fast Refresh */
+@keyframes hero-line-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) rotateX(15deg) scale(0.95);
+    filter: blur(4px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg) scale(1);
+    filter: blur(0px);
+  }
+}
+.hero-line-reveal {
+  opacity: 0;
+  animation: hero-line-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: bottom center;
+}
+
+/* SplitText char override — when GSAP upgrades the animation */
+.hero-line-reveal.gsap-enhanced {
+  animation: none !important;
+  opacity: 1;
+}
+
 /* Stagger reveal for bento items */
 .bento-item {
   opacity: 0;

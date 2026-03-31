@@ -1,0 +1,3045 @@
+[     117ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1073ms] [LOG] [Fast Refresh] done in 1056ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1206ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1302ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1630ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1677ms] [LOG] [Firma Perú] Callbacks inicializados @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1782ms] [WARNING] using deprecated parameters for the initialization function; pass a single object instead @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1800ms] [LOG] [Fast Refresh] done in 285ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   42262ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   43333ms] [LOG] [Fast Refresh] done in 1170ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   43498ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   43738ms] [LOG] [Fast Refresh] done in 319ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   60131ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   60335ms] [LOG] [Fast Refresh] done in 292ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   78834ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   78994ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79068ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79139ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79185ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79236ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79282ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79338ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79394ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79442ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79495ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79549ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79599ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79658ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79707ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79749ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79804ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79852ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79902ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   79951ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80007ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80084ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80132ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80179ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80229ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80284ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80331ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80379ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80437ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80495ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80544ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80591ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80641ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80689ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80750ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80797ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80859ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80907ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   80962ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81029ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81076ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81125ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81167ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81241ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81285ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81332ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81391ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81446ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81501ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81567ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81623ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81684ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81737ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81797ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81854ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81901ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   81951ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82010ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82065ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82115ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82169ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82224ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82272ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82327ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82373ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82436ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82483ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82549ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82598ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82648ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82696ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82744ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82798ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82848ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82895ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   82950ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83009ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83066ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83141ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83198ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83245ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83296ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83356ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83403ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83459ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83506ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83549ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83598ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83658ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83701ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83760ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83810ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83872ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83919ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   83973ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84027ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84075ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84119ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84174ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84228ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84301ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84361ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84416ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84466ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84514ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84563ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84615ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84664ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84718ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84774ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84829ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84875ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84924ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   84966ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85009ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85064ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85113ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85161ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85209ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85270ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85318ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85360ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85399ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85452ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85494ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85550ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85599ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85654ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85708ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85755ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85805ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85852ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85894ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   85958ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86011ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86073ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86130ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86172ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86239ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86287ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86339ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86384ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86442ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86488ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86538ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86598ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86651ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86689ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86743ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86792ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86851ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86894ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86935ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   86997ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87045ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87095ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87154ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87216ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87259ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87303ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87350ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87403ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87452ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87502ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87544ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87590ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87648ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87708ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87750ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87805ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87865ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87924ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   87977ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88031ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88076ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88132ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88179ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88239ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88300ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88348ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88391ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88446ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88494ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88543ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88598ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88653ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88701ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88756ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88803ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88858ms] [ERROR] ./components/gsap-landing.tsx:262:8
+Parsing ecmascript source code failed
+  260 |         });
+  261 |
+> 262 |       });
+      |        ^
+  263 |     }, 200); // Slightly longer delay to survive Fast Refresh
+  264 |
+  265 |     return () => {
+
+Expression expected
+
+Import trace:
+  Server Component:
+    ./components/gsap-landing.tsx
+    ./app/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   88961ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   89129ms] [LOG] [Fast Refresh] done in 246ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   89230ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   89537ms] [LOG] [Fast Refresh] done in 407ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   89652ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   89762ms] [LOG] [Fast Refresh] done in 213ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297

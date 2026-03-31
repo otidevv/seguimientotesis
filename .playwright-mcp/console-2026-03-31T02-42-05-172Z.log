@@ -1,0 +1,3 @@
+[  130447ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[  134737ms] [LOG] [Fast Refresh] done in 4175ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[  135645ms] [WARNING] using deprecated parameters for the initialization function; pass a single object instead @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
