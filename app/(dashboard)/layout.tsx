@@ -92,7 +92,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 overflow-hidden">
         <DashboardSidebar />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
-          {children}
+          <div className="mx-auto max-w-7xl w-full">
+            {children}
+          </div>
         </main>
       </div>
       <Toaster position="top-right" richColors closeButton />

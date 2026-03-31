@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { autoDetectUserType, AuthError } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 // Schema simplificado - solo necesita el número de documento
@@ -21,6 +22,22 @@ export async function POST(request: NextRequest) {
     }
 
     const { numeroDocumento } = result.data
+
+    // Verificar si el documento ya está registrado en el sistema
+    const existingUser = await prisma.user.findUnique({
+      where: { numeroDocumento },
+      select: { id: true },
+    })
+
+    if (existingUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Este número de documento ya está registrado en el sistema. Si olvidaste tu contraseña, puedes recuperarla desde el inicio de sesión.',
+        },
+        { status: 409 }
+      )
+    }
 
     // Buscar automáticamente en todas las APIs
     // Orden: Estudiante → Docente → RENIEC (Externo)

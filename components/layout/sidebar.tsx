@@ -38,8 +38,103 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
+
+// ─── Help dialog data ───────────────────────────────────────────────────────────
+
+const contactosFacultad = [
+  {
+    nombre: 'Fac. de Ingeniería',
+    codigo: 'FI',
+    telefono: '51982876444',
+    mensaje: 'Hola, soy tesista de la Facultad de Ingeniería. Quisiera consultar sobre mi trámite de tesis.',
+  },
+  {
+    nombre: 'Fac. de Educación',
+    codigo: 'FE',
+    telefono: '51986092382',
+    mensaje: 'Hola, soy tesista de la Facultad de Educación. Quisiera consultar sobre mi trámite de tesis.',
+  },
+  {
+    nombre: 'Fac. de Ciencias Empresariales',
+    codigo: 'FCE',
+    telefono: '51975845277',
+    mensaje: 'Hola, soy tesista de la Facultad de Ciencias Empresariales. Quisiera consultar sobre mi trámite de tesis.',
+  },
+]
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" fill="currentColor" className={className}>
+      <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.5 1.128 6.744 3.046 9.378L1.054 31.29l6.118-1.958A15.9 15.9 0 0 0 16.004 32C24.826 32 32 24.822 32 16S24.826 0 16.004 0zm9.34 22.606c-.39 1.1-1.932 2.014-3.18 2.28-.852.18-1.964.324-5.708-1.226-4.794-1.986-7.876-6.856-8.114-7.174-.228-.318-1.924-2.558-1.924-4.878s1.218-3.462 1.65-3.934c.432-.472.944-.59 1.258-.59.314 0 .63.002.904.016.29.014.68-.11 1.064.812.39.944 1.336 3.264 1.454 3.5.118.236.196.512.038.826-.158.318-.236.514-.472.79-.236.278-.496.62-.708.832-.236.236-.482.492-.208.964.276.472 1.224 2.018 2.63 3.268 1.808 1.608 3.332 2.106 3.804 2.342.472.236.748.196 1.022-.118.276-.314 1.18-1.376 1.494-1.848.314-.472.63-.39 1.062-.236.432.158 2.748 1.296 3.22 1.532.472.236.786.354.904.55.118.196.118 1.14-.272 2.24z" />
+    </svg>
+  )
+}
+
+function HelpDialog({ children }: { children: React.ReactNode }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-primary" />
+            Centro de Ayuda
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 pt-2">
+          {/* WhatsApp contacts */}
+          <div>
+            <p className="text-sm font-medium mb-2">Consultas por WhatsApp</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Comunícate con la Mesa de Partes de tu facultad
+            </p>
+            <div className="space-y-2">
+              {contactosFacultad.map((fac) => (
+                <a
+                  key={fac.codigo}
+                  href={`https://wa.me/${fac.telefono}?text=${encodeURIComponent(fac.mensaje)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg border hover:bg-accent transition-colors group"
+                >
+                  <div className="w-9 h-9 rounded-full bg-[#25D366]/10 flex items-center justify-center shrink-0 group-hover:bg-[#25D366]/20 transition-colors">
+                    <WhatsAppIcon className="w-4.5 h-4.5 text-[#25D366]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{fac.nombre}</p>
+                    <p className="text-[11px] text-muted-foreground">Mesa de Partes</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    +{fac.telefono.slice(0, 2)} {fac.telefono.slice(2, 5)} {fac.telefono.slice(5, 8)} {fac.telefono.slice(8)}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Schedule */}
+          <div className="rounded-lg bg-muted/50 px-4 py-3">
+            <p className="text-xs text-muted-foreground text-center">
+              Horario de atención: Lun – Vie, 7:30 a.m. – 4:15 p.m.
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 // ─── Nav item types & data ─────────────────────────────────────────────────────
 
@@ -225,24 +320,27 @@ function SidebarNavSections({
       {collapsed ? (
         <>
           <div className="h-px w-6 mx-auto bg-sidebar-border my-3" />
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <button className="flex w-full items-center justify-center rounded-md py-2.5 text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-150">
-                <HelpCircle className="h-5 w-5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Ayuda</TooltipContent>
-          </Tooltip>
+          <HelpDialog>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <button className="flex w-full items-center justify-center rounded-md py-2.5 text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-150 cursor-pointer">
+                  <HelpCircle className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Ayuda</TooltipContent>
+            </Tooltip>
+          </HelpDialog>
         </>
       ) : (
         <div className="pt-5">
-          <button
-            onClick={onNavigate}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-150"
-          >
-            <HelpCircle className="h-[18px] w-[18px]" />
-            <span>Ayuda</span>
-          </button>
+          <HelpDialog>
+            <button
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-150 cursor-pointer"
+            >
+              <HelpCircle className="h-[18px] w-[18px]" />
+              <span>Ayuda</span>
+            </button>
+          </HelpDialog>
         </div>
       )}
     </>
