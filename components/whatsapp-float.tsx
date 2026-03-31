@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 
 const facultades = [
@@ -33,6 +34,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 export function WhatsAppFloat() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -48,14 +50,16 @@ export function WhatsAppFloat() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  if (pathname !== "/") return null;
+
   return (
-    <div ref={menuRef} className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div ref={menuRef} className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
       {/* Menu desplegable */}
       <div
         className={`
           bg-card border rounded-2xl shadow-2xl overflow-hidden w-[min(300px,calc(100vw-3rem))]
           transition-all duration-300 origin-bottom-right
-          ${open ? "scale-100 opacity-100 translate-y-0" : "scale-90 opacity-0 translate-y-4 pointer-events-none"}
+          ${open ? "scale-100 opacity-100 translate-y-0 pointer-events-auto" : "scale-90 opacity-0 translate-y-4 pointer-events-none"}
         `}
       >
         {/* Header */}
@@ -110,7 +114,7 @@ export function WhatsAppFloat() {
       <button
         onClick={() => setOpen((v) => !v)}
         className={`
-          group relative w-14 h-14 rounded-full shadow-lg
+          pointer-events-auto group relative w-14 h-14 rounded-full shadow-lg
           bg-[#25D366] hover:bg-[#20BD5A] text-white
           flex items-center justify-center
           transition-all duration-300 hover:scale-110 hover:shadow-xl
