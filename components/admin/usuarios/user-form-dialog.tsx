@@ -343,7 +343,6 @@ export function UserFormDialog({
                     if (isValidated && !isEditing) {
                       setIsValidated(false)
                       setDetectionResult(null)
-                      setSearchSuccess(null)
                     }
                   }}
                   disabled={isEditing}
