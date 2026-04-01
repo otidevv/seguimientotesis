@@ -121,7 +121,7 @@ export function NotificationPanel() {
           <Bell className="h-5 w-5" />
           <span className="sr-only">Notificaciones</span>
           {noLeidasCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center px-0.5">
+            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center px-0.5" aria-label={`${noLeidasCount} notificaciones no leídas`}>
               {noLeidasCount > 99 ? '99+' : noLeidasCount}
             </span>
           )}
@@ -160,47 +160,48 @@ export function NotificationPanel() {
               <p className="text-sm">No tienes notificaciones</p>
             </div>
           ) : (
-            <div className="divide-y">
+            <ul role="list" className="divide-y">
               {notificaciones.map(notif => {
                 const Icon = ICON_MAP[notif.tipo] || Bell
                 return (
-                  <button
-                    key={notif.id}
-                    onClick={() => handleClick(notif)}
-                    className={cn(
-                      'w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50 cursor-pointer',
-                      !notif.leida && 'bg-blue-50 dark:bg-blue-950/20'
-                    )}
-                  >
-                    <div className={cn(
-                      'mt-0.5 rounded-full p-1.5 shrink-0',
-                      !notif.leida
-                        ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
-                        : 'bg-muted text-muted-foreground'
-                    )}>
-                      <Icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        'text-sm leading-tight',
-                        !notif.leida && 'font-medium'
+                  <li key={notif.id}>
+                    <button
+                      onClick={() => handleClick(notif)}
+                      className={cn(
+                        'w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50 cursor-pointer',
+                        !notif.leida && 'bg-blue-50 dark:bg-blue-950/20'
+                      )}
+                    >
+                      <div className={cn(
+                        'mt-0.5 rounded-full p-1.5 shrink-0',
+                        !notif.leida
+                          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
+                          : 'bg-muted text-muted-foreground'
                       )}>
-                        {notif.titulo}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                        {notif.mensaje}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/70 mt-1">
-                        {tiempoRelativo(notif.createdAt)}
-                      </p>
-                    </div>
-                    {!notif.leida && (
-                      <div className="mt-2 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
-                    )}
-                  </button>
+                        <Icon className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn(
+                          'text-sm leading-tight',
+                          !notif.leida && 'font-medium'
+                        )}>
+                          {notif.titulo}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                          {notif.mensaje}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground/70 mt-1">
+                          {tiempoRelativo(notif.createdAt)}
+                        </p>
+                      </div>
+                      {!notif.leida && (
+                        <div className="mt-2 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                      )}
+                    </button>
+                  </li>
                 )
               })}
-            </div>
+            </ul>
           )}
         </ScrollArea>
       </SheetContent>

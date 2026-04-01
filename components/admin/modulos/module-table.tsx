@@ -107,7 +107,7 @@ export function ModuleTable({
           <TableCell>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label="Acciones">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -155,7 +155,7 @@ export function ModuleTable({
 
   return (
     <div className="overflow-x-auto">
-      <Table>
+      <Table aria-label="Tabla de módulos">
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>

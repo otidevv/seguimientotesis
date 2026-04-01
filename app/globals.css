@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Sonner toast siempre por encima de modales (Dialog z-50) */
+[data-sonner-toaster] {
+  z-index: 99999 !important;
+}
+
 html {
   scroll-behavior: smooth;
 }

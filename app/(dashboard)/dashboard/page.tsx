@@ -43,7 +43,11 @@ export default function DashboardPage() {
   }, [authLoading, user, loadDashboard])
 
   if (authLoading || loading) {
-    return <DashboardSkeleton />
+    return (
+      <div role="status" aria-label="Cargando dashboard">
+        <DashboardSkeleton />
+      </div>
+    )
   }
 
   if (!data) {
@@ -64,10 +68,10 @@ export default function DashboardPage() {
   const { stats, actividadMensual, tesisPorFacultad, tesisRecientes, actividadReciente, proximosEventos, statsAvanzados } = data
 
   return (
-    <div className="space-y-6 overflow-x-hidden">
+    <div className="space-y-6">
       {/* Header */}
       <div
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards"
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:fill-mode-backwards"
         style={{ animationDuration: '500ms' }}
       >
         <div>
@@ -120,7 +124,7 @@ export default function DashboardPage() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 overflow-x-hidden">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-2">
           <Skeleton className="h-7 w-56" />

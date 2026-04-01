@@ -38,6 +38,7 @@ import {
   User,
   Building2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { AdminUserResponse } from '@/lib/admin/types'
 
@@ -106,8 +107,6 @@ export function UserFormDialog({
   const [isSearching, setIsSearching] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]>>({})
-  const [searchError, setSearchError] = useState<string | null>(null)
-  const [searchSuccess, setSearchSuccess] = useState<string | null>(null)
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null)
   const [isValidated, setIsValidated] = useState(false)
   const [facultades, setFacultades] = useState<Facultad[]>([])
@@ -176,21 +175,17 @@ export function UserFormDialog({
       setDetectionResult(null)
     }
     setErrors({})
-    setSearchError(null)
-    setSearchSuccess(null)
     setMesaPartesFacultadId('')
   }, [user, open])
 
   // Search user in external APIs
   const handleSearch = async () => {
     if (!formData.numeroDocumento || formData.numeroDocumento.length < 8) {
-      setSearchError('El número de documento debe tener al menos 8 caracteres')
+      toast.error('El número de documento debe tener al menos 8 caracteres')
       return
     }
 
     setIsSearching(true)
-    setSearchError(null)
-    setSearchSuccess(null)
     setDetectionResult(null)
 
     try {
@@ -200,7 +195,7 @@ export function UserFormDialog({
 
       const result = data.data
       setDetectionResult(result)
-      setSearchSuccess(data.message)
+      toast.success(data.message)
       setIsValidated(true)
 
       setFormData(prev => ({
@@ -213,12 +208,7 @@ export function UserFormDialog({
         selectedRoleIds: result.suggestedRoles.map(r => r.id),
       }))
     } catch (err: any) {
-      const message = err?.message || 'Error de conexión al buscar'
-      if (message.includes('Ya existe')) {
-        setSearchError(message)
-      } else {
-        setSearchError(message)
-      }
+      toast.error(err?.message || 'Error de conexión al buscar')
     } finally {
       setIsSearching(false)
     }
@@ -382,23 +372,6 @@ export function UserFormDialog({
               )}
             </div>
           </div>
-
-          {/* Search results / errors */}
-          {searchError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{searchError}</AlertDescription>
-            </Alert>
-          )}
-
-          {searchSuccess && (
-            <Alert className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
-              <Check className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-700 dark:text-green-300">
-                {searchSuccess}
-              </AlertDescription>
-            </Alert>
-          )}
 
           {/* Detected roles info */}
           {detectionResult && detectionResult.detectedRoles.length > 1 && (

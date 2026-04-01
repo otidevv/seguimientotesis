@@ -1,0 +1,45 @@
+- generic [active] [ref=e1]:
+  - link "Saltar al contenido principal" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e5]:
+    - img [ref=e6]
+    - paragraph [ref=e8]: Cargando...
+  - generic [ref=e9]:
+    - generic:
+      - generic:
+        - generic:
+          - img
+          - generic:
+            - paragraph: Mesa de Partes
+            - paragraph: Selecciona tu facultad
+        - button "Cerrar menú de contacto":
+          - img
+      - generic:
+        - link "Fac. de Ingeniería Mesa de Partes":
+          - /url: https://wa.me/51982876444?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Ingenier%C3%ADa.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Ingeniería
+            - paragraph: Mesa de Partes
+        - link "Fac. de Educación Mesa de Partes":
+          - /url: https://wa.me/51986092382?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Educaci%C3%B3n.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Educación
+            - paragraph: Mesa de Partes
+        - link "Fac. de Ciencias Empresariales Mesa de Partes":
+          - /url: https://wa.me/51975845277?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Ciencias%20Empresariales.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Ciencias Empresariales
+            - paragraph: Mesa de Partes
+      - generic:
+        - paragraph: "Horario de atención: Lun - Vie, 8:00 - 16:00"
+    - button "Contactar Mesa de Partes por WhatsApp" [ref=e10]:
+      - img [ref=e12]
+  - button "Open Next.js Dev Tools" [ref=e19] [cursor=pointer]:
+    - img [ref=e20]
+  - alert [ref=e23]

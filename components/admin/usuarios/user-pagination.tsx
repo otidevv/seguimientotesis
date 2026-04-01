@@ -82,7 +82,7 @@ export function UserPagination({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t mt-4">
+    <nav aria-label="Paginación" className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t mt-4">
       {/* Info de registros */}
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <span>
@@ -97,7 +97,7 @@ export function UserPagination({
             value={limit.toString()}
             onValueChange={(value) => onLimitChange(parseInt(value))}
           >
-            <SelectTrigger className="w-[70px] h-8">
+            <SelectTrigger className="w-[70px] h-8" aria-label="Filas por página">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -121,6 +121,7 @@ export function UserPagination({
             className="h-8 w-8"
             onClick={() => onPageChange(1)}
             disabled={page === 1}
+            aria-label="Primera página"
           >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
@@ -132,6 +133,7 @@ export function UserPagination({
             className="h-8 w-8"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
+            aria-label="Página anterior"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -150,6 +152,7 @@ export function UserPagination({
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => onPageChange(pageNum as number)}
+                  {...(page === pageNum ? { 'aria-current': 'page' as const } : {})}
                 >
                   {pageNum}
                 </Button>
@@ -169,6 +172,7 @@ export function UserPagination({
             className="h-8 w-8"
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages}
+            aria-label="Página siguiente"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -180,11 +184,12 @@ export function UserPagination({
             className="h-8 w-8"
             onClick={() => onPageChange(totalPages)}
             disabled={page === totalPages}
+            aria-label="Última página"
           >
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       )}
-    </div>
+    </nav>
   )
 }

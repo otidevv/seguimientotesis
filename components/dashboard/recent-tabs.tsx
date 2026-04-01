@@ -29,7 +29,7 @@ interface RecentTabsProps {
 
 export function RecentTabs({ tesisRecientes, actividadReciente, proximosEventos }: RecentTabsProps) {
   return (
-    <Tabs defaultValue="tesis" className="space-y-4 animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards" style={{ animationDelay: '480ms', animationDuration: '500ms' }}>
+    <Tabs defaultValue="tesis" className="space-y-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:fill-mode-backwards" style={{ animationDelay: '480ms', animationDuration: '500ms' }}>
       <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
         <TabsTrigger value="tesis">Tesis Recientes</TabsTrigger>
         <TabsTrigger value="actividad">Actividad</TabsTrigger>

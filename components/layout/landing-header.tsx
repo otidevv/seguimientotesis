@@ -40,7 +40,7 @@ export function LandingHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full motion-safe:transition-all motion-safe:duration-300 ${
         hidden ? "-translate-y-full" : "translate-y-0"
       } ${
         scrolled

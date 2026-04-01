@@ -18,7 +18,7 @@ export function ActivityChart({ data }: ActivityChartProps) {
   const hasData = data.some((m) => m.registradas > 0 || m.actualizadas > 0)
 
   return (
-    <Card className="md:col-span-4 overflow-hidden animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards" style={{ animationDelay: '320ms', animationDuration: '500ms' }}>
+    <Card className="md:col-span-4 overflow-hidden motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:fill-mode-backwards" style={{ animationDelay: '320ms', animationDuration: '500ms' }} aria-label="Gráfico de actividad de tesis de los últimos 6 meses">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">

@@ -1,0 +1,117 @@
+- generic [active] [ref=e1]:
+  - link "Saltar al contenido principal" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - region "Galería de imágenes del campus UNAMAD" [ref=e5]:
+      - img "Infraestructura universitaria" [ref=e7]
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - img [ref=e13]
+          - generic [ref=e16]:
+            - paragraph [ref=e17]: UNAMAD
+            - paragraph [ref=e18]: Universidad Nacional Amazónica de Madre de Dios
+        - generic [ref=e19]:
+          - paragraph [ref=e20]: Infraestructura universitaria
+          - tablist "Indicadores de imagen" [ref=e21]:
+            - 'tab "Imagen 1: Infraestructura universitaria" [selected] [ref=e22] [cursor=pointer]'
+            - 'tab "Imagen 2: Espacios académicos" [ref=e23] [cursor=pointer]'
+            - 'tab "Imagen 3: Campus UNAMAD" [ref=e24] [cursor=pointer]'
+            - 'tab "Imagen 4: Áreas verdes" [ref=e25] [cursor=pointer]'
+            - 'tab "Imagen 5: Vida universitaria" [ref=e26] [cursor=pointer]'
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - link "UNAMAD Logo Seguimiento de Tesis" [ref=e29] [cursor=pointer]:
+          - /url: /
+          - img "UNAMAD Logo" [ref=e30]
+          - generic [ref=e31]: Seguimiento de Tesis
+        - link "Crear cuenta" [ref=e32] [cursor=pointer]:
+          - /url: /registrarse
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - img [ref=e39]
+              - img [ref=e43]
+            - generic [ref=e47]:
+              - paragraph [ref=e48]: Sistema de Tesis
+              - paragraph [ref=e49]: UNAMAD
+          - heading "Bienvenido de vuelta" [level=1] [ref=e50]
+          - paragraph [ref=e51]: Ingresa tus credenciales para acceder al sistema
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - generic [ref=e54]: Correo Institucional
+            - generic [ref=e55]:
+              - img [ref=e56]
+              - textbox "Correo Institucional" [disabled]:
+                - /placeholder: usuario@unamad.edu.pe
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - generic [ref=e61]: Contraseña
+              - link "¿Olvidaste tu contraseña?" [ref=e62] [cursor=pointer]:
+                - /url: /recuperar-password
+            - generic [ref=e63]:
+              - img [ref=e64]
+              - textbox "Contraseña" [disabled]:
+                - /placeholder: ••••••••
+              - button "Mostrar contraseña" [disabled] [ref=e67] [cursor=pointer]:
+                - img [ref=e68]
+          - generic [ref=e71]:
+            - checkbox "Recordar mi sesión" [disabled] [ref=e72] [cursor=pointer]
+            - generic [ref=e73] [cursor=pointer]: Recordar mi sesión
+          - generic [ref=e74]:
+            - button "Iniciando sesión..." [disabled]:
+              - img
+              - text: Iniciando sesión...
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - img [ref=e77]
+            - generic [ref=e80]: Acceso Rápido
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - generic [ref=e85]: Sesión Segura
+          - generic [ref=e86]:
+            - img [ref=e87]
+            - generic [ref=e90]: Panel Personal
+        - paragraph [ref=e92]:
+          - text: Al iniciar sesión, aceptas nuestros
+          - button "Términos de Servicio" [ref=e93]
+          - text: "y"
+          - button "Política de Privacidad" [ref=e94]
+  - generic [ref=e95]:
+    - generic:
+      - generic:
+        - generic:
+          - img
+          - generic:
+            - paragraph: Mesa de Partes
+            - paragraph: Selecciona tu facultad
+        - button "Cerrar menú de contacto":
+          - img
+      - generic:
+        - link "Fac. de Ingeniería Mesa de Partes":
+          - /url: https://wa.me/51982876444?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Ingenier%C3%ADa.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Ingeniería
+            - paragraph: Mesa de Partes
+        - link "Fac. de Educación Mesa de Partes":
+          - /url: https://wa.me/51986092382?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Educaci%C3%B3n.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Educación
+            - paragraph: Mesa de Partes
+        - link "Fac. de Ciencias Empresariales Mesa de Partes":
+          - /url: https://wa.me/51975845277?text=Hola%2C%20soy%20tesista%20de%20la%20Facultad%20de%20Ciencias%20Empresariales.%20Quisiera%20consultar%20sobre%20mi%20tr%C3%A1mite%20de%20tesis.
+          - generic:
+            - img
+          - generic:
+            - paragraph: Fac. de Ciencias Empresariales
+            - paragraph: Mesa de Partes
+      - generic:
+        - paragraph: "Horario de atención: Lun - Vie, 8:00 - 16:00"
+    - button "Contactar Mesa de Partes por WhatsApp" [ref=e96]:
+      - img [ref=e98]
+  - button "Open Next.js Dev Tools" [ref=e105] [cursor=pointer]:
+    - img [ref=e106]

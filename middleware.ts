@@ -22,6 +22,7 @@ const PUBLIC_API_ROUTES = [
   '/api/auth/forgot-password',
   '/api/auth/reset-password',
   '/api/auth/verify-email',
+  '/api/auth/check-email', // Verificar si email existe (registro)
   '/api/auth/me', // Permitir verificar sesión sin token
 ]
 

@@ -74,7 +74,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
             key={card.key}
             className={cn(
               'group relative overflow-hidden rounded-xl border p-4 sm:p-5 transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
-              'animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards'
+              'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:fill-mode-backwards'
             )}
             style={{ animationDelay: `${index * 80}ms`, animationDuration: '500ms' }}
           >

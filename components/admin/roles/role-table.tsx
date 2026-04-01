@@ -55,7 +55,7 @@ export function RoleTable({
   }
 
   return (
-    <Table>
+    <Table aria-label="Tabla de roles">
       <TableHeader>
         <TableRow>
           <TableHead>Rol</TableHead>
@@ -130,7 +130,7 @@ export function RoleTable({
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" aria-label="Acciones">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>

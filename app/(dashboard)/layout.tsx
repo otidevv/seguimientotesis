@@ -71,34 +71,32 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, router])
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    )
-  }
-
   if (!isAuthenticated || !user) {
+    if (isLoading) {
+      return (
+        <div className="flex-1 flex items-center justify-center" role="status" aria-label="Cargando dashboard">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 motion-safe:animate-spin text-primary" />
+            <p className="text-muted-foreground">Cargando...</p>
+          </div>
+        </div>
+      )
+    }
     return null
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <>
       <DashboardHeader />
       <div className="flex flex-1 overflow-hidden">
         <DashboardSidebar />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
+        <main id="main-content" className="flex-1 px-3 pt-2 pb-4 sm:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
           <div className="mx-auto max-w-7xl w-full">
             {children}
           </div>
         </main>
       </div>
-      <Toaster position="top-right" richColors closeButton />
-    </div>
+    </>
   )
 }
 
@@ -109,7 +107,10 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      <div className="fixed inset-0 flex flex-col bg-background overflow-hidden z-40">
+        <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      </div>
+      <Toaster position="top-right" richColors closeButton />
     </SidebarProvider>
   )
 }

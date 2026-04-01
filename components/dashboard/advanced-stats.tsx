@@ -13,7 +13,7 @@ interface AdvancedStatsProps {
 export function AdvancedStats({ stats }: AdvancedStatsProps) {
   return (
     <PermissionGuard moduleCode="reportes" action="view">
-      <div className="grid gap-4 md:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards" style={{ animationDelay: '560ms', animationDuration: '500ms' }}>
+      <div className="grid gap-4 md:grid-cols-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:fill-mode-backwards" style={{ animationDelay: '560ms', animationDuration: '500ms' }}>
         {/* Tasa de aprobación */}
         <div className="rounded-xl border p-5 space-y-3">
           <div className="flex items-center justify-between">

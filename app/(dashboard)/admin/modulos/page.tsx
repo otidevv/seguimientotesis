@@ -219,12 +219,12 @@ export default function ModulosPage() {
                 />
 
                 {/* Paginacion */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t">
+                <nav aria-label="Paginación" className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground whitespace-nowrap">Filas por pagina</span>
                       <Select value={String(itemsPerPage)} onValueChange={(v) => setItemsPerPage(Number(v))}>
-                        <SelectTrigger className="w-[70px] h-8">
+                        <SelectTrigger className="w-[70px] h-8" aria-label="Filas por página">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent position="popper">
@@ -246,6 +246,7 @@ export default function ModulosPage() {
                       size="sm"
                       disabled={page === 1}
                       onClick={() => setPage(page - 1)}
+                      aria-label="Página anterior"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
@@ -260,6 +261,7 @@ export default function ModulosPage() {
                             size="sm"
                             className="w-8 h-8 p-0"
                             onClick={() => setPage(p)}
+                            {...(page === p ? { 'aria-current': 'page' as const } : {})}
                           >
                             {p}
                           </Button>
@@ -274,11 +276,12 @@ export default function ModulosPage() {
                       size="sm"
                       disabled={page === totalPages}
                       onClick={() => setPage(page + 1)}
+                      aria-label="Página siguiente"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
-                </div>
+                </nav>
               </div>
             )}
           </CardContent>

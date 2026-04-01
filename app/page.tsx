@@ -71,7 +71,7 @@ export default function Home() {
         {/* ═══════════════════════════════════════════════ */}
         {/* HERO SECTION                                    */}
         {/* ═══════════════════════════════════════════════ */}
-        <section data-gsap="hero" className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex flex-col noise-overlay">
+        <section data-gsap="hero" className="relative overflow-hidden min-h-[calc(100dvh-4rem)] flex flex-col noise-overlay">
           <Spotlight fill="var(--primary)" />
           <div data-gsap="hero-blob" data-speed="0.6" className="absolute -bottom-40 -left-40 w-[500px] h-[500px]">
             <BlobDecoration className="w-full h-full opacity-40 rotate-180" />
@@ -84,7 +84,7 @@ export default function Home() {
           <div className="absolute top-1/4 right-[15%] w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-[float_8s_ease-in-out_infinite]" />
           <div className="absolute bottom-1/3 left-[10%] w-56 h-56 bg-primary/3 rounded-full blur-3xl animate-[float_10s_ease-in-out_infinite_2s]" />
 
-          <div className="container mx-auto px-4 relative z-10 flex-1 flex items-center">
+          <div className="container mx-auto px-4 relative z-10 flex-1 flex items-start pt-8 sm:items-center sm:pt-0">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
               <div className="flex flex-col gap-6 lg:gap-8">
                 {/* Pill badge */}

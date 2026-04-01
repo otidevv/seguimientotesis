@@ -210,6 +210,7 @@ function SidebarNavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
+      aria-current={isActive ? 'page' : undefined}
       className={cn(
         'relative flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors duration-150',
         isActive
@@ -295,6 +296,7 @@ function SidebarNavSections({
               {idx === 0 && onToggleCollapse && (
                 <button
                   onClick={onToggleCollapse}
+                  aria-label="Colapsar menú"
                   className="h-6 w-6 flex items-center justify-center rounded-full border border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
@@ -439,7 +441,7 @@ export function MobileSidebar() {
         </SheetHeader>
         <div className="flex flex-col h-full">
           <ScrollArea className="flex-1">
-            <nav className="px-3 py-3">
+            <nav aria-label="Navegación principal" className="px-3 py-3">
               <SidebarNavSections pathname={pathname} onNavigate={close} />
             </nav>
           </ScrollArea>
@@ -459,6 +461,7 @@ export function DesktopSidebar() {
   return (
     <TooltipProvider>
       <aside
+        aria-label="Menú de navegación"
         className={cn(
           'hidden lg:flex border-r border-sidebar-border bg-sidebar shadow-sm transition-[width] duration-300 ease-in-out flex-col overflow-hidden',
           isCollapsed ? 'w-[72px]' : 'w-[260px]'
@@ -471,6 +474,7 @@ export function DesktopSidebar() {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => setIsCollapsed(false)}
+                  aria-label="Expandir menú"
                   className="h-7 w-7 flex items-center justify-center rounded-full border border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -483,7 +487,7 @@ export function DesktopSidebar() {
 
         {/* Navigation */}
         <ScrollArea className="flex-1">
-          <nav className={cn('py-3 whitespace-nowrap', isCollapsed ? 'px-2' : 'px-3')}>
+          <nav aria-label="Navegación principal" className={cn('py-3 whitespace-nowrap', isCollapsed ? 'px-2' : 'px-3')}>
             <SidebarNavSections
               collapsed={isCollapsed}
               pathname={pathname}

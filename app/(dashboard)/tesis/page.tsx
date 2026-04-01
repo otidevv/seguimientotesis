@@ -266,7 +266,7 @@ export default function GestionTesisPage() {
           <button
             onClick={toggleVerEliminadas}
             className={cn(
-              'flex items-center gap-2 rounded-xl border px-4 py-2.5 transition-colors',
+              'flex items-center gap-2 rounded-xl border px-4 py-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2',
               verEliminadas ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/30' : 'hover:bg-muted/50'
             )}
           >
@@ -287,7 +287,7 @@ export default function GestionTesisPage() {
             <button
               onClick={() => handleFiltroEstado('TODOS')}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
+                'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2',
                 filtroEstado === 'TODOS'
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'border bg-card hover:bg-accent text-muted-foreground'
@@ -305,7 +305,7 @@ export default function GestionTesisPage() {
                   key={estado}
                   onClick={() => handleFiltroEstado(isActive ? 'TODOS' : estado)}
                   className={cn(
-                    'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
+                    'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2',
                     isActive
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'border bg-card hover:bg-accent'
@@ -380,7 +380,7 @@ export default function GestionTesisPage() {
               <p className="text-xs text-muted-foreground">No se encontraron tesis con los filtros aplicados</p>
             </div>
           ) : (
-            <Table>
+            <Table aria-label="Tabla de gestión de tesis">
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
                   <TableHead className="w-[90px] text-xs">Código</TableHead>
@@ -433,7 +433,7 @@ export default function GestionTesisPage() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Acciones">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -469,7 +469,7 @@ export default function GestionTesisPage() {
 
         {/* Pagination */}
         {totalItems > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t">
+          <nav aria-label="Paginación" className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t">
             <p className="text-xs text-muted-foreground">
               <span className="font-medium text-foreground">{((page - 1) * ITEMS_PER_PAGE) + 1}</span>
               {' - '}
@@ -479,7 +479,7 @@ export default function GestionTesisPage() {
             </p>
             {totalPages > 1 && (
               <div className="flex items-center gap-1">
-                <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading}>
+                <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading} aria-label="Página anterior">
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
                 <div className="hidden sm:flex items-center gap-1">
@@ -494,19 +494,19 @@ export default function GestionTesisPage() {
                       item === 'ellipsis' ? (
                         <span key={`e-${i}`} className="px-1 text-muted-foreground text-xs">...</span>
                       ) : (
-                        <Button key={item} variant={page === item ? 'default' : 'outline'} size="sm" className="h-8 w-8 p-0" onClick={() => setPage(item as number)} disabled={loading}>
+                        <Button key={item} variant={page === item ? 'default' : 'outline'} size="sm" className="h-8 w-8 p-0" onClick={() => setPage(item as number)} disabled={loading} {...(page === item ? { 'aria-current': 'page' as const } : {})}>
                           {item}
                         </Button>
                       )
                     )}
                 </div>
                 <span className="sm:hidden text-xs text-muted-foreground px-2">{page} / {totalPages}</span>
-                <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages || loading}>
+                <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages || loading} aria-label="Página siguiente">
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
             )}
-          </div>
+          </nav>
         )}
       </Card>
 

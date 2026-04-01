@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -78,8 +78,7 @@ export default function RegistrarsePage() {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  // Removed inline error/success state — using sonner toast instead
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -95,6 +94,42 @@ export default function RegistrarsePage() {
   // User can edit email for externos or add personal email
   const [emailPersonal, setEmailPersonal] = useState("");
   const [emailCustom, setEmailCustom] = useState(""); // Solo para externos
+
+  // Email validation
+  const isValidEmail = (email: string) => {
+    if (!email) return null;
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+  };
+
+  // Check if email already exists (debounced)
+  const [emailExists, setEmailExists] = useState<Record<string, boolean>>({});
+  const [checkingEmail, setCheckingEmail] = useState<Record<string, boolean>>({});
+  const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
+
+  const checkEmailExists = useCallback((email: string, field: string) => {
+    if (debounceTimers.current[field]) clearTimeout(debounceTimers.current[field]);
+    if (!email || !isValidEmail(email)) {
+      setEmailExists(prev => ({ ...prev, [field]: false }));
+      setCheckingEmail(prev => ({ ...prev, [field]: false }));
+      return;
+    }
+    setCheckingEmail(prev => ({ ...prev, [field]: true }));
+    debounceTimers.current[field] = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/auth/check-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+        setEmailExists(prev => ({ ...prev, [field]: data.exists }));
+      } catch {
+        setEmailExists(prev => ({ ...prev, [field]: false }));
+      } finally {
+        setCheckingEmail(prev => ({ ...prev, [field]: false }));
+      }
+    }, 500);
+  }, []);
 
   // Password
   const [password, setPassword] = useState("");
@@ -137,16 +172,15 @@ export default function RegistrarsePage() {
   // Validate user - Auto-detects type
   const handleValidateUser = async () => {
     if (!numeroDocumento) {
-      setError("Ingresa el número de documento");
+      toast.error("Ingresa el número de documento");
       return;
     }
 
     if (tipoDocumento === "DNI" && numeroDocumento.length !== 8) {
-      setError("El DNI debe tener 8 dígitos");
+      toast.error("El DNI debe tener 8 dígitos");
       return;
     }
 
-    setError(null);
     setIsValidating(true);
     setStatusMessage("Buscando en el sistema...");
 
@@ -176,7 +210,7 @@ export default function RegistrarsePage() {
         throw new Error(data.message || "No se encontraron datos");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al validar");
+      toast.error(err instanceof Error ? err.message : "Error al validar");
       setIsValidated(false);
       setStatusMessage(null);
     } finally {
@@ -186,26 +220,42 @@ export default function RegistrarsePage() {
 
   // Handle step 1 validation
   const handleStep1Continue = () => {
-    setError(null);
-
     if (!isValidated || !validatedData) {
-      setError("Debes validar tu documento primero");
+      toast.error("Debes validar tu documento primero");
       return;
     }
 
-    // Para externos, necesitan ingresar un correo
-    if (validatedData.roleCode === "EXTERNO" && !emailCustom) {
-      setError("Los usuarios externos deben ingresar un correo electrónico");
+    // Para externos, necesitan ingresar un correo válido
+    if (validatedData.roleCode === "EXTERNO") {
+      if (!emailCustom) {
+        toast.error("Los usuarios externos deben ingresar un correo electrónico");
+        return;
+      }
+      if (!isValidEmail(emailCustom)) {
+        toast.error("Ingresa un correo electrónico válido");
+        return;
+      }
+    }
+
+    // Validar email personal si fue ingresado
+    if (emailPersonal && !isValidEmail(emailPersonal)) {
+      toast.error("El correo personal ingresado no es válido");
+      return;
+    }
+
+    // Verificar que no existan emails duplicados
+    if (emailExists.custom || emailExists.personal) {
+      toast.error("El correo ingresado ya está registrado en el sistema");
       return;
     }
 
     if (!password || password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres");
+      toast.error("La contraseña debe tener al menos 8 caracteres");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      toast.error("Las contraseñas no coinciden");
       return;
     }
 
@@ -226,16 +276,15 @@ export default function RegistrarsePage() {
   // Handle form submission
   const handleSubmit = async () => {
     if (!acceptedTerms) {
-      setError("Debes aceptar los términos y condiciones");
+      toast.error("Debes aceptar los términos y condiciones");
       return;
     }
 
     if (!validatedData) {
-      setError("Datos de validación no disponibles");
+      toast.error("Datos de validación no disponibles");
       return;
     }
 
-    setError(null);
     setIsSubmitting(true);
 
     try {
@@ -256,7 +305,7 @@ export default function RegistrarsePage() {
 
       const result = await register(registerData);
 
-      setSuccess(result.message);
+      toast.success(result.message);
 
       setTimeout(() => {
         if (result.requiresVerification) {
@@ -266,7 +315,7 @@ export default function RegistrarsePage() {
         }
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrar");
+      toast.error(err instanceof Error ? err.message : "Error al registrar");
     } finally {
       setIsSubmitting(false);
     }
@@ -295,19 +344,19 @@ export default function RegistrarsePage() {
           {/* Progress indicator */}
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="flex items-center gap-2">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-colors ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300 ${step >= 1 ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25' : 'bg-muted text-muted-foreground'}`}>
                 {step > 1 ? <Check className="h-4 w-4" /> : "1"}
               </div>
-              <span className={`text-sm hidden sm:inline font-medium ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <span className={`text-sm hidden sm:inline font-medium transition-colors duration-300 ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Validar Identidad
               </span>
             </div>
-            <div className={`w-12 h-0.5 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-border'}`} />
+            <div className={`h-0.5 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-primary w-12' : 'bg-border w-12'}`} />
             <div className="flex items-center gap-2">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-colors ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300 ${step >= 2 ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25' : 'bg-muted text-muted-foreground'}`}>
                 {step > 2 ? <Check className="h-4 w-4" /> : "2"}
               </div>
-              <span className={`text-sm hidden sm:inline font-medium ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <span className={`text-sm hidden sm:inline font-medium transition-colors duration-300 ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Confirmación
               </span>
             </div>
@@ -370,24 +419,10 @@ export default function RegistrarsePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* Error/Success alerts */}
-                  {error && (
-                    <Alert variant="destructive" className="mb-4">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  {success && (
-                    <Alert variant="success" className="mb-4">
-                      <CheckCircle2 className="h-4 w-4" />
-                      <AlertDescription>{success}</AlertDescription>
-                    </Alert>
-                  )}
 
                   {/* Step 1: Validate Identity */}
                   {step === 1 && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 animate-in fade-in slide-in-from-left-4 animation-duration-300">
                       {/* Documento de identidad */}
                       <div className="grid sm:grid-cols-3 gap-4">
                         <div className="space-y-2">
@@ -527,14 +562,36 @@ export default function RegistrarsePage() {
                                     type="email"
                                     placeholder="tucorreo@ejemplo.com"
                                     value={emailCustom}
-                                    onChange={(e) => setEmailCustom(e.target.value)}
-                                    className="pl-10"
+                                    onChange={(e) => { setEmailCustom(e.target.value); checkEmailExists(e.target.value, 'custom'); }}
+                                    className={`pl-10 pr-10 ${emailCustom && (emailExists.custom ? 'border-destructive focus-visible:ring-destructive/30' : isValidEmail(emailCustom) ? 'border-green-500 focus-visible:ring-green-500/30' : 'border-destructive focus-visible:ring-destructive/30')}`}
+                                    aria-invalid={emailCustom ? (!isValidEmail(emailCustom) || emailExists.custom) : undefined}
                                     disabled={isLoading}
                                   />
+                                  {emailCustom && (
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                                      {checkingEmail.custom
+                                        ? <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                                        : emailExists.custom
+                                          ? <AlertCircle className="h-4 w-4 text-destructive" />
+                                          : isValidEmail(emailCustom)
+                                            ? <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                            : <AlertCircle className="h-4 w-4 text-destructive" />}
+                                    </span>
+                                  )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Ingresa un correo para recibir notificaciones
-                                </p>
+                                {emailCustom && emailExists.custom ? (
+                                  <p className="text-xs text-destructive" role="alert">
+                                    Ya existe un usuario con este correo electrónico
+                                  </p>
+                                ) : emailCustom && !isValidEmail(emailCustom) ? (
+                                  <p className="text-xs text-destructive" role="alert">
+                                    Ingresa un correo válido (ejemplo: usuario@dominio.com)
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">
+                                    Ingresa un correo para recibir notificaciones
+                                  </p>
+                                )}
                               </div>
                             )}
                           </div>
@@ -641,14 +698,36 @@ export default function RegistrarsePage() {
                                   type="email"
                                   placeholder="correo@personal.com"
                                   value={emailPersonal}
-                                  onChange={(e) => setEmailPersonal(e.target.value)}
-                                  className="pl-10"
+                                  onChange={(e) => { setEmailPersonal(e.target.value); checkEmailExists(e.target.value, 'personal'); }}
+                                  className={`pl-10 pr-10 ${emailPersonal && (emailExists.personal ? 'border-destructive focus-visible:ring-destructive/30' : isValidEmail(emailPersonal) ? 'border-green-500 focus-visible:ring-green-500/30' : 'border-destructive focus-visible:ring-destructive/30')}`}
+                                  aria-invalid={emailPersonal ? (!isValidEmail(emailPersonal) || emailExists.personal) : undefined}
                                   disabled={isLoading}
                                 />
+                                {emailPersonal && (
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                                    {checkingEmail.personal
+                                      ? <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                                      : emailExists.personal
+                                        ? <AlertCircle className="h-4 w-4 text-destructive" />
+                                        : isValidEmail(emailPersonal)
+                                          ? <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                          : <AlertCircle className="h-4 w-4 text-destructive" />}
+                                  </span>
+                                )}
                               </div>
-                              <p className="text-xs text-muted-foreground">
-                                Un correo alternativo para recibir notificaciones
-                              </p>
+                              {emailPersonal && emailExists.personal ? (
+                                <p className="text-xs text-destructive" role="alert">
+                                  Ya existe un usuario con este correo electrónico
+                                </p>
+                              ) : emailPersonal && !isValidEmail(emailPersonal) ? (
+                                <p className="text-xs text-destructive" role="alert">
+                                  Ingresa un correo válido (ejemplo: usuario@dominio.com)
+                                </p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">
+                                  Un correo alternativo para recibir notificaciones
+                                </p>
+                              )}
                             </div>
                           )}
 
@@ -728,7 +807,7 @@ export default function RegistrarsePage() {
 
                   {/* Step 2: Confirmation */}
                   {step === 2 && validatedData && (
-                    <div className="space-y-6">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 animation-duration-300">
                       <div className="rounded-lg bg-muted/50 p-4 space-y-4">
                         <div className="flex items-center justify-between">
                           <h4 className="font-medium flex items-center gap-2">

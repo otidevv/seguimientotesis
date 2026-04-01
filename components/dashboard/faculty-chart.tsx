@@ -13,7 +13,7 @@ export function FacultyChart({ data }: FacultyChartProps) {
   const total = data.reduce((sum, f) => sum + f.value, 0)
 
   return (
-    <Card className="md:col-span-3 overflow-hidden animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards" style={{ animationDelay: '400ms', animationDuration: '500ms' }}>
+    <Card className="md:col-span-3 overflow-hidden motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:fill-mode-backwards" style={{ animationDelay: '400ms', animationDuration: '500ms' }} aria-label="Gráfico de distribución de tesis por facultad">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
@@ -56,9 +56,9 @@ export function FacultyChart({ data }: FacultyChartProps) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex flex-col gap-2 mt-3">
+            <div className="flex flex-col gap-2 mt-3" role="list">
               {data.map((item) => (
-                <div key={item.name} className="flex items-center justify-between group">
+                <div key={item.name} className="flex items-center justify-between group" role="listitem">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
                       className="h-2.5 w-2.5 rounded-full flex-shrink-0"

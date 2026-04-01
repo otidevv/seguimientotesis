@@ -49,13 +49,13 @@ export function WhatsAppFloat() {
   }, [open]);
 
   return (
-    <div ref={menuRef} className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div ref={menuRef} className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
       {/* Menu desplegable */}
       <div
         className={`
           bg-card border rounded-2xl shadow-2xl overflow-hidden w-[min(300px,calc(100vw-3rem))]
-          transition-all duration-300 origin-bottom-right
-          ${open ? "scale-100 opacity-100 translate-y-0" : "scale-90 opacity-0 translate-y-4 pointer-events-none"}
+          motion-safe:transition-all motion-safe:duration-300 origin-bottom-right
+          ${open ? "scale-100 opacity-100 translate-y-0 pointer-events-auto" : "scale-90 opacity-0 translate-y-4 pointer-events-none"}
         `}
       >
         {/* Header */}
@@ -84,7 +84,7 @@ export function WhatsAppFloat() {
               href={`https://wa.me/${fac.telefono}?text=${encodeURIComponent(fac.mensaje)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors group"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors group focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               onClick={() => setOpen(false)}
             >
               <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center shrink-0 group-hover:bg-[#25D366]/20 transition-colors">
@@ -112,8 +112,9 @@ export function WhatsAppFloat() {
         className={`
           group relative w-14 h-14 rounded-full shadow-lg
           bg-[#25D366] hover:bg-[#20BD5A] text-white
-          flex items-center justify-center
-          transition-all duration-300 hover:scale-110 hover:shadow-xl
+          flex items-center justify-center pointer-events-auto
+          motion-safe:transition-all motion-safe:duration-300 hover:scale-110 hover:shadow-xl
+          focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           ${open ? "rotate-90" : ""}
         `}
         aria-label="Contactar Mesa de Partes por WhatsApp"

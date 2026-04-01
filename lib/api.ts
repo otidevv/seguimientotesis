@@ -11,6 +11,7 @@ class ApiError extends Error {
     message: string,
     public status: number,
     public code?: string,
+    public details?: Record<string, string[]>,
   ) {
     super(message)
     this.name = 'ApiError'
@@ -49,9 +50,15 @@ async function request<T = Record<string, unknown>>(
     const data = await response.json()
 
     if (!response.ok || !data.success) {
-      const message = data.error || `Error ${response.status}`
+      let message = data.message || data.error || `Error ${response.status}`
+      if (data.details) {
+        const fieldErrors = Object.values(data.details as Record<string, string[]>).flat()
+        if (fieldErrors.length > 0) {
+          message = fieldErrors.join('. ')
+        }
+      }
       if (showErrorToast) toast.error(message)
-      throw new ApiError(message, response.status, data.error)
+      throw new ApiError(message, response.status, data.error, data.details as Record<string, string[]>)
     }
 
     return data as ApiResponse<T>

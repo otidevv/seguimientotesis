@@ -20,7 +20,7 @@ import { LogOut, User, Settings, Menu } from 'lucide-react'
 
 export function DashboardHeader() {
   const { user, logout } = useAuth()
-  const { toggle } = useSidebar()
+  const { toggle, isOpen } = useSidebar()
 
   const initials = user
     ? `${user.nombres.charAt(0)}${user.apellidoPaterno.charAt(0)}`
@@ -41,6 +41,7 @@ export function DashboardHeader() {
             size="icon"
             className="lg:hidden"
             onClick={toggle}
+            aria-expanded={isOpen}
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Abrir menú</span>
@@ -73,7 +74,7 @@ export function DashboardHeader() {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-haspopup="menu">
                 <Avatar className="h-9 w-9">
                   {user?.avatarUrl && (
                     <AvatarImage src={user.avatarUrl} alt={nombreCompleto} />
