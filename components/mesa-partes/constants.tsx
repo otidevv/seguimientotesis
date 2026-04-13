@@ -1,5 +1,5 @@
 import {
-  AlertCircle, CheckCircle, Clock, ClipboardCheck,
+  AlertCircle, Ban, CheckCircle, Clock, ClipboardCheck,
   FileText, GraduationCap, UserPlus, X,
 } from 'lucide-react'
 
@@ -81,6 +81,12 @@ export const ESTADO_CONFIG: Record<string, { label: string; color: string; bgCol
     color: 'text-red-600',
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     icon: <X className="w-4 h-4" />,
+  },
+  DESISTIDA: {
+    label: 'Desistida',
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100 dark:bg-slate-800',
+    icon: <Ban className="w-4 h-4" />,
   },
 }
 

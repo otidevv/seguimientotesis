@@ -28,14 +28,18 @@ import {
   FileCheck,
   FileSignature,
   FileText,
+  Gavel,
   GraduationCap,
+  History,
   Loader2,
   PenTool,
+  Receipt,
   Upload,
   User,
   Users,
   X,
 } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -436,6 +440,32 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
   const miCartaFirmada =
     miAsesoria.tipoAsesor === 'ASESOR' ? docCartaAsesor : docCartaCoasesor
 
+  // Documentos adicionales
+  const docVoucher = data.documentos.find((d) => d.tipoDocumento === 'VOUCHER_PAGO')
+  const docsSustentatorios = data.documentos.filter((d) => d.tipoDocumento === 'DOCUMENTO_SUSTENTATORIO')
+  const docInformeFinal = data.documentos.find((d) => d.tipoDocumento === 'INFORME_FINAL_DOC')
+  const docVoucherInforme = data.documentos.find((d) => d.tipoDocumento === 'VOUCHER_PAGO_INFORME')
+  const docResolucionJurado = data.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_JURADO')
+  const docResolucionAprobacion = data.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_APROBACION')
+  const docResolucionSustentacion = data.documentos.find((d) => d.tipoDocumento === 'RESOLUCION_SUSTENTACION')
+  const docReporteTurnitin = data.documentos.find((d) => d.tipoDocumento === 'REPORTE_TURNITIN')
+  const docActaVerificacion = data.documentos.find((d) => d.tipoDocumento === 'ACTA_VERIFICACION_ASESOR')
+
+  // Jurados
+  const juradosProyecto = ((data as any).jurados || []).filter((j: any) => j.fase === 'PROYECTO')
+  const juradosInforme = ((data as any).jurados || []).filter((j: any) => j.fase === 'INFORME_FINAL')
+
+  // Timeline del progreso
+  const FASES_TIMELINE = [
+    { key: 'BORRADOR', label: 'Registro', estados: ['BORRADOR'] },
+    { key: 'EN_REVISION', label: 'Revisión', estados: ['EN_REVISION', 'OBSERVADA'] },
+    { key: 'JURADOS', label: 'Jurados', estados: ['ASIGNANDO_JURADOS', 'EN_EVALUACION_JURADO', 'OBSERVADA_JURADO'] },
+    { key: 'APROBADO', label: 'Aprobado', estados: ['PROYECTO_APROBADO'] },
+    { key: 'INFORME', label: 'Informe Final', estados: ['INFORME_FINAL', 'EN_REVISION_INFORME', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'] },
+    { key: 'SUSTENTACION', label: 'Sustentación', estados: ['APROBADA', 'EN_SUSTENTACION', 'SUSTENTADA'] },
+  ]
+  const faseActualIndex = FASES_TIMELINE.findIndex(f => f.estados.includes(data.tesis.estado))
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Breadcrumb */}
@@ -545,26 +575,6 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
         </Card>
       )}
 
-      {/* Estado de aceptación - ACEPTADO con carta firmada */}
-      {miAsesoria.estado === 'ACEPTADO' && miCartaFirmada && (
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
-          <CardContent className="py-4">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-green-800 dark:text-green-200">Asesoría Confirmada</p>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Has aceptado ser {tipoAsesorTexto.toLowerCase()} de esta tesis. Tu carta de
-                  aceptación está registrada.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Observación de mesa de partes */}
       {data.tesis.estado === 'OBSERVADA' && (() => {
         const observacion = data.historial?.find(
@@ -604,6 +614,49 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
           </Card>
         )
       })()}
+
+      {/* Timeline horizontal de progreso */}
+      <Card>
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between overflow-x-auto gap-1">
+            {FASES_TIMELINE.map((fase, i) => {
+              const esActual = i === faseActualIndex
+              const completada = i < faseActualIndex
+              return (
+                <div key={fase.key} className="flex items-center flex-1 min-w-0">
+                  <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                    <div className={cn(
+                      'w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all',
+                      completada && 'bg-green-500 border-green-500',
+                      esActual && 'bg-primary border-primary ring-4 ring-primary/20',
+                      !completada && !esActual && 'bg-muted border-muted-foreground/20'
+                    )}>
+                      {completada ? (
+                        <Check className="w-4 h-4 text-white" />
+                      ) : esActual ? (
+                        <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                      ) : (
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                      )}
+                    </div>
+                    <span className={cn(
+                      'text-[10px] sm:text-xs font-medium text-center whitespace-nowrap',
+                      esActual && 'text-primary',
+                      completada && 'text-green-600',
+                      !completada && !esActual && 'text-muted-foreground'
+                    )}>
+                      {fase.label}
+                    </span>
+                  </div>
+                  {i < FASES_TIMELINE.length - 1 && (
+                    <div className={cn('h-0.5 flex-1 mx-1 sm:mx-2 rounded-full min-w-[16px]', completada ? 'bg-green-500' : 'bg-border')} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Columna principal */}
@@ -866,29 +919,15 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
             <CardContent className="space-y-3">
               {data.tesistas.map((t) => (
                 <div key={t.id} className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                      t.tipoParticipante === 'AUTOR_PRINCIPAL'
-                        ? 'bg-primary/10'
-                        : 'bg-blue-100 dark:bg-blue-900/50'
-                    )}
-                  >
-                    <User
-                      className={cn(
-                        'w-4 h-4',
-                        t.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'text-primary' : 'text-blue-600'
-                      )}
-                    />
+                  <div className={cn(
+                    'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
+                    t.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'bg-primary/10' : 'bg-blue-100 dark:bg-blue-900/50'
+                  )}>
+                    <User className={cn('w-4 h-4', t.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'text-primary' : 'text-blue-600')} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {t.user.apellidoPaterno} {t.user.apellidoMaterno}, {t.user.nombres}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'} •{' '}
-                      {t.codigoEstudiante}
-                    </p>
+                    <p className="font-medium text-sm truncate">{t.user.apellidoPaterno} {t.user.apellidoMaterno}, {t.user.nombres}</p>
+                    <p className="text-xs text-muted-foreground">{t.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'} • {t.codigoEstudiante}</p>
                   </div>
                 </div>
               ))}
@@ -900,54 +939,31 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <GraduationCap className="w-4 h-4 text-primary" />
-                Equipo de Asesores
+                Asesores
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {data.asesores.map((a) => (
                 <div key={a.id} className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                      a.tipoAsesor === 'ASESOR'
-                        ? 'bg-green-100 dark:bg-green-900/50'
-                        : 'bg-purple-100 dark:bg-purple-900/50'
-                    )}
-                  >
-                    <GraduationCap
-                      className={cn(
-                        'w-4 h-4',
-                        a.tipoAsesor === 'ASESOR' ? 'text-green-600' : 'text-purple-600'
-                      )}
-                    />
+                  <div className={cn(
+                    'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
+                    a.tipoAsesor === 'ASESOR' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-purple-100 dark:bg-purple-900/50'
+                  )}>
+                    <GraduationCap className={cn('w-4 h-4', a.tipoAsesor === 'ASESOR' ? 'text-green-600' : 'text-purple-600')} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">
                       {a.user.apellidoPaterno} {a.user.apellidoMaterno}, {a.user.nombres}
-                      {a.esMiRegistro && (
-                        <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
-                          Tú
-                        </Badge>
-                      )}
+                      {a.esMiRegistro && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">Tú</Badge>}
                     </p>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
-                        {a.tipoAsesor === 'ASESOR' ? 'Asesor' : 'Coasesor'}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          'text-[10px] px-1.5 py-0',
-                          a.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                          a.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
-                          a.estado === 'RECHAZADO' && 'border-red-500 text-red-600'
-                        )}
-                      >
-                        {a.estado === 'PENDIENTE'
-                          ? 'Pendiente'
-                          : a.estado === 'ACEPTADO'
-                            ? 'Aceptado'
-                            : 'Rechazado'}
+                      <span className="text-xs text-muted-foreground">{a.tipoAsesor === 'ASESOR' ? 'Asesor' : 'Coasesor'}</span>
+                      <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0',
+                        a.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
+                        a.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
+                        a.estado === 'RECHAZADO' && 'border-red-500 text-red-600'
+                      )}>
+                        {a.estado === 'PENDIENTE' ? 'Pendiente' : a.estado === 'ACEPTADO' ? 'Aceptado' : 'Rechazado'}
                       </Badge>
                     </div>
                   </div>
@@ -956,44 +972,194 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
             </CardContent>
           </Card>
 
-          {/* Documentos */}
+          {/* Jurados (si existen) */}
+          {juradosProyecto.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Gavel className="w-4 h-4 text-primary" />
+                  Jurados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {juradosProyecto.map((j: any) => (
+                  <div key={j.id} className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
+                      <Gavel className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{j.nombre}</p>
+                      <p className="text-xs text-muted-foreground">{j.tipo}</p>
+                    </div>
+                    {j.evaluaciones?.[0] && (
+                      <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0',
+                        j.evaluaciones[0].resultado === 'APROBADO' ? 'border-green-500 text-green-600' : 'border-orange-500 text-orange-600'
+                      )}>
+                        {j.evaluaciones[0].resultado === 'APROBADO' ? 'Aprobó' : 'Observó'}
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Tabs de información detallada */}
+      <Tabs defaultValue="documentos" className="w-full">
+        <TabsList className="w-full grid grid-cols-3 h-10">
+          <TabsTrigger value="documentos" className="gap-1.5 text-xs sm:text-sm">
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            Documentos
+          </TabsTrigger>
+          <TabsTrigger value="observaciones" className="gap-1.5 text-xs sm:text-sm">
+            <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            Observaciones
+          </TabsTrigger>
+          <TabsTrigger value="historial" className="gap-1.5 text-xs sm:text-sm">
+            <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            Historial
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab: Documentos */}
+        <TabsContent value="documentos" className="mt-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="w-4 h-4 text-primary" />
-                Documentos
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary shrink-0" />
+                Documentos de la Tesis
+              </CardTitle>
+              <CardDescription>Todos los documentos presentados en el expediente</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                { label: 'Proyecto de Tesis', doc: docProyecto, icon: <FileText className="w-4 h-4" />, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/50' },
+                { label: 'Carta de Aceptación del Asesor', doc: docCartaAsesor, icon: <GraduationCap className="w-4 h-4" />, color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/50' },
+                ...(docCartaCoasesor ? [{ label: 'Carta de Aceptación del Coasesor', doc: docCartaCoasesor, icon: <Users className="w-4 h-4" />, color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/50' }] : []),
+                { label: 'Voucher de Pago', doc: docVoucher, icon: <Receipt className="w-4 h-4" />, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/50' },
+                ...docsSustentatorios.map((d, i) => ({ label: `Documento Sustentatorio ${docsSustentatorios.length > 1 ? `(${i + 1})` : ''}`, doc: d, icon: <File className="w-4 h-4" />, color: 'text-indigo-600', bg: 'bg-indigo-100 dark:bg-indigo-900/50' })),
+                ...(docReporteTurnitin ? [{ label: 'Reporte Turnitin', doc: docReporteTurnitin, icon: <FileCheck className="w-4 h-4" />, color: 'text-teal-600', bg: 'bg-teal-100 dark:bg-teal-900/50' }] : []),
+                ...(docActaVerificacion ? [{ label: 'Acta de Verificación del Asesor', doc: docActaVerificacion, icon: <FileSignature className="w-4 h-4" />, color: 'text-violet-600', bg: 'bg-violet-100 dark:bg-violet-900/50' }] : []),
+                ...(docResolucionJurado ? [{ label: 'Resolución de Conformación de Jurado', doc: docResolucionJurado, icon: <Gavel className="w-4 h-4" />, color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/50' }] : []),
+                ...(docResolucionAprobacion ? [{ label: 'Resolución de Aprobación', doc: docResolucionAprobacion, icon: <CheckCircle2 className="w-4 h-4" />, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/50' }] : []),
+                ...(docInformeFinal ? [{ label: 'Informe Final de Tesis', doc: docInformeFinal, icon: <FileText className="w-4 h-4" />, color: 'text-cyan-600', bg: 'bg-cyan-100 dark:bg-cyan-900/50' }] : []),
+                ...(docVoucherInforme ? [{ label: 'Voucher de Pago - Informe Final', doc: docVoucherInforme, icon: <Receipt className="w-4 h-4" />, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/50' }] : []),
+                ...(docResolucionSustentacion ? [{ label: 'Resolución de Sustentación', doc: docResolucionSustentacion, icon: <GraduationCap className="w-4 h-4" />, color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/50' }] : []),
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-muted/30 transition-colors">
+                  <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', item.bg)}>
+                    <span className={item.color}>{item.icon}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{item.label}</p>
+                    {item.doc ? (
+                      <p className="text-xs text-muted-foreground">{new Date(item.doc.createdAt).toLocaleDateString('es-PE')} • {formatFileSize(item.doc.archivoTamano)}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No presentado</p>
+                    )}
+                  </div>
+                  {item.doc ? (
+                    <a href={item.doc.archivoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline px-2 py-1 rounded-md hover:bg-primary/5 shrink-0">
+                      <Eye className="w-3.5 h-3.5" /> Ver
+                    </a>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">Pendiente</Badge>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Observaciones */}
+        <TabsContent value="observaciones" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-orange-600 shrink-0" />
+                Observaciones
+              </CardTitle>
+              <CardDescription>Observaciones realizadas durante el proceso</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const observaciones = data.historial.filter(h =>
+                  ['OBSERVADA', 'OBSERVADA_JURADO', 'OBSERVADA_INFORME', 'RECHAZADA'].includes(h.estadoNuevo) && h.comentario
+                )
+                if (observaciones.length === 0) {
+                  return (
+                    <div className="py-8 text-center">
+                      <CheckCircle2 className="w-10 h-10 mx-auto text-green-500/30 mb-3" />
+                      <p className="text-sm text-muted-foreground">No hay observaciones registradas</p>
+                    </div>
+                  )
+                }
+                return (
+                  <div className="space-y-3">
+                    {observaciones.map((obs) => {
+                      const config = ESTADO_CONFIG[obs.estadoNuevo]
+                      return (
+                        <div key={obs.id} className="rounded-lg border p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className={cn(config?.bgColor, config?.color, 'text-[11px]')}>{config?.label || obs.estadoNuevo}</Badge>
+                            <span className="text-[11px] text-muted-foreground">{new Date(obs.fecha).toLocaleString('es-PE')}</span>
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap">{obs.comentario}</p>
+                          {obs.realizadoPor && <p className="text-xs text-muted-foreground mt-2">Por: {obs.realizadoPor}</p>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab: Historial */}
+        <TabsContent value="historial" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <History className="w-5 h-5 text-primary shrink-0" />
+                Historial Completo
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {data.documentos.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin documentos</p>
+            <CardContent>
+              {data.historial.length > 0 ? (
+                <div className="space-y-4">
+                  {data.historial.map((item, index) => {
+                    const config = ESTADO_CONFIG[item.estadoNuevo]
+                    return (
+                      <div key={item.id} className="flex gap-3">
+                        <div className="flex flex-col items-center">
+                          <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', config?.bgColor || 'bg-gray-100')}>
+                            <Clock className="w-4 h-4" />
+                          </div>
+                          {index < data.historial.length - 1 && <div className="w-0.5 flex-1 bg-border mt-2" />}
+                        </div>
+                        <div className="flex-1 min-w-0 pb-4">
+                          <p className="font-medium text-sm">{config?.label || item.estadoNuevo}</p>
+                          <p className="text-[11px] text-muted-foreground">{new Date(item.fecha).toLocaleString('es-PE')}</p>
+                          {item.comentario && <p className="text-sm text-muted-foreground mt-1 bg-muted/50 p-2 rounded-lg whitespace-pre-wrap">{item.comentario}</p>}
+                          {item.realizadoPor && <p className="text-[11px] text-muted-foreground mt-1">Por: {item.realizadoPor}</p>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               ) : (
-                data.documentos.map((d) => (
-                  <div
-                    key={d.id}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50"
-                  >
-                    <a
-                      href={d.archivoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 min-w-0 cursor-pointer hover:underline"
-                    >
-                      <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm truncate">{d.nombre}</span>
-                    </a>
-                    <Button variant="ghost" size="icon" asChild>
-                      <a href={d.archivoUrl} target="_blank" rel="noopener noreferrer">
-                        <Eye className="w-4 h-4" />
-                      </a>
-                    </Button>
-                  </div>
-                ))
+                <div className="py-8 text-center">
+                  <History className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-sm text-muted-foreground">No hay registros</p>
+                </div>
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog de confirmación de firma */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

@@ -112,7 +112,7 @@ export function WhatsAppFloat() {
         className={`
           group relative w-14 h-14 rounded-full shadow-lg
           bg-[#25D366] hover:bg-[#20BD5A] text-white
-          flex items-center justify-center pointer-events-auto
+          flex items-center justify-center pointer-events-auto cursor-pointer
           motion-safe:transition-all motion-safe:duration-300 hover:scale-110 hover:shadow-xl
           focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
           ${open ? "rotate-90" : ""}

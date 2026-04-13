@@ -469,6 +469,7 @@ enum EstadoTesis {
   SUSTENTADA              // Ya sustentada
   ARCHIVADA               // Archivada (histórico)
   RECHAZADA               // Rechazada definitivamente
+  DESISTIDA               // Tesista desistió voluntariamente
 
   @@map("estado_tesis")
 }
@@ -523,6 +524,7 @@ enum EstadoAutor {
   PENDIENTE           // Esperando respuesta (para coautores)
   ACEPTADO            // Aceptó participar
   RECHAZADO           // Rechazó participar
+  DESISTIDO           // Desistió voluntariamente
 
   @@map("estado_autor")
 }

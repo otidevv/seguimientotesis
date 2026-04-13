@@ -10,6 +10,7 @@ import type { Tesis } from './types'
 interface ThesisSidebarProps {
   tesis: Tesis
   puedeEditar: boolean
+  puedeGestionarParticipantes?: boolean
   esAutorPrincipal: boolean
   coautor: Tesis['autores'][number] | undefined
   coasesor: Tesis['asesores'][number] | undefined
@@ -21,6 +22,7 @@ interface ThesisSidebarProps {
 export function ThesisSidebar({
   tesis,
   puedeEditar,
+  puedeGestionarParticipantes,
   esAutorPrincipal,
   coautor,
   coasesor,
@@ -28,6 +30,7 @@ export function ThesisSidebar({
   onEliminar,
   onAgregar,
 }: ThesisSidebarProps) {
+  const puedeParticipantes = puedeGestionarParticipantes ?? puedeEditar
   return (
     <div className="space-y-6">
       {/* Tesistas */}
@@ -44,23 +47,27 @@ export function ThesisSidebar({
               <div className="flex items-center gap-3">
                 <div className={cn(
                   'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                  a.tipoParticipante === 'AUTOR_PRINCIPAL'
-                    ? 'bg-primary/10'
-                    : a.estado === 'ACEPTADO'
-                      ? 'bg-green-100 dark:bg-green-900/50'
-                      : a.estado === 'RECHAZADO'
-                        ? 'bg-red-100 dark:bg-red-900/50'
-                        : 'bg-yellow-100 dark:bg-yellow-900/50'
+                  a.estado === 'DESISTIDO'
+                    ? 'bg-slate-100 dark:bg-slate-800'
+                    : a.tipoParticipante === 'AUTOR_PRINCIPAL'
+                      ? 'bg-primary/10'
+                      : a.estado === 'ACEPTADO'
+                        ? 'bg-green-100 dark:bg-green-900/50'
+                        : a.estado === 'RECHAZADO'
+                          ? 'bg-red-100 dark:bg-red-900/50'
+                          : 'bg-yellow-100 dark:bg-yellow-900/50'
                 )}>
                   <User className={cn(
                     'w-4 h-4',
-                    a.tipoParticipante === 'AUTOR_PRINCIPAL'
-                      ? 'text-primary'
-                      : a.estado === 'ACEPTADO'
-                        ? 'text-green-600'
-                        : a.estado === 'RECHAZADO'
-                          ? 'text-red-600'
-                          : 'text-yellow-600'
+                    a.estado === 'DESISTIDO'
+                      ? 'text-slate-400'
+                      : a.tipoParticipante === 'AUTOR_PRINCIPAL'
+                        ? 'text-primary'
+                        : a.estado === 'ACEPTADO'
+                          ? 'text-green-600'
+                          : a.estado === 'RECHAZADO'
+                            ? 'text-red-600'
+                            : 'text-yellow-600'
                   )} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -71,23 +78,24 @@ export function ThesisSidebar({
                     <span className="text-xs text-muted-foreground">
                       {a.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'} • {a.studentCareer.codigoEstudiante}
                     </span>
-                    {a.tipoParticipante === 'COAUTOR' && (
+                    {(a.tipoParticipante === 'COAUTOR' || a.estado === 'DESISTIDO') && (
                       <Badge
                         variant="outline"
                         className={cn(
                           'text-[10px] px-1.5 py-0',
                           a.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
                           a.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
-                          a.estado === 'RECHAZADO' && 'border-red-500 text-red-600'
+                          a.estado === 'RECHAZADO' && 'border-red-500 text-red-600',
+                          a.estado === 'DESISTIDO' && 'border-slate-400 text-slate-500'
                         )}
                       >
-                        {a.estado === 'PENDIENTE' ? 'Pendiente' : a.estado === 'ACEPTADO' ? 'Aceptado' : 'Rechazado'}
+                        {a.estado === 'PENDIENTE' ? 'Pendiente' : a.estado === 'ACEPTADO' ? 'Aceptado' : a.estado === 'DESISTIDO' ? 'Desistido' : 'Rechazado'}
                       </Badge>
                     )}
                   </div>
                 </div>
               </div>
-              {puedeEditar && esAutorPrincipal && a.tipoParticipante === 'COAUTOR' && a.estado !== 'ACEPTADO' && (
+              {puedeParticipantes && esAutorPrincipal && a.tipoParticipante === 'COAUTOR' && a.estado !== 'ACEPTADO' && (
                 <div className="flex gap-2 ml-12">
                   <Button
                     variant="outline"
@@ -112,7 +120,7 @@ export function ThesisSidebar({
             </div>
           ))}
 
-          {puedeEditar && esAutorPrincipal && !coautor && (
+          {puedeParticipantes && esAutorPrincipal && !coautor && (
             <Button
               variant="outline"
               size="sm"
@@ -181,7 +189,7 @@ export function ThesisSidebar({
                   </div>
                 </div>
               </div>
-              {puedeEditar && esAutorPrincipal && a.estado !== 'ACEPTADO' && (
+              {puedeParticipantes && esAutorPrincipal && a.estado !== 'ACEPTADO' && (
                 <div className="flex gap-2 ml-12">
                   <Button
                     variant="outline"
@@ -208,7 +216,7 @@ export function ThesisSidebar({
             </div>
           ))}
 
-          {puedeEditar && esAutorPrincipal && !coasesor && (
+          {puedeParticipantes && esAutorPrincipal && !coasesor && (
             <Button
               variant="outline"
               size="sm"

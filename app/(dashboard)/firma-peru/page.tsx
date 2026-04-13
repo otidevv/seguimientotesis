@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FirmaModal } from '@/components/firma-peru';
+import { FirmaModal, FirmaPeruScripts } from '@/components/firma-peru';
 import {
   FileSignature,
   FileText,
@@ -376,6 +376,9 @@ export default function FirmaPeruPage() {
           .map((doc) => doc.nombre)}
         onSuccess={() => setModalAbierto(false)}
       />
+
+      {/* jQuery + callbacks de Firma Perú (solo carga en esta ruta) */}
+      <FirmaPeruScripts />
     </div>
   );
 }

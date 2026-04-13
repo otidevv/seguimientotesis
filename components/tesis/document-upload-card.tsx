@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Eye, File, FileCheck, Loader2, RefreshCw, Upload } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Eye, File, FileCheck, Loader2, RefreshCw, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatFileSize } from './utils'
 import type { Documento } from './types'
@@ -19,6 +19,9 @@ interface DocumentUploadCardProps {
   icon: React.ReactNode
   iconColor: string
   iconBg: string
+  observado?: string
+  verificado?: boolean
+  corregido?: boolean
 }
 
 export function DocumentUploadCard({
@@ -32,6 +35,9 @@ export function DocumentUploadCard({
   icon,
   iconColor,
   iconBg,
+  observado,
+  verificado,
+  corregido,
 }: DocumentUploadCardProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -74,8 +80,10 @@ export function DocumentUploadCard({
       className={cn(
         'relative rounded-xl border-2 transition-all group',
         isDragging && 'border-primary bg-primary/5 border-dashed',
-        documento && !isDragging && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 border-solid',
-        !documento && !isDragging && 'border-dashed border-border hover:border-primary/50 hover:bg-muted/30 cursor-pointer'
+        corregido && 'border-blue-400 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-950/20 border-solid',
+        observado && !corregido && 'border-orange-400 dark:border-orange-700 bg-orange-50/50 dark:bg-orange-950/20 border-solid',
+        documento && !isDragging && !observado && !corregido && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 border-solid',
+        !documento && !isDragging && !observado && !corregido && 'border-dashed border-border hover:border-primary/50 hover:bg-muted/30 cursor-pointer'
       )}
       onClick={handleCardClick}
       onDragOver={handleDragOver}
@@ -86,9 +94,14 @@ export function DocumentUploadCard({
         <div className="flex items-start gap-3 sm:gap-4">
           <div className={cn(
             'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105',
-            documento ? 'bg-green-100 dark:bg-green-900/50' : iconBg
+            corregido ? 'bg-blue-100 dark:bg-blue-900/50' :
+            observado ? 'bg-orange-100 dark:bg-orange-900/50' : documento ? 'bg-green-100 dark:bg-green-900/50' : iconBg
           )}>
-            {documento ? (
+            {corregido ? (
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            ) : observado ? (
+              <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+            ) : documento ? (
               <FileCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             ) : (
               <span className={iconColor}>{icon}</span>
@@ -98,7 +111,19 @@ export function DocumentUploadCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <p className="font-semibold text-xs sm:text-sm">{titulo}</p>
-              {documento ? (
+              {corregido ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-500 text-blue-600 shrink-0">
+                  Corregido
+                </Badge>
+              ) : observado ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-orange-500 text-orange-600 shrink-0">
+                  Observado
+                </Badge>
+              ) : documento && verificado ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600 shrink-0">
+                  Verificado
+                </Badge>
+              ) : documento ? (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600 shrink-0">
                   Subido
                 </Badge>
@@ -108,7 +133,13 @@ export function DocumentUploadCard({
                 </Badge>
               )}
             </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-none">{descripcion}</p>
+            {corregido ? (
+              <p className="text-xs text-blue-600 dark:text-blue-400 mb-2 sm:mb-3">Documento actualizado — pendiente de revisión</p>
+            ) : observado ? (
+              <p className="text-xs text-orange-600 dark:text-orange-400 mb-2 sm:mb-3">{observado}</p>
+            ) : (
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-1 sm:line-clamp-none">{descripcion}</p>
+            )}
 
             {documento ? (
               <a

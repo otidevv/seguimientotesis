@@ -264,6 +264,7 @@ export async function POST(request: NextRequest) {
           some: {
             userId: user.id,
             studentCareerId: studentCareerId,
+            estado: { in: ['PENDIENTE', 'ACEPTADO'] },
           },
         },
       },
@@ -299,6 +300,16 @@ export async function POST(request: NextRequest) {
     if (!asesorId) {
       return NextResponse.json(
         { error: 'Debe seleccionar un asesor' },
+        { status: 400 }
+      )
+    }
+
+    // Validar que no se repitan personas entre roles
+    const personasIds = [user.id, asesorId, coautorId, coasesorId].filter(Boolean)
+    const personasUnicas = new Set(personasIds)
+    if (personasUnicas.size !== personasIds.length) {
+      return NextResponse.json(
+        { error: 'Una misma persona no puede tener más de un rol en la tesis (tesista, asesor, coasesor)' },
         { status: 400 }
       )
     }
@@ -417,6 +428,17 @@ export async function POST(request: NextRequest) {
       mensaje: `${tesistaNombre} te invitó como asesor de: "${tesis.titulo}"`,
       enlace: '/mis-invitaciones',
     })
+
+    // Notificación al coautor si existe
+    if (coautorId) {
+      await crearNotificacion({
+        userId: coautorId,
+        tipo: 'INVITACION_COAUTOR',
+        titulo: 'Invitación como coautor de tesis',
+        mensaje: `${tesistaNombre} te invitó como coautor en la tesis "${tesis.titulo}". Ingresa a Mis Tesis para aceptar o rechazar.`,
+        enlace: `/mis-tesis/${tesis.id}`,
+      })
+    }
 
     // Notificación al coasesor si existe
     if (coasesorId) {

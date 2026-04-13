@@ -12,6 +12,7 @@ import {
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
+  Ban,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -32,6 +33,7 @@ import {
   Receipt,
   RefreshCw,
   Send,
+  Trash2,
   ShieldCheck,
   Upload,
   Users,
@@ -50,6 +52,14 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   ESTADO_CONFIG,
   ESTADO_ASESOR_CONFIG,
@@ -76,6 +86,9 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [subiendo, setSubiendo] = useState<string | null>(null)
   const [respondiendo, setRespondiendo] = useState(false)
   const [mostrarObsAnteriores, setMostrarObsAnteriores] = useState(false)
+  const [rechazoDialogOpen, setRechazoDialogOpen] = useState(false)
+  const [motivoRechazo, setMotivoRechazo] = useState('')
+  const [invitacionARechazar, setInvitacionARechazar] = useState<string | null>(null)
 
   const loadTesis = useCallback(async () => {
     try {
@@ -139,17 +152,31 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   }
 
   // Responder a invitación (para coautores pendientes)
-  const responderInvitacion = async (invitacionId: string, accion: 'ACEPTAR' | 'RECHAZAR') => {
+  const responderInvitacion = async (invitacionId: string, accion: 'ACEPTAR' | 'RECHAZAR', motivo?: string) => {
     setRespondiendo(true)
     try {
-      await api.post(`/api/mis-invitaciones/${invitacionId}/responder`, { accion })
+      await api.post(`/api/mis-invitaciones/${invitacionId}/responder`, {
+        accion,
+        ...(accion === 'RECHAZAR' && motivo ? { motivoRechazo: motivo } : {}),
+      })
       toast.success(accion === 'ACEPTAR' ? 'Invitación aceptada' : 'Invitación rechazada')
+      if (accion === 'RECHAZAR') {
+        setRechazoDialogOpen(false)
+        setMotivoRechazo('')
+        setInvitacionARechazar(null)
+      }
       loadTesis()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error de conexión')
     } finally {
       setRespondiendo(false)
     }
+  }
+
+  const abrirRechazoInvitacion = (invitacionId: string) => {
+    setInvitacionARechazar(invitacionId)
+    setMotivoRechazo('')
+    setRechazoDialogOpen(true)
   }
 
   if (authLoading || loading) {
@@ -183,8 +210,45 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   }
 
   const estadoConfig = ESTADO_CONFIG[tesis.estado] || ESTADO_CONFIG.BORRADOR
-  const puedeEditar = ['BORRADOR', 'OBSERVADA', 'PROYECTO_OBSERVADO'].includes(tesis.estado)
+  const miRegistroAutor = tesis.autores.find(a => a.user.id === user?.id)
+  const yoDesisti = miRegistroAutor?.estado === 'DESISTIDO'
+  const puedeEditar = !yoDesisti && ['BORRADOR', 'OBSERVADA', 'PROYECTO_OBSERVADO'].includes(tesis.estado)
   const tieneCoasesor = tesis.asesores.some((a) => a.tipoAsesor === 'COASESOR')
+
+  // Parsear observaciones por documento del historial (para marcar documentos observados)
+  const obsMap: Record<string, string> = {}
+  let fechaObservacion: Date | null = null
+  if (tesis.estado === 'OBSERVADA' || tesis.estado === 'PROYECTO_OBSERVADO') {
+    const obsEntry = ((tesis as any).historial || []).find(
+      (h: any) => h.estadoNuevo === 'OBSERVADA' || h.estadoNuevo === 'PROYECTO_OBSERVADO'
+    )
+    if (obsEntry?.fecha) fechaObservacion = new Date(obsEntry.fecha)
+    const obsComentario: string = obsEntry?.comentario || ''
+    obsComentario.split('\n').filter((l: string) => l.startsWith('•')).forEach((l: string) => {
+      const sinBullet = l.replace(/^•\s*/, '')
+      const sep = sinBullet.indexOf(':')
+      if (sep !== -1) {
+        const docLabel = sinBullet.slice(0, sep).trim()
+        const detalle = sinBullet.slice(sep + 1).trim()
+        if (docLabel.toLowerCase().includes('proyecto')) obsMap['Proyecto de Tesis'] = detalle
+        if (docLabel.toLowerCase().includes('carta') && docLabel.toLowerCase().includes('asesor') && !docLabel.toLowerCase().includes('coasesor'))
+          obsMap['Carta de Aceptación del Asesor'] = detalle
+        if (docLabel.toLowerCase().includes('carta') && docLabel.toLowerCase().includes('coasesor'))
+          obsMap['Carta de Aceptación del Coasesor'] = detalle
+        if (docLabel.toLowerCase().includes('voucher')) obsMap['Voucher de Pago'] = detalle
+        if (docLabel.toLowerCase().includes('sustentatorio')) obsMap[docLabel] = detalle
+      }
+    })
+  }
+
+  // Verificar si un documento observado ya fue corregido (subido después de la observación)
+  const fueCorregido = (doc: { createdAt: string } | undefined, label: string) => {
+    if (!obsMap[label] || !doc || !fechaObservacion) return false
+    return new Date(doc.createdAt) > fechaObservacion
+  }
+
+  // Si hay observaciones activas, los docs que NO están observados fueron verificados
+  const hayObsActivas = Object.keys(obsMap).length > 0
 
   // Verificar si el usuario actual es el autor principal (solo él puede modificar participantes)
   const esAutorPrincipal = tesis.autores.some(
@@ -235,15 +299,23 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       : false
     : false
   // Cada tesista sube su propio documento sustentatorio
+  // Solo considerar autores activos (excluir DESISTIDO y RECHAZADO)
+  const autoresActivos = tesis.autores.filter((a) => a.estado !== 'DESISTIDO' && a.estado !== 'RECHAZADO')
   const allSustentatorios = tesis.documentos.filter((d) => d.tipoDocumento === 'DOCUMENTO_SUSTENTATORIO')
   const miDocSustentatorio = allSustentatorios.find((d) => d.subidoPor?.id === user?.id)
-  const otroAutor = tesis.autores.find((a) => a.user.id !== user?.id)
+  const otroAutor = autoresActivos.find((a) => a.user.id !== user?.id)
   const docSustentatorioOtroAutor = otroAutor
     ? allSustentatorios.find((d) => d.subidoPor?.id === otroAutor.user.id)
     : null
-  const todosSustentatoriosSubidos = tesis.autores.every((a) =>
+  const todosSustentatoriosSubidos = autoresActivos.every((a) =>
     allSustentatorios.some((d) => d.subidoPor?.id === a.user.id)
   )
+
+  // Detectar si al usuario le falta su documento sustentatorio en una fase donde no puede editar
+  // Esto ocurre cuando un nuevo coautor se agrega o un tesista es promovido post-desistimiento
+  const esAutor = tesis.autores.some(a => a.user.id === user?.id && a.estado === 'ACEPTADO')
+  const faltaMiSustentatorio = !miDocSustentatorio && !puedeEditar && esAutor
+  const necesitaSubirDocumentos = faltaMiSustentatorio && tesis.estado !== 'DESISTIDA' && tesis.estado !== 'RECHAZADA'
 
   // Obtener estado de asesores
   const asesor = tesis.asesores.find((a) => a.tipoAsesor === 'ASESOR')
@@ -251,8 +323,8 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const asesorAcepto = asesor?.estado === 'ACEPTADO'
   const coasesorAcepto = coasesor?.estado === 'ACEPTADO'
 
-  // Obtener estado de coautor (si existe)
-  const coautor = tesis.autores.find((a) => a.tipoParticipante === 'COAUTOR')
+  // Obtener estado de coautor activo (excluir desistidos)
+  const coautor = autoresActivos.find((a) => a.tipoParticipante === 'COAUTOR')
   const coautorAcepto = coautor?.estado === 'ACEPTADO'
   const coautorRechazado = coautor?.estado === 'RECHAZADO'
   const coautorPendiente = coautor?.estado === 'PENDIENTE'
@@ -328,6 +400,28 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
+      {/* Banner de desistimiento del usuario actual */}
+      {yoDesisti && (
+        <Card className="border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                <Ban className="w-5 h-5 text-slate-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Desististe de esta tesis</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Esta tesis es de solo lectura. Puedes verla como referencia histórica.
+                  {miRegistroAutor?.motivoRechazo && (
+                    <span className="block text-xs mt-1">Motivo: {miRegistroAutor.motivoRechazo}</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Estado de revisión */}
       {tesis.estado === 'REGISTRO_PENDIENTE' && (
         <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/30">
@@ -347,44 +441,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         </Card>
       )}
 
-      {(tesis.estado === 'OBSERVADA' || tesis.estado === 'PROYECTO_OBSERVADO') && (() => {
-        const observacion = (tesis as any).historial?.find(
-          (h: any) => h.estadoNuevo === 'OBSERVADA' || h.estadoNuevo === 'PROYECTO_OBSERVADO'
-        )
-        return (
-          <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
-            <CardContent className="py-4">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
-                </div>
-                <div className="flex-1 space-y-3">
-                  <div>
-                    <p className="font-semibold text-orange-800 dark:text-orange-200">Proyecto Observado</p>
-                    <p className="text-sm text-orange-700 dark:text-orange-300">
-                      Tu proyecto tiene observaciones de mesa de partes. Realiza las correcciones necesarias y vuelve a enviar.
-                    </p>
-                  </div>
-                  {observacion?.comentario && (
-                    <div className="p-3 rounded-lg bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400 mb-1.5">
-                        Observaciones
-                      </p>
-                      <p className="text-sm text-foreground whitespace-pre-wrap">{observacion.comentario}</p>
-                      {observacion.realizadoPor && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Por: {observacion.realizadoPor.nombres} {observacion.realizadoPor.apellidoPaterno}
-                          {observacion.fecha && ` — ${new Date(observacion.fecha).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )
-      })()}
 
       {tesis.estado === 'RECHAZADA' && (() => {
         const rechazo = (tesis as any).historial?.find(
@@ -437,26 +493,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 <p className="text-sm text-blue-700 dark:text-blue-300">
                   Tu proyecto está siendo revisado por la {tesis.facultad.nombre}. Te notificaremos cuando haya novedades.
                 </p>
-                {tesis.voucherFisicoEntregado ? (
-                  <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Voucher físico recibido por mesa de partes
-                  </p>
-                ) : (
-                  <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
-                      <div>
-                        <p className="text-sm font-bold text-red-800 dark:text-red-200">
-                          Entrega de voucher original pendiente
-                        </p>
-                        <p className="text-xs text-red-700 dark:text-red-300 mt-1">
-                          Si no entrega el voucher original de pago, <span className="font-semibold underline">no se dará inicio a su proyecto de investigación</span>. Diríjase a mesa de partes de su facultad lo antes posible.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </CardContent>
@@ -959,42 +995,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Sección 2: Voucher Físico */}
-              <AccordionItem value="voucher-fisico">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', tesis.voucherInformeFisicoEntregado ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50')}>
-                      {tesis.voucherInformeFisicoEntregado ? <Check className="w-4 h-4 text-green-600" /> : <AlertTriangle className="w-4 h-4 text-red-600" />}
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-sm">Voucher Físico</p>
-                      <p className={cn('text-xs font-normal', tesis.voucherInformeFisicoEntregado ? 'text-green-600' : 'text-red-600')}>
-                        {tesis.voucherInformeFisicoEntregado ? 'Recibido por mesa de partes' : 'Entrega presencial pendiente'}
-                      </p>
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  {tesis.voucherInformeFisicoEntregado ? (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-700">
-                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                      <p className="text-xs font-medium text-green-800 dark:text-green-200">Voucher físico del informe final recibido por mesa de partes</p>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-700">
-                      <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-xs font-bold text-red-800 dark:text-red-200">Entrega presencial obligatoria</p>
-                        <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
-                          Entregue el voucher original del informe final en mesa de partes de su facultad.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Sección 3: Documentos de Mesa de Partes */}
+              {/* Sección 2: Documentos de Mesa de Partes */}
               <AccordionItem value="docs-mesa">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
@@ -1137,26 +1138,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 <p className="text-sm text-blue-700 dark:text-blue-300">
                   Tu informe final está siendo revisado por mesa de partes. Te notificaremos cuando haya novedades.
                 </p>
-                {tesis.voucherInformeFisicoEntregado ? (
-                  <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Voucher físico del informe recibido por mesa de partes
-                  </p>
-                ) : (
-                  <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
-                      <div>
-                        <p className="text-sm font-bold text-red-800 dark:text-red-200">
-                          Entrega de voucher original del informe pendiente
-                        </p>
-                        <p className="text-xs text-red-700 dark:text-red-300 mt-1">
-                          Si no entrega el voucher original de pago del informe final, <span className="font-semibold underline">no se aprobará su informe</span>. Diríjase a mesa de partes de su facultad lo antes posible.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </CardContent>
@@ -1815,7 +1796,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => responderInvitacion(miRegistroCoautor.id, 'RECHAZAR')}
+                    onClick={() => abrirRechazoInvitacion(miRegistroCoautor.id)}
                     disabled={respondiendo}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                   >
@@ -1832,6 +1813,67 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Alerta cuando el coautor rechazó la invitación */}
+          {puedeEditar && esAutorPrincipal && coautorRechazado && coautor && (
+            <Card className="border-2 border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20">
+              <CardContent className="py-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-900/50 flex items-center justify-center shrink-0">
+                    <X className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-red-800 dark:text-red-200">
+                      {coautor.user.nombres} {coautor.user.apellidoPaterno} rechazó la invitación
+                    </p>
+                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                      El coautor no aceptó participar en esta tesis. No podrás enviar el proyecto hasta que reemplaces o elimines al coautor.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                      <Button
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => participants.abrirReemplazo('COAUTOR', coautor.id)}
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Reemplazar por otro estudiante
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        onClick={() => participants.eliminar('COAUTOR', coautor.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Continuar sin coautor
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Alerta cuando el coautor tiene invitación pendiente */}
+          {puedeEditar && esAutorPrincipal && coautorPendiente && coautor && (
+            <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20">
+              <CardContent className="py-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-yellow-800 dark:text-yellow-200">
+                      Esperando respuesta de {coautor.user.nombres} {coautor.user.apellidoPaterno}
+                    </p>
+                    <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-0.5">
+                      Se envió una invitación como coautor. Recibirás una notificación cuando responda.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Documentos requeridos */}
           {puedeEditar && !miInvitacionPendiente && (
             <Card>
@@ -1882,6 +1924,9 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   icon={<FileText className="w-5 h-5" />}
                   iconColor="text-blue-600"
                   iconBg="bg-blue-100 dark:bg-blue-900/50"
+                  observado={obsMap['Proyecto de Tesis']}
+                  verificado={hayObsActivas && !obsMap['Proyecto de Tesis']}
+                  corregido={fueCorregido(docProyecto, 'Proyecto de Tesis')}
                 />
 
                 {/* Estado de Aceptación del Asesor - El asesor sube y firma */}
@@ -1895,6 +1940,8 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     icon={<GraduationCap className="w-5 h-5" />}
                     iconColor="text-green-600"
                     iconBg="bg-green-100 dark:bg-green-900/50"
+                    observado={obsMap['Carta de Aceptación del Asesor']}
+                    verificado={hayObsActivas && !obsMap['Carta de Aceptación del Asesor']}
                   />
                 )}
 
@@ -1909,6 +1956,8 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     icon={<Users className="w-5 h-5" />}
                     iconColor="text-purple-600"
                     iconBg="bg-purple-100 dark:bg-purple-900/50"
+                    observado={obsMap['Carta de Aceptación del Coasesor']}
+                    verificado={hayObsActivas && !obsMap['Carta de Aceptación del Coasesor']}
                   />
                 )}
 
@@ -1924,29 +1973,15 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   icon={<Receipt className="w-5 h-5" />}
                   iconColor="text-amber-600"
                   iconBg="bg-amber-100 dark:bg-amber-900/50"
+                  observado={obsMap['Voucher de Pago']}
+                  verificado={hayObsActivas && !obsMap['Voucher de Pago']}
+                  corregido={fueCorregido(docVoucherPago, 'Voucher de Pago')}
                 />
-                {docVoucherPago && tesis.estado !== 'BORRADOR' && tesis.voucherFisicoEntregado ? (
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border-2 border-green-300 dark:border-green-700 -mt-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-green-800 dark:text-green-200">Voucher físico recibido por mesa de partes</p>
-                    </div>
-                  </div>
-                ) : docVoucherPago && tesis.estado !== 'BORRADOR' ? (
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-300 dark:border-red-700 -mt-2">
-                    <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
-                    <div>
-                      <p className="text-xs font-bold text-red-800 dark:text-red-200">Entrega presencial obligatoria</p>
-                      <p className="text-xs text-red-700 dark:text-red-300 mt-0.5">
-                        Si no entrega el voucher original, <span className="font-semibold underline">no se dará inicio a su proyecto de investigación</span>. Diríjase a mesa de partes de su facultad.
-                      </p>
-                    </div>
-                  </div>
-                ) : !docVoucherPago ? (
+                {!docVoucherPago ? (
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
                     <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-muted-foreground">
-                      Realice el pago de <span className="font-semibold">S/. 30.00</span> al <span className="font-semibold">código 277</span> y suba el voucher escaneado. Además, debe entregar el voucher original en mesa de partes.
+                      Realice el pago de <span className="font-semibold">S/. 30.00</span> al <span className="font-semibold">código 277</span> y suba el voucher escaneado.
                     </p>
                   </div>
                 ) : null}
@@ -1963,6 +1998,24 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   icon={<FileSpreadsheet className="w-5 h-5" />}
                   iconColor="text-indigo-600"
                   iconBg="bg-indigo-100 dark:bg-indigo-900/50"
+                  observado={
+                    // Buscar observación que mencione "sustentatorio" + nombre del usuario
+                    Object.entries(obsMap).find(([key]) =>
+                      key.toLowerCase().includes('sustentatorio') &&
+                      user && key.toLowerCase().includes(user.nombres?.toLowerCase() || '---')
+                    )?.[1]
+                  }
+                  verificado={hayObsActivas && !Object.entries(obsMap).some(([key]) =>
+                    key.toLowerCase().includes('sustentatorio') &&
+                    user && key.toLowerCase().includes(user.nombres?.toLowerCase() || '---')
+                  )}
+                  corregido={(() => {
+                    const obsKey = Object.keys(obsMap).find(key =>
+                      key.toLowerCase().includes('sustentatorio') &&
+                      user && key.toLowerCase().includes(user.nombres?.toLowerCase() || '---')
+                    )
+                    return obsKey ? fueCorregido(miDocSustentatorio ?? undefined, obsKey) : false
+                  })()}
                 />
                 {!miDocSustentatorio && (
                   <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border -mt-2">
@@ -1980,52 +2033,78 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 )}
 
                 {/* Sustentatorio del otro tesista (si existe) */}
-                {otroAutor && (
-                  <div className={cn(
-                    'rounded-xl border-2 p-4 transition-all',
-                    docSustentatorioOtroAutor
-                      ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                      : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
-                  )}>
-                    <div className="flex items-start gap-4">
-                      <div className={cn(
-                        'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
-                        docSustentatorioOtroAutor
-                          ? 'bg-green-100 dark:bg-green-900/50'
-                          : 'bg-yellow-100 dark:bg-yellow-900/50'
-                      )}>
-                        {docSustentatorioOtroAutor ? (
-                          <FileCheck className="w-6 h-6 text-green-600" />
-                        ) : (
-                          <Clock className="w-6 h-6 text-yellow-600" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <p className="font-semibold text-sm">
-                            Sustentatorio de {otroAutor.user.nombres} {otroAutor.user.apellidoPaterno}
-                          </p>
-                          {docSustentatorioOtroAutor ? (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
-                              Subido
-                            </Badge>
+                {otroAutor && (() => {
+                  const otroNombre = `${otroAutor.user.nombres} ${otroAutor.user.apellidoPaterno}`
+                  const obsOtro = Object.entries(obsMap).find(([key]) =>
+                    key.toLowerCase().includes('sustentatorio') &&
+                    key.toLowerCase().includes(otroAutor.user.nombres.toLowerCase())
+                  )?.[1]
+                  const verificadoOtro = hayObsActivas && !obsOtro && !!docSustentatorioOtroAutor
+                  return (
+                    <div className={cn(
+                      'rounded-xl border-2 p-4 transition-all',
+                      obsOtro
+                        ? 'border-orange-400 dark:border-orange-700 bg-orange-50/50 dark:bg-orange-950/20'
+                        : docSustentatorioOtroAutor
+                          ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
+                          : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
+                    )}>
+                      <div className="flex items-start gap-4">
+                        <div className={cn(
+                          'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
+                          obsOtro
+                            ? 'bg-orange-100 dark:bg-orange-900/50'
+                            : docSustentatorioOtroAutor
+                              ? 'bg-green-100 dark:bg-green-900/50'
+                              : 'bg-yellow-100 dark:bg-yellow-900/50'
+                        )}>
+                          {obsOtro ? (
+                            <AlertCircle className="w-6 h-6 text-orange-600" />
+                          ) : docSustentatorioOtroAutor ? (
+                            <FileCheck className="w-6 h-6 text-green-600" />
                           ) : (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-yellow-500 text-yellow-600">
-                              Pendiente
-                            </Badge>
+                            <Clock className="w-6 h-6 text-yellow-600" />
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {docSustentatorioOtroAutor
-                            ? `${otroAutor.user.nombres} ya subió su documento sustentatorio`
-                            : otroAutor.estado === 'PENDIENTE'
-                              ? `${otroAutor.user.nombres} debe aceptar la invitación antes de subir su documento`
-                              : `${otroAutor.user.nombres} debe subir su propio documento sustentatorio`}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <p className="font-semibold text-sm">
+                              Sustentatorio de {otroNombre}
+                            </p>
+                            {obsOtro ? (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-orange-500 text-orange-600">
+                                Observado
+                              </Badge>
+                            ) : verificadoOtro ? (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
+                                Verificado
+                              </Badge>
+                            ) : docSustentatorioOtroAutor ? (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
+                                Subido
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-yellow-500 text-yellow-600">
+                                Pendiente
+                              </Badge>
+                            )}
+                          </div>
+                          {obsOtro ? (
+                            <p className="text-xs text-orange-600 dark:text-orange-400">{obsOtro}</p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              {docSustentatorioOtroAutor
+                                ? `${otroAutor.user.nombres} ya subió su documento sustentatorio`
+                                : otroAutor.estado === 'PENDIENTE'
+                                  ? `${otroAutor.user.nombres} debe aceptar la invitación antes de subir su documento`
+                                  : `${otroAutor.user.nombres} debe subir su propio documento sustentatorio`}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
 
                 {/* Botón enviar */}
                 <Separator className="my-6" />
@@ -2362,6 +2441,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         <ThesisSidebar
           tesis={tesis}
           puedeEditar={puedeEditar}
+          puedeGestionarParticipantes={puedeEditar || tesis.estado === 'ASIGNANDO_JURADOS'}
           esAutorPrincipal={esAutorPrincipal}
           coautor={coautor}
           coasesor={coasesor}
@@ -2370,6 +2450,97 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
           onAgregar={participants.abrirAgregar}
         />
       </div>
+
+      {/* Panel de documento sustentatorio faltante (para autores agregados/promovidos en fases avanzadas) */}
+      {necesitaSubirDocumentos && (
+        <div className="mt-6">
+          <Card className="border-2 border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                Documento Sustentatorio Pendiente
+              </CardTitle>
+              <CardDescription>
+                Debes subir tu documento sustentatorio para completar tu expediente en esta tesis.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="text-xs text-muted-foreground p-3 rounded-lg bg-muted/50 border">
+                <p className="mb-1 font-semibold text-amber-600 dark:text-amber-400">El documento debe acreditar que te encuentras como mínimo en el octavo semestre (VIII) o superior.</p>
+                <p className="mb-1">Sube <span className="font-semibold">uno</span> de los siguientes:</p>
+                <ul className="list-disc list-inside space-y-0.5 ml-1">
+                  <li><span className="font-medium">Ficha de matrícula</span> — si estás matriculado (mínimo VIII ciclo)</li>
+                  <li><span className="font-medium">Inscripción a SUNEDU</span> — si cuentas con registro</li>
+                  <li><span className="font-medium">Constancia de egresado</span> — si ya egresaste</li>
+                </ul>
+              </div>
+              <input
+                type="file"
+                accept=".pdf"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer file:cursor-pointer"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFileUpload('DOCUMENTO_SUSTENTATORIO', file)
+                }}
+                disabled={subiendo === 'DOCUMENTO_SUSTENTATORIO'}
+              />
+              {subiendo === 'DOCUMENTO_SUSTENTATORIO' && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Subiendo documento...
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Diálogo de rechazo de invitación */}
+      <Dialog open={rechazoDialogOpen} onOpenChange={setRechazoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rechazar invitación</DialogTitle>
+            <DialogDescription>
+              Indica el motivo por el cual rechazas participar como coautor en esta tesis.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <textarea
+              className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+              placeholder="Escribe el motivo del rechazo..."
+              value={motivoRechazo}
+              onChange={(e) => setMotivoRechazo(e.target.value)}
+              disabled={respondiendo}
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => { setRechazoDialogOpen(false); setMotivoRechazo(''); setInvitacionARechazar(null) }}
+              disabled={respondiendo}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => invitacionARechazar && responderInvitacion(invitacionARechazar, 'RECHAZAR', motivoRechazo.trim())}
+              disabled={respondiendo || !motivoRechazo.trim()}
+            >
+              {respondiendo ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <X className="w-4 h-4 mr-2" />
+                  Confirmar rechazo
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Diálogo de agregar/reemplazar participante */}
       <ParticipantDialog

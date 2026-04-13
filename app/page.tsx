@@ -12,12 +12,16 @@ import { WaveDivider, BlobDecoration, GridPattern, RegistroIcon, AsesorIcon, Des
 const LottieBook = dynamic(() => import("@/components/lottie-book").then(m => ({ default: m.LottieBook })));
 const LottieCta = dynamic(() => import("@/components/lottie-book").then(m => ({ default: m.LottieCta })));
 import { LandingHeader } from "@/components/layout/landing-header";
-import {
-  HeroGraduados,
-  PeepMaria, PeepJuan, PeepLuis,
-  PeepThinking,
-  PeepRegistro, PeepAsesor, PeepInvestigador, PeepGraduado,
-} from "@/components/peep-characters";
+/* Peep characters: dynamic import — avoids bundling @opeepsfun/open-peeps (~100KB+) in initial load */
+const HeroGraduados = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.HeroGraduados })));
+const PeepMaria = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepMaria })));
+const PeepJuan = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepJuan })));
+const PeepLuis = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepLuis })));
+const PeepThinking = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepThinking })));
+const PeepRegistro = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepRegistro })));
+const PeepAsesor = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepAsesor })));
+const PeepInvestigador = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepInvestigador })));
+const PeepGraduado = dynamic(() => import("@/components/peep-characters").then(m => ({ default: m.PeepGraduado })));
 import {
   GraduationCap,
   FileText,
@@ -40,12 +44,16 @@ import {
   Sparkles,
   ChevronRight,
   Zap,
+  ExternalLink,
+  Scale,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 
 const GsapLanding = dynamic(() => import("@/components/gsap-landing").then(m => ({ default: m.GsapLanding })));
+const WhatsAppFloat = dynamic(() => import("@/components/whatsapp-float").then(m => ({ default: m.WhatsAppFloat })));
+const ReglamentoFloat = dynamic(() => import("@/components/reglamento-float").then(m => ({ default: m.ReglamentoFloat })));
 const GradientMesh = dynamic(() => import("@/components/gradient-mesh").then(m => ({ default: m.GradientMesh })));
 const Spotlight = dynamic(() => import("@/components/ui/spotlight").then(m => ({ default: m.Spotlight })));
 const BackgroundBeams = dynamic(() => import("@/components/ui/background-beams").then(m => ({ default: m.BackgroundBeams })));
@@ -329,6 +337,45 @@ export default function Home() {
         </section>
 
         {/* ═══════════════════════════════════════════════ */}
+        {/* REGLAMENTO DE GRADOS Y TÍTULOS                  */}
+        {/* ═══════════════════════════════════════════════ */}
+        <section className="py-16 bg-muted/40 border-y">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <Card className="bg-background border-primary/15 shadow-lg overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary to-primary/60" />
+                <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-8">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 shrink-0">
+                    <Scale className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="secondary" className="text-xs shrink-0">Normativa Vigente</Badge>
+                    </div>
+                    <h3 className="font-[family-name:var(--font-syne)] text-lg md:text-xl font-bold mb-2 tracking-tight">
+                      Reglamento General de Grados y Títulos
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Consulta el reglamento oficial que regula los procedimientos para la obtención de grados académicos y títulos profesionales en la UNAMAD. Es importante que conozcas los requisitos y plazos establecidos antes de iniciar tu proceso de tesis.
+                    </p>
+                  </div>
+                  <Button asChild className="shrink-0 gap-2 group shadow-md">
+                    <a
+                      href="https://www.gob.pe/institucion/unamad/informes-publicaciones/3962682-reglamento-general-de-grados-y-titulos-de-la-unamad"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Ver Reglamento
+                      <ExternalLink className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════ */}
         {/* FAQ SECTION                                     */}
         {/* ═══════════════════════════════════════════════ */}
         <section id="faq" className="py-24">
@@ -547,6 +594,8 @@ export default function Home() {
       </footer>
 
       <GsapLanding />
+      <ReglamentoFloat />
+      <WhatsAppFloat />
     </div>
   );
 }

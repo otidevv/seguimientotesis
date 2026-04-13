@@ -299,7 +299,7 @@ export async function PUT(
     const { accion, comentario } = body
 
     // Validar acción
-    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR', 'CONFIRMAR_VOUCHER', 'CONFIRMAR_VOUCHER_INFORME', 'CONFIRMAR_JURADOS', 'SUBIR_RESOLUCION', 'CONFIRMAR_VOUCHER_SUSTENTACION', 'CONFIRMAR_EJEMPLARES', 'SUBIR_RESOLUCION_SUSTENTACION']
+    const accionesValidas = ['APROBAR', 'OBSERVAR', 'RECHAZAR', 'CONFIRMAR_JURADOS', 'SUBIR_RESOLUCION', 'CONFIRMAR_VOUCHER_SUSTENTACION', 'CONFIRMAR_EJEMPLARES', 'SUBIR_RESOLUCION_SUSTENTACION']
     if (!accion || !accionesValidas.includes(accion)) {
       return NextResponse.json(
         { error: 'Acción inválida' },
@@ -336,82 +336,6 @@ export async function PUT(
         { error: 'Proyecto no encontrado' },
         { status: 404 }
       )
-    }
-
-    // Acción especial: confirmar voucher físico (permitido en EN_REVISION u OBSERVADA)
-    if (accion === 'CONFIRMAR_VOUCHER') {
-      if (!['EN_REVISION', 'OBSERVADA'].includes(tesis.estado)) {
-        return NextResponse.json(
-          { error: 'No se puede confirmar el voucher en el estado actual' },
-          { status: 400 }
-        )
-      }
-
-      await prisma.thesis.update({
-        where: { id },
-        data: {
-          voucherFisicoEntregado: true,
-          voucherFisicoFecha: new Date(),
-        },
-      })
-
-      await prisma.thesisStatusHistory.create({
-        data: {
-          thesisId: id,
-          estadoAnterior: tesis.estado,
-          estadoNuevo: tesis.estado,
-          comentario: 'Voucher físico recibido — confirmado por Mesa de Partes',
-          changedById: user.id,
-        },
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: 'Voucher físico confirmado exitosamente',
-        data: {
-          id: tesis.id,
-          voucherFisicoEntregado: true,
-          voucherFisicoFecha: new Date(),
-        },
-      })
-    }
-
-    // Acción especial: confirmar voucher físico informe final
-    if (accion === 'CONFIRMAR_VOUCHER_INFORME') {
-      if (!['INFORME_FINAL', 'EN_REVISION_INFORME', 'EN_EVALUACION_INFORME', 'OBSERVADA_INFORME'].includes(tesis.estado)) {
-        return NextResponse.json(
-          { error: 'No se puede confirmar el voucher de informe final en el estado actual' },
-          { status: 400 }
-        )
-      }
-
-      await prisma.thesis.update({
-        where: { id },
-        data: {
-          voucherInformeFisicoEntregado: true,
-          voucherInformeFisicoFecha: new Date(),
-        },
-      })
-
-      await prisma.thesisStatusHistory.create({
-        data: {
-          thesisId: id,
-          estadoAnterior: tesis.estado,
-          estadoNuevo: tesis.estado,
-          comentario: 'Voucher físico del informe final recibido — confirmado por Mesa de Partes',
-          changedById: user.id,
-        },
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: 'Voucher físico del informe final confirmado exitosamente',
-        data: {
-          id: tesis.id,
-          voucherInformeFisicoEntregado: true,
-          voucherInformeFisicoFecha: new Date(),
-        },
-      })
     }
 
     // Acción: CONFIRMAR_JURADOS (solo en ASIGNANDO_JURADOS)
@@ -774,14 +698,6 @@ export async function PUT(
         )
       }
 
-      // Bloquear aprobación si no se ha confirmado el voucher físico del informe
-      if (accion === 'APROBAR' && !tesis.voucherInformeFisicoEntregado) {
-        return NextResponse.json(
-          { error: 'Debe confirmar la entrega del voucher físico del informe final antes de aprobar' },
-          { status: 400 }
-        )
-      }
-
       if (accion === 'APROBAR') {
         // APROBAR informe → EN_EVALUACION_INFORME (notificar jurados y tesistas)
         const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
@@ -1033,14 +949,6 @@ export async function PUT(
       )
     }
 
-    // Bloquear aprobación si no se ha confirmado el voucher físico
-    if (accion === 'APROBAR' && !tesis.voucherFisicoEntregado) {
-      return NextResponse.json(
-        { error: 'Debe confirmar la entrega del voucher físico antes de aprobar' },
-        { status: 400 }
-      )
-    }
-
     // Determinar nuevo estado
     let nuevoEstado: EstadoTesis
     let mensajeExito: string
@@ -1149,6 +1057,25 @@ export async function PUT(
             mensaje: mensajeNotifMap[accion],
             enlace: `/mis-asesorias/${id}`,
           })
+        }
+
+        // Si es OBSERVAR, notificar específicamente al asesor/coasesor si su carta fue observada
+        if (accion === 'OBSERVAR' && comentario) {
+          const comentarioLower = comentario.toLowerCase()
+          for (const asesor of tesisCompleta.asesores) {
+            const esPrincipal = asesor.tipo === 'PRINCIPAL'
+            const tipoLabel = esPrincipal ? 'Asesor' : 'Coasesor'
+            const cartaLabel = esPrincipal ? 'carta de aceptación del asesor' : 'carta de aceptación del coasesor'
+            if (comentarioLower.includes(cartaLabel)) {
+              await crearNotificacion({
+                userId: asesor.user.id,
+                tipo: 'DOCUMENTO_OBSERVADO',
+                titulo: `Su carta de aceptación fue observada`,
+                mensaje: `Mesa de partes observó su carta de aceptación como ${tipoLabel.toLowerCase()} en la tesis "${tesisCompleta.titulo}". Por favor revise las observaciones y suba una nueva carta.`,
+                enlace: `/mis-asesorias/${id}`,
+              })
+            }
+          }
         }
 
         // Enviar correos electrónicos

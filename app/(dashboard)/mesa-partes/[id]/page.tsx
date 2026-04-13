@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select'
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   CheckCircle,
   ChevronRight,
@@ -41,6 +42,7 @@ import {
   History,
   Loader2,
   Receipt,
+  RefreshCw,
   Search,
   Trash2,
   Upload,
@@ -76,6 +78,11 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [accionActual, setAccionActual] = useState<'APROBAR' | 'OBSERVAR' | 'RECHAZAR' | null>(null)
   const [comentario, setComentario] = useState('')
+
+  // Verificación por documento: { [label]: 'ok' | 'observado' } y observaciones por doc
+  const [verificacionDocs, setVerificacionDocs] = useState<Record<string, 'ok' | 'observado'>>({})
+  const [observacionesDocs, setObservacionesDocs] = useState<Record<string, string>>({})
+  const [verificacionInicializada, setVerificacionInicializada] = useState(false)
 
   const loadProyecto = useCallback(async () => {
     try {
@@ -116,6 +123,51 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
     successMessage: 'Resolucion de conformacion de jurado de informe final subida correctamente',
   }, loadProyecto)
 
+  // Pre-poblar verificación con docs que ya estaban OK en observación anterior
+  useEffect(() => {
+    if (!proyecto || verificacionInicializada || proyecto.estado !== 'EN_REVISION') return
+    const obsAnterior = proyecto.historial.find(
+      (h: any) => h.estadoNuevo === 'OBSERVADA' && h.comentario
+    )
+    if (!obsAnterior?.comentario) return
+
+    // Parsear qué docs fueron observados antes
+    const docsObservados = new Set<string>()
+    obsAnterior.comentario.split('\n').filter((l: string) => l.startsWith('•')).forEach((l: string) => {
+      const sinBullet = l.replace(/^•\s*/, '')
+      const sep = sinBullet.indexOf(':')
+      if (sep !== -1) docsObservados.add(sinBullet.slice(0, sep).trim().toLowerCase())
+    })
+
+    if (docsObservados.size === 0) return
+
+    // Auto-marcar como OK los docs que NO fueron observados
+    const allKeys = ['proyecto', 'carta_asesor', 'carta_coasesor', 'voucher',
+      ...proyecto.autores.map((_: any, i: number) => `sust_${i}`)]
+    const allLabels: Record<string, string> = {
+      proyecto: 'proyecto de tesis',
+      carta_asesor: 'carta de aceptación del asesor',
+      carta_coasesor: 'carta de aceptación del coasesor',
+      voucher: 'voucher de pago',
+    }
+    proyecto.autores.forEach((a: any, i: number) => {
+      allLabels[`sust_${i}`] = `sustentatorio — ${a.nombre}`.toLowerCase()
+    })
+
+    const preVerificacion: Record<string, 'ok'> = {}
+    allKeys.forEach(key => {
+      const label = allLabels[key]
+      if (label && !docsObservados.has(label)) {
+        preVerificacion[key] = 'ok'
+      }
+    })
+
+    if (Object.keys(preVerificacion).length > 0) {
+      setVerificacionDocs(preVerificacion)
+    }
+    setVerificacionInicializada(true)
+  }, [proyecto, verificacionInicializada])
+
   useEffect(() => {
     if (!authLoading && user) {
       loadProyecto()
@@ -153,32 +205,6 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
     }
   }
 
-
-  const confirmarVoucher = async () => {
-    setProcesando(true)
-    try {
-      const data = await api.put<{ message: string }>(`/api/mesa-partes/${id}`, { accion: 'CONFIRMAR_VOUCHER' })
-      toast.success(data.message)
-      loadProyecto()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al confirmar voucher')
-    } finally {
-      setProcesando(false)
-    }
-  }
-
-  const confirmarVoucherInforme = async () => {
-    setProcesando(true)
-    try {
-      const data = await api.put<{ message: string }>(`/api/mesa-partes/${id}`, { accion: 'CONFIRMAR_VOUCHER_INFORME' })
-      toast.success(data.message)
-      loadProyecto()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al confirmar voucher del informe final')
-    } finally {
-      setProcesando(false)
-    }
-  }
 
   // Confirmar voucher sustentacion fisico
   const confirmarVoucherSustentacion = async () => {
@@ -289,6 +315,15 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const tieneAccesitarioInforme = tiposJuradoInforme.includes('ACCESITARIO')
   const juradosInformeCompletos = tienePresidenteInforme && tieneVocalInforme && tieneSecretarioInforme && tieneAccesitarioInforme
 
+  // Detectar si hubo desistimiento(s) en el historial
+  const desistimientos = proyecto.historial.filter(
+    h => h.comentario?.toLowerCase().includes('desistimiento')
+  )
+  const huboDesistimiento = desistimientos.length > 0
+  // La resolución actual podría necesitar actualización si hubo desistimiento después de subirla
+  const ultimoDesistimiento = desistimientos[0] // El más reciente (historial viene ordenado desc)
+  const resolucionRequiereActualizacion = huboDesistimiento && (docResolucionJurado || docResolucionAprobacion)
+
   const loaderMessages: Record<string, { title: string; description: string }> = {
     APROBAR: { title: 'Aprobando proyecto', description: 'Registrando la aprobación y notificando al tesista...' },
     OBSERVAR: { title: 'Registrando observaciones', description: 'Guardando las observaciones y notificando al tesista...' },
@@ -343,6 +378,90 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
           </div>
         </div>
 
+        {/* Alerta de desistimiento - resolución requiere actualización */}
+        {resolucionRequiereActualizacion && (
+          <Card className="border-2 border-amber-400 dark:border-amber-700 bg-amber-50/80 dark:bg-amber-950/30">
+            <CardContent className="py-4 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-amber-800 dark:text-amber-200">Desistimiento registrado — Resoluciones requieren actualización</p>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    {ultimoDesistimiento?.comentario}
+                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    {ultimoDesistimiento?.fecha && `Registrado el ${new Date(ultimoDesistimiento.fecha).toLocaleString('es-PE')}`}
+                    {ultimoDesistimiento?.realizadoPor && ` — Por: ${ultimoDesistimiento.realizadoPor}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Checklist de pendientes post-desistimiento */}
+              <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-background p-4 space-y-3">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">Pendientes por resolver:</p>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    {docResolucionJurado
+                      ? <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                      : <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                    }
+                    <span className={docResolucionJurado ? 'text-amber-800 dark:text-amber-200' : 'text-green-700 dark:text-green-300'}>
+                      {docResolucionJurado ? 'Subir resolución modificatoria de conformación de jurado' : 'Resolución de jurado (sin subir aún)'}
+                    </span>
+                  </li>
+                  {docResolucionAprobacion && (
+                    <li className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span className="text-amber-800 dark:text-amber-200">Subir resolución modificatoria de aprobación de proyecto</span>
+                    </li>
+                  )}
+                  <li className="flex items-center gap-2">
+                    {proyecto.autores.every((a) => docsSustentatorios.some((d) => d.subidoPor && a.nombre.startsWith(d.subidoPor)))
+                      ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                      : <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                    }
+                    <span className="text-amber-800 dark:text-amber-200">
+                      Verificar documentos sustentatorios de los autores actuales ({proyecto.autores.length} autor{proyecto.autores.length > 1 ? 'es' : ''})
+                    </span>
+                  </li>
+                </ul>
+
+                {/* Autores actuales */}
+                <div className="pt-2 border-t border-amber-200 dark:border-amber-800">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Autores actuales de la tesis:</p>
+                  <div className="space-y-1.5">
+                    {proyecto.autores.map((autor) => {
+                      const tieneDocSust = docsSustentatorios.some((d) => d.subidoPor && autor.nombre.startsWith(d.subidoPor))
+                      return (
+                        <div key={autor.nombre} className="flex items-center gap-2 text-sm">
+                          <div className={cn(
+                            'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                            tieneDocSust ? 'bg-green-100 dark:bg-green-900/50' : 'bg-amber-100 dark:bg-amber-900/50'
+                          )}>
+                            {tieneDocSust
+                              ? <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                              : <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                            }
+                          </div>
+                          <span className="font-medium">{autor.nombre}</span>
+                          <Badge variant="outline" className="text-[10px]">
+                            {autor.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Principal' : 'Coautor'}
+                          </Badge>
+                          {!tieneDocSust && (
+                            <span className="text-xs text-amber-600">— Falta doc. sustentatorio</span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Mensaje cuando el proyecto está observado - esperando correcciones */}
         {proyecto.estado === 'OBSERVADA' && (
           <Card className="border-orange-300 bg-orange-50">
@@ -360,52 +479,6 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
           </Card>
         )}
 
-        {/* Acciones de revision documental */}
-        {puedeGestionar && (
-          <Card className="border-primary/50 bg-primary/5">
-            <CardContent className="py-4">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                  <p className="font-semibold">Acciones de Revision</p>
-                  <p className="text-sm text-muted-foreground">
-                    Revisa el proyecto y toma una decision
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                  <Button
-                    variant="outline"
-                    className="border-orange-500 text-orange-600 hover:bg-orange-50 w-full sm:w-auto"
-                    onClick={() => abrirDialogo('OBSERVAR')}
-                  >
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    Observar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="border-red-500 text-red-600 hover:bg-red-50 w-full sm:w-auto"
-                    onClick={() => abrirDialogo('RECHAZAR')}
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Rechazar
-                  </Button>
-                  <Button
-                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 w-full sm:w-auto"
-                    onClick={() => abrirDialogo('APROBAR')}
-                    disabled={!proyecto.voucherFisicoEntregado}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Aprobar
-                  </Button>
-                  {!proyecto.voucherFisicoEntregado && (
-                    <p className="text-xs text-yellow-600 text-center sm:text-left">
-                      Debe confirmar el voucher fisico para aprobar
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Acciones de revision de informe final */}
         {puedeGestionarInforme && (
@@ -428,18 +501,12 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     Observar
                   </Button>
                   <Button
-                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 w-full sm:w-auto"
+                    className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                     onClick={() => abrirDialogo('APROBAR')}
-                    disabled={!proyecto.voucherInformeFisicoEntregado}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Aprobar Informe
                   </Button>
-                  {!proyecto.voucherInformeFisicoEntregado && (
-                    <p className="text-xs text-yellow-600 text-center sm:text-left">
-                      Debe confirmar el voucher fisico del informe para aprobar
-                    </p>
-                  )}
                 </div>
               </div>
             </CardContent>
@@ -470,87 +537,336 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               {/* Tab: Gestión */}
               <TabsContent value="gestion" className="space-y-6 mt-4 min-w-0" style={{ overflowX: 'hidden' }}>
 
-            {/* Confirmación de Voucher Físico - Proyecto (solo en revisión) */}
-            {puedeGestionar && (
-              <Card className={cn(
-                'border-2',
-                proyecto.voucherFisicoEntregado
-                  ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                  : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
-              )}>
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
-                    <Receipt className={cn('w-5 h-5 shrink-0', proyecto.voucherFisicoEntregado ? 'text-green-600' : 'text-yellow-600')} />
-                    Voucher Físico
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {proyecto.voucherFisicoEntregado ? (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800">
-                      <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
-                      <div>
-                        <p className="font-medium text-sm text-green-800 dark:text-green-200">Voucher físico recibido</p>
-                        {proyecto.voucherFisicoFecha && (
-                          <p className="text-xs text-green-600 dark:text-green-400">
-                            Confirmado el {new Date(proyecto.voucherFisicoFecha).toLocaleString('es-PE')}
+            {/* Checklist de verificación documental - solo EN_REVISION (esperando revisión) */}
+            {puedeGestionar && (() => {
+              const asesorNombre = proyecto.asesores.find((a: any) => a.tipo === 'ASESOR')?.nombre
+              const coasesorNombre = proyecto.asesores.find((a: any) => a.tipo === 'COASESOR')?.nombre
+              const checksBase = [
+                { key: 'proyecto', label: 'Proyecto de Tesis', presentado: !!docProyecto, doc: docProyecto, subidoPor: docProyecto?.subidoPor },
+                { key: 'carta_asesor', label: 'Carta de Aceptación del Asesor', presentado: !!docCartaAsesor, doc: docCartaAsesor, subidoPor: asesorNombre || docCartaAsesor?.subidoPor },
+                { key: 'carta_coasesor', label: 'Carta de Aceptación del Coasesor', presentado: !!docCartaCoasesor, doc: docCartaCoasesor, subidoPor: coasesorNombre || docCartaCoasesor?.subidoPor, opcional: !proyecto.asesores.some((a: any) => a.tipo === 'COASESOR') },
+                { key: 'voucher', label: 'Voucher de Pago (S/. 30.00 - Cód. 277)', presentado: !!docVoucher, doc: docVoucher, subidoPor: docVoucher?.subidoPor },
+              ].filter(c => !c.opcional)
+
+              const checksSustentatorios = proyecto.autores.map((autor: any, idx: number) => {
+                const docSust = docsSustentatorios.find((d: any) =>
+                  d.subidoPor && autor.nombre && (
+                    autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                  )
+                )
+                return {
+                  key: `sust_${idx}`,
+                  label: `Sustentatorio — ${autor.nombre}`,
+                  presentado: !!docSust,
+                  doc: docSust,
+                  subidoPor: autor.nombre,
+                }
+              })
+
+              const checks = [...checksBase, ...checksSustentatorios]
+              const docsConArchivo = checks.filter(c => c.presentado)
+              const verificados = docsConArchivo.filter(c => verificacionDocs[c.key] === 'ok').length
+              const observados = docsConArchivo.filter(c => verificacionDocs[c.key] === 'observado').length
+              const sinRevisar = docsConArchivo.length - verificados - observados
+              const todosRevisados = sinRevisar === 0 && docsConArchivo.length > 0
+              const hayObservaciones = observados > 0
+
+              return (
+                <Card className="border-2 border-blue-300 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/10">
+                  <CardHeader>
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <ClipboardCheck className="w-5 h-5 text-blue-600 shrink-0" />
+                      Verificación Documental
+                    </CardTitle>
+                    <CardDescription>
+                      Revise cada documento y marque como verificado u observado. El tesista recibirá el detalle de cada observación.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {checks.map((check) => {
+                      const estado = verificacionDocs[check.key]
+                      return (
+                        <div key={check.key} className={cn(
+                          'rounded-lg border p-3 transition-all',
+                          !check.presentado && 'bg-red-50/50 dark:bg-red-950/10 border-red-200 dark:border-red-800',
+                          check.presentado && !estado && 'bg-background',
+                          estado === 'ok' && 'bg-green-50/50 dark:bg-green-950/10 border-green-200 dark:border-green-800',
+                          estado === 'observado' && 'bg-orange-50/50 dark:bg-orange-950/10 border-orange-200 dark:border-orange-800',
+                        )}>
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              'w-7 h-7 rounded-full flex items-center justify-center shrink-0',
+                              !check.presentado && 'bg-red-100 dark:bg-red-900/50',
+                              check.presentado && !estado && 'bg-gray-100 dark:bg-gray-800',
+                              estado === 'ok' && 'bg-green-100 dark:bg-green-900/50',
+                              estado === 'observado' && 'bg-orange-100 dark:bg-orange-900/50',
+                            )}>
+                              {!check.presentado && <XCircle className="w-4 h-4 text-red-500" />}
+                              {check.presentado && !estado && <Clock className="w-4 h-4 text-gray-400" />}
+                              {estado === 'ok' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                              {estado === 'observado' && <AlertCircle className="w-4 h-4 text-orange-600" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-medium block">{check.label}</span>
+                              {check.subidoPor && (
+                                <span className="text-[11px] text-muted-foreground">Subido por: {check.subidoPor}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {check.doc && (
+                                <a
+                                  href={check.doc.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline px-2 py-1 rounded-md hover:bg-primary/5"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  Ver
+                                </a>
+                              )}
+                              {check.presentado && (
+                                <>
+                                  <Button
+                                    variant={estado === 'ok' ? 'default' : 'outline'}
+                                    size="sm"
+                                    className={cn('h-7 text-[11px] px-2', estado === 'ok' && 'bg-green-600 hover:bg-green-700')}
+                                    onClick={() => {
+                                      setVerificacionDocs(prev => ({ ...prev, [check.key]: 'ok' }))
+                                      setObservacionesDocs(prev => { const n = { ...prev }; delete n[check.key]; return n })
+                                    }}
+                                  >
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                    OK
+                                  </Button>
+                                  <Button
+                                    variant={estado === 'observado' ? 'default' : 'outline'}
+                                    size="sm"
+                                    className={cn('h-7 text-[11px] px-2', estado === 'observado' && 'bg-orange-600 hover:bg-orange-700')}
+                                    onClick={() => setVerificacionDocs(prev => ({ ...prev, [check.key]: 'observado' }))}
+                                  >
+                                    <AlertCircle className="w-3 h-3 mr-1" />
+                                    Observar
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {!check.presentado && (
+                            <p className="text-xs text-red-600 mt-2 ml-10">No presentado por el tesista</p>
+                          )}
+                          {estado === 'observado' && (
+                            <div className="mt-2 ml-10">
+                              <Textarea
+                                placeholder="Detalle la observación para este documento..."
+                                value={observacionesDocs[check.key] || ''}
+                                onChange={(e) => setObservacionesDocs(prev => ({ ...prev, [check.key]: e.target.value }))}
+                                rows={2}
+                                className="text-sm"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+
+                    {/* Resumen y acción rápida */}
+                    <div className="pt-3 border-t mt-4 space-y-3">
+                      <div className="flex flex-wrap items-center gap-3 text-xs">
+                        {verificados > 0 && (
+                          <span className="flex items-center gap-1 text-green-600 font-medium">
+                            <CheckCircle className="w-3.5 h-3.5" /> {verificados} verificado{verificados > 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {observados > 0 && (
+                          <span className="flex items-center gap-1 text-orange-600 font-medium">
+                            <AlertCircle className="w-3.5 h-3.5" /> {observados} observado{observados > 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {sinRevisar > 0 && (
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="w-3.5 h-3.5" /> {sinRevisar} sin revisar
+                          </span>
+                        )}
+                      </div>
+
+                      {todosRevisados && !hayObservaciones && (
+                        <Button
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={() => abrirDialogo('APROBAR')}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Todos verificados — Aprobar proyecto
+                        </Button>
+                      )}
+                      {todosRevisados && hayObservaciones && (
+                        <Button
+                          className="w-full bg-orange-600 hover:bg-orange-700"
+                          onClick={() => {
+                            // Construir comentario con las observaciones por documento
+                            const obs = Object.entries(observacionesDocs)
+                              .filter(([, v]) => v.trim())
+                              .map(([key, v]) => {
+                                const check = checks.find(c => c.key === key)
+                                return `• ${check?.label}: ${v.trim()}`
+                              })
+                              .join('\n')
+                            const sinDetalle = Object.entries(verificacionDocs)
+                              .filter(([, v]) => v === 'observado')
+                              .filter(([key]) => !observacionesDocs[key]?.trim())
+                              .map(([key]) => {
+                                const check = checks.find(c => c.key === key)
+                                return `• ${check?.label}: Observado (sin detalle)`
+                              })
+                              .join('\n')
+                            const comentarioFinal = [obs, sinDetalle].filter(Boolean).join('\n')
+                            setComentario(comentarioFinal)
+                            setAccionActual('OBSERVAR')
+                            setDialogOpen(true)
+                          }}
+                        >
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          Enviar observaciones al tesista ({observados} documento{observados > 1 ? 's' : ''})
+                        </Button>
+                      )}
+                      {todosRevisados && (
+                        <Button
+                          variant="outline"
+                          className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => abrirDialogo('RECHAZAR')}
+                        >
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Rechazar proyecto
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })()}
+
+            {/* Documentos presentados - vista lectura cuando está OBSERVADA o estados sin gestión activa */}
+            {proyecto.estado === 'OBSERVADA' && (() => {
+              const docs = [
+                { label: 'Proyecto de Tesis', doc: docProyecto },
+                { label: 'Carta de Aceptación del Asesor', doc: docCartaAsesor },
+                ...(proyecto.asesores.some((a: any) => a.tipo === 'COASESOR')
+                  ? [{ label: 'Carta de Aceptación del Coasesor', doc: docCartaCoasesor }]
+                  : []),
+                { label: 'Voucher de Pago', doc: docVoucher },
+                ...proyecto.autores.map((autor: any, idx: number) => {
+                  const docSust = docsSustentatorios.find((d: any) =>
+                    d.subidoPor && autor.nombre && (
+                      autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                    )
+                  )
+                  return { label: `Sustentatorio — ${autor.nombre}`, doc: docSust }
+                }),
+              ]
+              // Obtener la última observación del historial
+              const ultimaObs = proyecto.historial.find(
+                (h: any) => h.estadoNuevo === 'OBSERVADA' && h.comentario
+              )
+              // Detectar qué documentos fueron observados según el comentario
+              // Busca el label completo (incluyendo el nombre del autor) para no confundir sustentatorios
+              const obsText = ultimaObs?.comentario || ''
+              const fueObservado = (label: string) => {
+                // Buscar "• Label:" en el texto de observaciones (formato exacto generado por el checklist)
+                return obsText.includes(`• ${label}:`) || obsText.includes(`• ${label}: `)
+              }
+              return (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+                      Documentos Presentados
+                    </CardTitle>
+                    <CardDescription>
+                      El tesista está corrigiendo las observaciones. Estos son los documentos que presentó.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {ultimaObs?.comentario && (
+                      <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-3 mb-4">
+                        <p className="text-xs font-medium text-orange-800 dark:text-orange-200 mb-1">Observaciones enviadas:</p>
+                        <p className="text-sm text-orange-700 dark:text-orange-300 whitespace-pre-wrap">{ultimaObs.comentario}</p>
+                        {ultimaObs.realizadoPor && (
+                          <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-2">
+                            Por: {ultimaObs.realizadoPor} — {new Date(ultimaObs.fecha).toLocaleString('es-PE')}
                           </p>
                         )}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-sm text-yellow-800 dark:text-yellow-200">Voucher físico pendiente</p>
-                          <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-0.5">
-                            El estudiante debe entregar el voucher original en mesa de partes.
-                          </p>
-                          {docVoucher && (
+                    )}
+                    {docs.map((item) => {
+                      const esObservado = fueObservado(item.label)
+                      return (
+                        <div key={item.label} className={cn(
+                          'flex items-center gap-3 p-2.5 rounded-lg border',
+                          esObservado
+                            ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-300 dark:border-orange-700'
+                            : 'bg-background'
+                        )}>
+                          <div className={cn(
+                            'w-7 h-7 rounded-full flex items-center justify-center shrink-0',
+                            esObservado
+                              ? 'bg-orange-100 dark:bg-orange-900/50'
+                              : item.doc ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'
+                          )}>
+                            {esObservado
+                              ? <AlertCircle className="w-4 h-4 text-orange-600" />
+                              : item.doc
+                                ? <CheckCircle className="w-4 h-4 text-green-600" />
+                                : <XCircle className="w-4 h-4 text-red-500" />
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={cn('text-sm', esObservado ? 'font-medium text-orange-800 dark:text-orange-200' : '')}>{item.label}</span>
+                            {esObservado && (
+                              <p className="text-[11px] text-orange-600 dark:text-orange-400 mt-0.5">Observado — pendiente de corrección</p>
+                            )}
+                          </div>
+                          {item.doc && (
                             <a
-                              href={docVoucher.url}
+                              href={item.doc.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-yellow-700 hover:text-yellow-900 hover:underline"
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline px-2 py-1 rounded-md hover:bg-primary/5 shrink-0"
                             >
-                              <Eye className="w-3.5 h-3.5" /> Ver Voucher Digital
+                              <Eye className="w-3.5 h-3.5" />
+                              Ver
                             </a>
                           )}
                         </div>
-                      </div>
-                      <Button
-                        onClick={confirmarVoucher}
-                        disabled={procesando}
-                        className="w-full bg-yellow-600 hover:bg-yellow-700"
-                      >
-                        {procesando ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Confirmando...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Confirmar Entrega de Voucher Físico
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                      )
+                    })}
+                  </CardContent>
+                </Card>
+              )
+            })()}
 
-            {/* Panel de Resolucion de Conformacion de Jurado - solo si aún no se subió */}
-            {!docResolucionJurado && (esAsignandoJurados || ['EN_EVALUACION_JURADO', 'OBSERVADA_JURADO', 'PROYECTO_APROBADO'].includes(proyecto.estado)) && (
-              <Card className="border-2 border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+            {/* Panel de Resolucion de Conformacion de Jurado - si no se subió O si requiere actualización por desistimiento */}
+            {(!docResolucionJurado || resolucionRequiereActualizacion) && (esAsignandoJurados || ['EN_EVALUACION_JURADO', 'OBSERVADA_JURADO', 'PROYECTO_APROBADO'].includes(proyecto.estado)) && (
+              <Card className={cn(
+                'border-2',
+                resolucionRequiereActualizacion
+                  ? 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
+                  : 'border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20'
+              )}>
                 <CardHeader>
                   <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
-                    <FileUp className="w-5 h-5 text-amber-600 shrink-0" />
-                    Resolución de Conformación de Jurado
+                    {resolucionRequiereActualizacion
+                      ? <RefreshCw className="w-5 h-5 text-red-600 shrink-0" />
+                      : <FileUp className="w-5 h-5 text-amber-600 shrink-0" />
+                    }
+                    {resolucionRequiereActualizacion
+                      ? 'Resolución Modificatoria de Jurado'
+                      : 'Resolución de Conformación de Jurado'
+                    }
                   </CardTitle>
                   <CardDescription>
-                    Suba la resolución de conformación de jurado de revisión de proyecto de tesis.
+                    {resolucionRequiereActualizacion
+                      ? 'Hubo un desistimiento. Suba la resolución modificatoria con los datos actualizados de los autores.'
+                      : 'Suba la resolución de conformación de jurado de revisión de proyecto de tesis.'
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -782,16 +1098,30 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               </Card>
             )}
 
-            {/* Panel de Subir Resolucion (PROYECTO_APROBADO) */}
-            {esProyectoAprobado && (
-              <Card className="border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20">
+            {/* Panel de Subir Resolucion (PROYECTO_APROBADO o actualización por desistimiento en fases posteriores) */}
+            {(esProyectoAprobado || (resolucionRequiereActualizacion && mostrarDocsInforme)) && (
+              <Card className={cn(
+                'border-2',
+                resolucionRequiereActualizacion && !esProyectoAprobado
+                  ? 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
+                  : 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20'
+              )}>
                 <CardHeader>
                   <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
-                    <FileUp className="w-5 h-5 text-emerald-600 shrink-0" />
-                    Subir Resolucion de Aprobacion
+                    {resolucionRequiereActualizacion && !esProyectoAprobado
+                      ? <RefreshCw className="w-5 h-5 text-red-600 shrink-0" />
+                      : <FileUp className="w-5 h-5 text-emerald-600 shrink-0" />
+                    }
+                    {resolucionRequiereActualizacion && !esProyectoAprobado
+                      ? 'Resolución Modificatoria de Aprobación'
+                      : 'Subir Resolución de Aprobación'
+                    }
                   </CardTitle>
                   <CardDescription>
-                    El proyecto fue aprobado por los jurados. Suba la resolucion de aprobacion para que el estudiante pueda iniciar el informe final.
+                    {resolucionRequiereActualizacion && !esProyectoAprobado
+                      ? 'Hubo un desistimiento. Suba la resolución modificatoria de aprobación con los datos actualizados de los autores.'
+                      : 'El proyecto fue aprobado por los jurados. Suba la resolución de aprobación para que el estudiante pueda iniciar el informe final.'
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1511,90 +1841,6 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               </>
             )}
 
-            {/* Confirmacion de Voucher Fisico - Informe Final (solo si aún no fue confirmado) */}
-            {mostrarDocsInforme && !proyecto.voucherInformeFisicoEntregado && (
-              <Card className={cn(
-                'border-2',
-                proyecto.voucherInformeFisicoEntregado
-                  ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                  : 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20'
-              )}>
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg flex items-start sm:items-center gap-2">
-                    <Receipt className={cn(
-                      'w-5 h-5',
-                      proyecto.voucherInformeFisicoEntregado ? 'text-green-600' : 'text-yellow-600'
-                    )} />
-                    Voucher Fisico - Informe Final
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {proyecto.voucherInformeFisicoEntregado ? (
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-green-800 dark:text-green-200">
-                          Voucher fisico del informe final recibido
-                        </p>
-                        <p className="text-sm text-green-700 dark:text-green-300">
-                          Confirmado el {proyecto.voucherInformeFisicoFecha
-                            ? new Date(proyecto.voucherInformeFisicoFecha).toLocaleString('es-PE')
-                            : ''}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/50 flex items-center justify-center flex-shrink-0">
-                          <AlertCircle className="w-5 h-5 text-yellow-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-yellow-800 dark:text-yellow-200">
-                            Voucher fisico del informe final pendiente
-                          </p>
-                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                            El estudiante debe entregar el voucher original del informe final en mesa de partes.
-                            {docVoucherInforme && ' El voucher digital ya fue subido al sistema.'}
-                          </p>
-                          {docVoucherInforme && (
-                            <a
-                              href={docVoucherInforme.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 mt-2 px-3 py-2 text-sm font-medium rounded-lg bg-yellow-100 dark:bg-yellow-900/40 border border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 hover:bg-yellow-200 dark:hover:bg-yellow-900/60 transition-colors"
-                            >
-                              <Eye className="w-4 h-4" />
-                              Ver Voucher Digital
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        onClick={confirmarVoucherInforme}
-                        disabled={procesando}
-                        className="w-full bg-yellow-600 hover:bg-yellow-700"
-                      >
-                        {procesando ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Confirmando...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Confirmar Entrega de Voucher Fisico - Informe Final
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
               </TabsContent>
 
               {/* Tab: Documentos */}
@@ -1653,35 +1899,6 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     iconColor="text-purple-600"
                     iconBg="bg-purple-100 dark:bg-purple-900/50"
                   />
-                  {/* Voucher físico informe */}
-                  <div className={cn(
-                    'rounded-xl border-2 p-3 sm:p-4',
-                    proyecto.voucherInformeFisicoEntregado
-                      ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                      : 'border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 border-dashed'
-                  )}>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className={cn(
-                        'w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
-                        proyecto.voucherInformeFisicoEntregado ? 'bg-green-100 dark:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/50'
-                      )}>
-                        {proyecto.voucherInformeFisicoEntregado
-                          ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                          : <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-                        }
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-xs sm:text-sm">Voucher Físico - Informe Final</p>
-                        {proyecto.voucherInformeFisicoEntregado ? (
-                          <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
-                            Recibido{proyecto.voucherInformeFisicoFecha ? ` el ${new Date(proyecto.voucherInformeFisicoFecha).toLocaleDateString('es-PE')}` : ''}
-                          </p>
-                        ) : (
-                          <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">Pendiente de entrega presencial</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                   {docResolucionSustentacion && (
                     <DocumentoCard
                       titulo="Resolución de Sustentación"
@@ -1817,35 +2034,6 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                     iconBg="bg-purple-100 dark:bg-purple-900/50"
                   />
                 )}
-                {/* Voucher físico */}
-                <div className={cn(
-                  'rounded-xl border-2 p-3 sm:p-4',
-                  proyecto.voucherFisicoEntregado
-                    ? 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
-                    : 'border-orange-300 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 border-dashed'
-                )}>
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className={cn(
-                      'w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0',
-                      proyecto.voucherFisicoEntregado ? 'bg-green-100 dark:bg-green-900/50' : 'bg-orange-100 dark:bg-orange-900/50'
-                    )}>
-                      {proyecto.voucherFisicoEntregado
-                        ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                        : <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-                      }
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-xs sm:text-sm">Voucher Físico</p>
-                      {proyecto.voucherFisicoEntregado ? (
-                        <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
-                          Recibido{proyecto.voucherFisicoFecha ? ` el ${new Date(proyecto.voucherFisicoFecha).toLocaleDateString('es-PE')}` : ''}
-                        </p>
-                      ) : (
-                        <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">Pendiente de entrega presencial</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 

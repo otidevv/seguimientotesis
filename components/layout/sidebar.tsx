@@ -155,6 +155,9 @@ const mainNavItems: NavItem[] = [
 
 const studentNavItems: NavItem[] = [
   { title: 'Mis Tesis', href: '/mis-tesis', icon: GraduationCap, moduleCode: 'mis-tesis' },
+]
+
+const correspondenciaNavItems: NavItem[] = [
   { title: 'Mis Invitaciones', href: '/mis-invitaciones', icon: Mail, moduleCode: 'mis-invitaciones' },
 ]
 
@@ -186,6 +189,7 @@ const allSections: NavSection[] = [
   { label: 'Principal', items: mainNavItems },
   { label: 'Estudiante', items: studentNavItems },
   { label: 'Docente', items: docenteNavItems },
+  { label: 'Correspondencia', items: correspondenciaNavItems },
   { label: 'Gestión', items: mesaPartesNavItems },
   { label: 'Administración', items: adminNavItems },
 ]

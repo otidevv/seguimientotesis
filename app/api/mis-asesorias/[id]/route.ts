@@ -98,6 +98,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           },
           orderBy: { createdAt: 'desc' },
         },
+        jurados: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+                email: true,
+              },
+            },
+            evaluaciones: {
+              orderBy: { ronda: 'desc' },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     })
 
@@ -174,6 +192,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         firmadoDigitalmente: d.firmadoDigitalmente,
         createdAt: d.createdAt,
       })),
+      jurados: tesis.jurados.map((j) => ({
+        id: j.id,
+        tipo: j.tipo,
+        fase: j.fase,
+        nombre: `${j.user.nombres} ${j.user.apellidoPaterno} ${j.user.apellidoMaterno || ''}`.trim(),
+        email: j.user.email,
+        evaluaciones: j.evaluaciones.map((e) => ({
+          id: e.id,
+          ronda: e.ronda,
+          resultado: e.resultado,
+          observaciones: e.observaciones,
+          archivoUrl: e.archivoUrl,
+          fecha: e.createdAt,
+        })),
+      })),
+      rondaActual: tesis.rondaActual,
+      faseActual: tesis.faseActual,
+      fechaLimiteEvaluacion: tesis.fechaLimiteEvaluacion,
       historial: tesis.historialEstados.map((h) => ({
         id: h.id,
         estadoAnterior: h.estadoAnterior,

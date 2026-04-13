@@ -200,6 +200,7 @@ export async function GET(
         orden: a.orden,
         tipoParticipante: index === 0 ? 'AUTOR_PRINCIPAL' : 'COAUTOR',
         estado: a.estado, // Estado real de la invitación
+        motivoRechazo: a.motivoRechazo,
         user: a.user ? {
           id: a.user.id,
           nombres: a.user.nombres,

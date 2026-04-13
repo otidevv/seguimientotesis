@@ -1,10 +1,9 @@
 "use client";
 
 import { Effigy } from "@opeepsfun/open-peeps";
-import { motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useRef, useEffect, type ReactNode } from "react";
 
-/* ── Scroll-reveal wrapper ── */
+/* ── Scroll-reveal wrapper (CSS + IntersectionObserver, no framer-motion) ── */
 function ScrollReveal({
   children,
   className,
@@ -16,28 +15,44 @@ function ScrollReveal({
   direction?: "up" | "left" | "right" | "down";
   delay?: number;
 }) {
-  const offsets = {
-    up: { y: 60, x: 0 },
-    down: { y: -60, x: 0 },
-    left: { x: -60, y: 0 },
-    right: { x: 60, y: 0 },
-  };
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // Respect reduced motion
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.style.opacity = "1";
+      el.style.transform = "none";
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.transitionDelay = `${delay}s`;
+          el.classList.add("scroll-revealed");
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "-80px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [delay]);
+
+  const dirClass = {
+    up: "scroll-reveal-up",
+    down: "scroll-reveal-down",
+    left: "scroll-reveal-left",
+    right: "scroll-reveal-right",
+  }[direction];
 
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, ...offsets[direction] }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{
-        type: "spring",
-        stiffness: 80,
-        damping: 20,
-        delay,
-      }}
-    >
+    <div ref={ref} className={`scroll-reveal ${dirClass} ${className ?? ""}`}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -96,11 +111,10 @@ export function HeroGraduados({ className }: { className?: string }) {
     <div className={className}>
       <div className="w-full h-full flex items-end justify-center gap-40">
         {peeps.map((p, i) => (
-          <motion.div
+          <div
             key={i}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 0.2, y: 0 }}
-            transition={{ type: "spring", stiffness: 70, damping: 18, delay: p.delay }}
+            className="peep-fade-in"
+            style={{ animationDelay: `${p.delay}s` }}
           >
             <div style={{ width: 34, height: 46, overflow: "visible", position: "relative" }}>
               <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%) scale(0.11)", transformOrigin: "bottom center", width: 300 }}>
@@ -115,7 +129,7 @@ export function HeroGraduados({ className }: { className?: string }) {
                 />
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>

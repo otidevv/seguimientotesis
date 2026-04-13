@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Syne } from "next/font/google";
-import Script from "next/script";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
-import { FirmaPeruScripts } from "@/components/firma-peru";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
 import "./globals.css";
 
@@ -64,24 +62,8 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
-            <WhatsAppFloat />
           </AuthProvider>
         </ThemeProvider>
-        {/* jQuery 3.6.0 — carga diferida, solo necesario para Firma Perú */}
-        <Script
-          src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"
-          strategy="lazyOnload"
-          id="jquery-firma-peru"
-        />
-        <Script id="jquery-init-firma-peru" strategy="lazyOnload">{`
-          (function check(){
-            if(typeof jQuery!=='undefined'){
-              var jq=jQuery.noConflict(true);window.jqFirmaPeru=jq;
-            } else { setTimeout(check,100); }
-          })();
-        `}</Script>
-        {/* Scripts adicionales de Firma Perú (PCM) */}
-        <FirmaPeruScripts />
       </body>
     </html>
   );

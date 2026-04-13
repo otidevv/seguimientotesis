@@ -1,5 +1,5 @@
 import {
-  AlertCircle, CheckCircle2, Clock, FileText, GraduationCap, X,
+  AlertCircle, CheckCircle2, Clock, FileText, GraduationCap, X, Ban,
 } from 'lucide-react'
 
 export const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
@@ -111,6 +111,18 @@ export const ESTADO_CONFIG: Record<string, { label: string; color: string; bgCol
     bgColor: 'bg-orange-100 dark:bg-orange-900/30',
     icon: <AlertCircle className="w-4 h-4" />
   },
+  DESISTIDA: {
+    label: 'Desistida',
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100 dark:bg-slate-800',
+    icon: <Ban className="w-4 h-4" />
+  },
+  ARCHIVADA: {
+    label: 'Archivada',
+    color: 'text-gray-500',
+    bgColor: 'bg-gray-100 dark:bg-gray-800',
+    icon: <FileText className="w-4 h-4" />
+  },
 }
 
 export const ESTADO_ASESOR_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: React.ReactNode }> = {
@@ -131,5 +143,11 @@ export const ESTADO_ASESOR_CONFIG: Record<string, { label: string; color: string
     color: 'text-red-600',
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     icon: <X className="w-5 h-5" />
+  },
+  DESISTIDO: {
+    label: 'Desistido',
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-100 dark:bg-slate-800',
+    icon: <Ban className="w-5 h-5" />
   },
 }

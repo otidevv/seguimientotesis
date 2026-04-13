@@ -78,7 +78,7 @@ function LazyLottie({ src, className }: { src: string; className?: string }) {
 export function LottieBook({ className }: { className?: string }) {
   return (
     <LazyLottie
-      src="https://lottie.host/43a12aed-b08a-46ec-ab32-ff4ea10f2c69/5Kon0IQU8A.lottie"
+      src="/lottie/book.lottie"
       className={className}
     />
   );
@@ -87,7 +87,7 @@ export function LottieBook({ className }: { className?: string }) {
 export function LottieCta({ className }: { className?: string }) {
   return (
     <LazyLottie
-      src="https://lottie.host/72a1f016-7c2f-4e71-a1d8-c7264d2f0300/OPvp3E6ypQ.lottie"
+      src="/lottie/cta.lottie"
       className={className}
     />
   );

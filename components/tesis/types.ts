@@ -29,6 +29,7 @@ export interface Tesis {
     id: string
     tipoParticipante: string
     estado: string
+    motivoRechazo?: string | null
     user: {
       id: string
       nombres: string

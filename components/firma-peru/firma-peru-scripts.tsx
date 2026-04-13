@@ -9,6 +9,7 @@
  */
 
 import { useEffect } from 'react';
+import Script from 'next/script';
 
 // Declarar las funciones globales que Firma Perú espera
 declare global {
@@ -59,7 +60,21 @@ export function FirmaPeruScripts() {
     };
   }, []);
 
-  // Este componente no renderiza nada visible
-  // El script de Firma Perú se carga dinámicamente en useFirmaPeru
-  return null;
+  // jQuery + init solo se carga cuando este componente está montado (ruta firma-peru)
+  return (
+    <>
+      <Script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        strategy="lazyOnload"
+        id="jquery-firma-peru"
+      />
+      <Script id="jquery-init-firma-peru" strategy="lazyOnload">{`
+        (function check(){
+          if(typeof jQuery!=='undefined'){
+            var jq=jQuery.noConflict(true);window.jqFirmaPeru=jq;
+          } else { setTimeout(check,100); }
+        })();
+      `}</Script>
+    </>
+  );
 }

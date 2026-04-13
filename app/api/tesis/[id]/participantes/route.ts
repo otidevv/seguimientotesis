@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
+import { crearNotificacion } from '@/lib/notificaciones'
 
 // PUT /api/tesis/[id]/participantes - Actualizar participantes (coautor o asesor)
 export async function PUT(
@@ -43,8 +44,8 @@ export async function PUT(
       )
     }
 
-    // Solo permitir cambios en estado BORRADOR u OBSERVADA
-    if (!['BORRADOR', 'PROYECTO_OBSERVADO'].includes(tesis.estado)) {
+    // Solo permitir cambios en estado BORRADOR, OBSERVADA o ASIGNANDO_JURADOS (por desistimiento)
+    if (!['BORRADOR', 'PROYECTO_OBSERVADO', 'ASIGNANDO_JURADOS'].includes(tesis.estado)) {
       return NextResponse.json(
         { error: 'No se puede modificar participantes en el estado actual de la tesis' },
         { status: 400 }
@@ -203,6 +204,15 @@ export async function PUT(
           },
         })
 
+        // Notificar al nuevo coautor invitado
+        await crearNotificacion({
+          userId: nuevoParticipanteId,
+          tipo: 'INVITACION_COAUTOR',
+          titulo: 'Invitación como coautor de tesis',
+          mensaje: `Has sido invitado como coautor en la tesis "${tesis.titulo}". Ingresa a Mis Tesis para aceptar o rechazar la invitación.`,
+          enlace: `/mis-tesis/${tesis.id}`,
+        })
+
         return NextResponse.json({
           success: true,
           message: 'Coautor reemplazado. Se ha enviado una nueva invitación.',
@@ -323,6 +333,16 @@ export async function PUT(
           },
         })
 
+        // Notificar al nuevo asesor/coasesor
+        const tipoLabel = tipo === 'ASESOR' ? 'asesor' : 'coasesor'
+        await crearNotificacion({
+          userId: nuevoParticipanteId,
+          tipo: tipo === 'ASESOR' ? 'INVITACION_ASESOR' : 'INVITACION_COASESOR',
+          titulo: `Invitación como ${tipoLabel} de tesis`,
+          mensaje: `Has sido invitado como ${tipoLabel} en la tesis "${tesis.titulo}". Ingresa a Mis Asesorías para aceptar o rechazar.`,
+          enlace: `/mis-asesorias`,
+        })
+
         return NextResponse.json({
           success: true,
           message: `${tipo === 'ASESOR' ? 'Asesor' : 'Coasesor'} reemplazado. Se ha enviado una nueva invitación.`,
@@ -384,7 +404,7 @@ export async function POST(
       )
     }
 
-    if (!['BORRADOR', 'PROYECTO_OBSERVADO'].includes(tesis.estado)) {
+    if (!['BORRADOR', 'PROYECTO_OBSERVADO', 'ASIGNANDO_JURADOS'].includes(tesis.estado)) {
       return NextResponse.json(
         { error: 'No se puede agregar participantes en el estado actual de la tesis' },
         { status: 400 }
@@ -482,6 +502,15 @@ export async function POST(
         },
       })
 
+      // Notificar al coautor invitado
+      await crearNotificacion({
+        userId: participanteId,
+        tipo: 'INVITACION_COAUTOR',
+        titulo: 'Invitación como coautor de tesis',
+        mensaje: `Has sido invitado como coautor en la tesis "${tesis.titulo}". Ingresa a Mis Tesis para aceptar o rechazar la invitación.`,
+        enlace: `/mis-tesis/${tesis.id}`,
+      })
+
       return NextResponse.json({
         success: true,
         message: 'Coautor agregado. Se ha enviado una invitación.',
@@ -546,6 +575,15 @@ export async function POST(
           comentario: 'Coasesor agregado - invitación enviada',
           changedById: user.id,
         },
+      })
+
+      // Notificar al coasesor invitado
+      await crearNotificacion({
+        userId: participanteId,
+        tipo: 'INVITACION_COASESOR',
+        titulo: 'Invitación como coasesor de tesis',
+        mensaje: `Has sido invitado como coasesor en la tesis "${tesis.titulo}". Ingresa a Mis Asesorías para aceptar o rechazar la invitación.`,
+        enlace: `/mis-asesorias`,
       })
 
       return NextResponse.json({

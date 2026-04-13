@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { Clock, Eye, File, FileCheck, X } from 'lucide-react'
+import { AlertCircle, Clock, Eye, File, FileCheck, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ESTADO_ASESOR_CONFIG } from './constants'
 import { formatFileSize } from './utils'
@@ -27,6 +27,8 @@ interface AdvisorStatusCardProps {
   icon: React.ReactNode
   iconColor: string
   iconBg: string
+  observado?: string
+  verificado?: boolean
 }
 
 export function AdvisorStatusCard({
@@ -37,6 +39,8 @@ export function AdvisorStatusCard({
   icon,
   iconColor,
   iconBg,
+  observado,
+  verificado,
 }: AdvisorStatusCardProps) {
   const estadoConfig = ESTADO_ASESOR_CONFIG[asesor.estado] || ESTADO_ASESOR_CONFIG.PENDIENTE
   const nombreAsesor = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno}`
@@ -45,21 +49,25 @@ export function AdvisorStatusCard({
     <div
       className={cn(
         'relative rounded-xl border-2 transition-all',
-        asesor.estado === 'ACEPTADO' && documento && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
-        asesor.estado === 'ACEPTADO' && !documento && 'border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20',
-        asesor.estado === 'PENDIENTE' && 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20',
-        asesor.estado === 'RECHAZADO' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
+        observado && 'border-orange-400 dark:border-orange-700 bg-orange-50/50 dark:bg-orange-950/20',
+        !observado && asesor.estado === 'ACEPTADO' && documento && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
+        !observado && asesor.estado === 'ACEPTADO' && !documento && 'border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20',
+        !observado && asesor.estado === 'PENDIENTE' && 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20',
+        !observado && asesor.estado === 'RECHAZADO' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
       )}
     >
       <div className="p-4">
         <div className="flex items-start gap-4">
           <div className={cn(
             'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
+            observado ? 'bg-orange-100 dark:bg-orange-900/50' :
             asesor.estado === 'ACEPTADO' && documento ? 'bg-green-100 dark:bg-green-900/50' :
             asesor.estado === 'ACEPTADO' && !documento ? 'bg-blue-100 dark:bg-blue-900/50' :
             asesor.estado === 'RECHAZADO' ? 'bg-red-100 dark:bg-red-900/50' : iconBg
           )}>
-            {asesor.estado === 'ACEPTADO' && documento ? (
+            {observado ? (
+              <AlertCircle className="w-6 h-6 text-orange-600" />
+            ) : asesor.estado === 'ACEPTADO' && documento ? (
               <FileCheck className="w-6 h-6 text-green-600" />
             ) : asesor.estado === 'ACEPTADO' && !documento ? (
               <Clock className="w-6 h-6 text-blue-600" />
@@ -73,7 +81,15 @@ export function AdvisorStatusCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <p className="font-semibold text-sm">{titulo}</p>
-              {asesor.estado === 'ACEPTADO' && documento ? (
+              {observado ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-orange-500 text-orange-600">
+                  Observado
+                </Badge>
+              ) : asesor.estado === 'ACEPTADO' && documento && verificado ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
+                  Verificado
+                </Badge>
+              ) : asesor.estado === 'ACEPTADO' && documento ? (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
                   Carta registrada
                 </Badge>
@@ -99,6 +115,13 @@ export function AdvisorStatusCard({
             <p className="text-xs text-muted-foreground mb-2">
               {tipoAsesor}: <span className="font-medium">{nombreAsesor}</span>
             </p>
+
+            {observado && (
+              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-orange-100/50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 mb-2">
+                <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-orange-700 dark:text-orange-300">{observado}</p>
+              </div>
+            )}
 
             {asesor.estado === 'ACEPTADO' && documento ? (
               <a

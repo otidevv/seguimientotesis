@@ -65,7 +65,10 @@
       "Skill(commit-commands:commit)",
       "mcp__plugin_playwright_playwright__browser_evaluate",
       "Read(//d//**)",
-      "Bash(npx sonner:*)"
+      "Bash(npx sonner:*)",
+      "mcp__plugin_playwright_playwright__browser_network_requests",
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"si puedes hacer estos en desarrollo aun no paso a produccion puedes modifacar la db el shcema.prisma no hay problema\" npx prisma migrate reset --force)"
     ]
   }
 }

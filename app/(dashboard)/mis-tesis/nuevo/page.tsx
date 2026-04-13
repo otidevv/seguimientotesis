@@ -142,6 +142,45 @@ export default function NuevoProyectoPage() {
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
 
+  // Selección con validación cruzada de roles
+  const seleccionarCoautor = (p: Persona) => {
+    if (p.id === asesorSeleccionado?.id || p.id === coasesorSeleccionado?.id) {
+      toast.error('Esta persona ya fue seleccionada como asesor o coasesor')
+      return
+    }
+    setCoautorSeleccionado(p)
+    setBusquedaCoautor('')
+    setResultadosCoautor([])
+  }
+
+  const seleccionarAsesor = (p: Persona) => {
+    if (p.id === coautorSeleccionado?.id) {
+      toast.error('Esta persona ya fue seleccionada como tesista 2')
+      return
+    }
+    if (p.id === coasesorSeleccionado?.id) {
+      toast.error('Esta persona ya fue seleccionada como coasesor')
+      return
+    }
+    setAsesorSeleccionado(p)
+    setBusquedaAsesor('')
+    setResultadosAsesor([])
+  }
+
+  const seleccionarCoasesor = (p: Persona) => {
+    if (p.id === coautorSeleccionado?.id) {
+      toast.error('Esta persona ya fue seleccionada como tesista 2')
+      return
+    }
+    if (p.id === asesorSeleccionado?.id) {
+      toast.error('Esta persona ya fue seleccionada como asesor')
+      return
+    }
+    setCoasesorSeleccionado(p)
+    setBusquedaCoasesor('')
+    setResultadosCoasesor([])
+  }
+
   // Carrera seleccionada completa
   const carreraActual = useMemo(() =>
     carreras.find((c) => c.id === carreraSeleccionada),
@@ -252,7 +291,9 @@ export default function NuevoProyectoPage() {
       const result = await api.get<{ data: Persona[] }>(
         `/api/tesis/buscar-estudiantes?carrera=${encodeURIComponent(carrera.carreraNombre)}&q=${encodeURIComponent(query)}`
       )
-      setResultadosCoautor(result.data)
+      // Excluir personas que ya fueron seleccionadas como asesor o coasesor
+      const idsExcluir = [asesorSeleccionado?.id, coasesorSeleccionado?.id].filter(Boolean)
+      setResultadosCoautor(result.data.filter(p => !idsExcluir.includes(p.id)))
     } catch {
       console.error('Error buscando coautor')
     } finally {
@@ -276,6 +317,8 @@ export default function NuevoProyectoPage() {
       const facultadParam = carrera ? `&facultadId=${carrera.facultadId}` : ''
       const result = await api.get<{ data: Persona[] }>(`/api/tesis/buscar-docentes?q=${encodeURIComponent(query)}${facultadParam}`)
       const filtrados = result.data.filter((d: Persona) => {
+        // Excluir al coautor seleccionado (por si es también docente)
+        if (d.id === coautorSeleccionado?.id) return false
         if (tipo === 'asesor') return d.id !== coasesorSeleccionado?.id
         return d.id !== asesorSeleccionado?.id
       })
@@ -287,7 +330,7 @@ export default function NuevoProyectoPage() {
       if (tipo === 'asesor') setBuscandoAsesor(false)
       else setBuscandoCoasesor(false)
     }
-  }, [carreraSeleccionada, carreras, asesorSeleccionado, coasesorSeleccionado])
+  }, [carreraSeleccionada, carreras, asesorSeleccionado, coasesorSeleccionado, coautorSeleccionado])
 
   // Debounce para búsquedas
   useEffect(() => {
@@ -926,11 +969,7 @@ export default function NuevoProyectoPage() {
                                   key={p.id}
                                   type="button"
                                   className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
-                                  onClick={() => {
-                                    setCoautorSeleccionado(p)
-                                    setBusquedaCoautor('')
-                                    setResultadosCoautor([])
-                                  }}
+                                  onClick={() => seleccionarCoautor(p)}
                                 >
                                   <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                                     <User className="w-4 h-4" />
@@ -1020,11 +1059,7 @@ export default function NuevoProyectoPage() {
                                   key={p.id}
                                   type="button"
                                   className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
-                                  onClick={() => {
-                                    setAsesorSeleccionado(p)
-                                    setBusquedaAsesor('')
-                                    setResultadosAsesor([])
-                                  }}
+                                  onClick={() => seleccionarAsesor(p)}
                                 >
                                   <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                                     <GraduationCap className="w-4 h-4" />
@@ -1114,11 +1149,7 @@ export default function NuevoProyectoPage() {
                                   key={p.id}
                                   type="button"
                                   className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
-                                  onClick={() => {
-                                    setCoasesorSeleccionado(p)
-                                    setBusquedaCoasesor('')
-                                    setResultadosCoasesor([])
-                                  }}
+                                  onClick={() => seleccionarCoasesor(p)}
                                 >
                                   <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                                     <Users className="w-4 h-4" />
