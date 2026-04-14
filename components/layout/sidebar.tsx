@@ -301,7 +301,7 @@ function SidebarNavSections({
                 <button
                   onClick={onToggleCollapse}
                   aria-label="Colapsar menú"
-                  className="h-6 w-6 flex items-center justify-center rounded-full border border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                  className="h-6 w-6 flex items-center justify-center rounded-full border border-sidebar-primary/30 text-sidebar-primary/70 hover:text-sidebar-primary hover:bg-sidebar-primary/10 transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
@@ -420,7 +420,7 @@ function UserFooter({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate
         </div>
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); logout(); onNavigate?.() }}
-          className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md text-sidebar-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors"
+          className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md text-sidebar-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
         </button>
@@ -479,7 +479,7 @@ export function DesktopSidebar() {
                 <button
                   onClick={() => setIsCollapsed(false)}
                   aria-label="Expandir menú"
-                  className="h-7 w-7 flex items-center justify-center rounded-full border border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                  className="h-7 w-7 flex items-center justify-center rounded-full border border-sidebar-border text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors cursor-pointer"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
