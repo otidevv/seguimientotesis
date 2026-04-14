@@ -140,12 +140,12 @@ async function main() {
 
   // --- ESTUDIANTE: Abner Acuña Carrasco ---
   const abnerUser = await prisma.user.upsert({
-    where: { email: 'verseker2@gmail.com' },
+    where: { email: 'aacunac@unamad.edu.pe' },
     update: {},
     create: {
       tipoDocumento: TipoDocumento.DNI,
       numeroDocumento: '76927630',
-      email: 'verseker2@gmail.com',
+      email: 'aacunac@unamad.edu.pe',
       passwordHash: defaultPasswordHash,
       nombres: 'ABNER',
       apellidoPaterno: 'ACUÑA',
@@ -345,7 +345,7 @@ async function main() {
   console.log('ESTUDIANTE:       apenam@unamad.edu.pe (Alberto Peña)')
   console.log('DOCENTE:          verseker2@gmail.com (Nelly Ulloa)')
   console.log('DOCENTE:          bytevoxtechnologies@gmail.com (Ralph Miranda)')
-  console.log('ESTUDIANTE:       verseker2@gmail.com (Abner Acuña)')
+  console.log('ESTUDIANTE:       aacunac@unamad.edu.pe (Abner Acuña)')
   console.log('ESTUDIANTE:       bytevoxtec@gmail.com (Jefferson Morales)')
   console.log('MESA_PARTES:      garcia@unamad.edu.pe (Alberto Peña García)')
   console.log('DOCENTE:          docenteprueba@unamad.edu.pe (Denys Jaramillo)')
