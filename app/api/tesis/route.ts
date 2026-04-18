@@ -31,15 +31,17 @@ export async function GET(request: NextRequest) {
       whereClause.estado = estado
     }
 
-    // Filtrar por rol del usuario
+    // Filtrar por rol del usuario.
+    // Autores DESISTIDOs ya no ven la tesis en su lista activa — su participación
+    // es histórica (queda visible en /perfil > "Mis solicitudes de desistimiento").
     if (rol === 'autor') {
-      whereClause.autores = { some: { userId: user.id } }
+      whereClause.autores = { some: { userId: user.id, estado: { not: 'DESISTIDO' } } }
     } else if (rol === 'asesor') {
       whereClause.asesores = { some: { userId: user.id } }
     } else {
-      // Por defecto, mostrar tesis donde es autor o asesor
+      // Por defecto, mostrar tesis donde es autor no desistido, o asesor
       whereClause.OR = [
-        { autores: { some: { userId: user.id } } },
+        { autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } } },
         { asesores: { some: { userId: user.id } } },
       ]
     }

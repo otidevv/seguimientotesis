@@ -18,12 +18,14 @@ export async function GET(
       )
     }
 
-    // Obtener la tesis verificando que el usuario tiene acceso
+    // Obtener la tesis verificando que el usuario tiene acceso.
+    // Autores DESISTIDOs pierden visibilidad del detalle activo (el proyecto
+    // continúa con el coautor promovido). Su historial queda en /perfil.
     const tesis = await prisma.thesis.findFirst({
       where: {
         id,
         OR: [
-          { autores: { some: { userId: user.id } } },
+          { autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } } },
           { asesores: { some: { userId: user.id } } },
         ],
         deletedAt: null,
@@ -353,11 +355,11 @@ export async function PUT(
       )
     }
 
-    // Verificar que el usuario es autor de esta tesis
+    // Verificar que el usuario es autor ACTIVO (no desistido) de esta tesis
     const tesis = await prisma.thesis.findFirst({
       where: {
         id,
-        autores: { some: { userId: user.id } },
+        autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } },
         deletedAt: null,
       },
     })
@@ -434,11 +436,11 @@ export async function DELETE(
       )
     }
 
-    // Verificar que el usuario es autor de esta tesis
+    // Verificar que el usuario es autor ACTIVO (no desistido) de esta tesis
     const tesis = await prisma.thesis.findFirst({
       where: {
         id,
-        autores: { some: { userId: user.id } },
+        autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } },
         deletedAt: null,
       },
     })

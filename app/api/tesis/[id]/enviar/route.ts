@@ -81,11 +81,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    // Verificar que el usuario es autor de la tesis
-    const esAutor = tesis.autores.some((a) => a.userId === user.id)
+    // Verificar que el usuario es autor ACTIVO (no desistido) de la tesis
+    const esAutor = tesis.autores.some((a) => a.userId === user.id && a.estado !== 'DESISTIDO')
     if (!esAutor) {
       return NextResponse.json(
-        { error: 'Solo los autores pueden enviar la tesis a revisión' },
+        { error: 'Solo los autores activos pueden enviar la tesis a revisión' },
         { status: 403 }
       )
     }
