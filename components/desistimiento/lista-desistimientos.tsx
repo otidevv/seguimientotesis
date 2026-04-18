@@ -76,7 +76,9 @@ function colorUrgencia(dias: number): string {
 }
 
 function formatoFecha(d: string): string {
-  return new Date(d).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(d).toLocaleDateString('es-PE', {
+    day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Lima',
+  })
 }
 
 export function ListaDesistimientos() {

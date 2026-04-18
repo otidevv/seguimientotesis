@@ -19,7 +19,13 @@ export interface DesistimientoRow {
 }
 
 function fmt(d: Date | null): string {
-  return d ? new Date(d).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
+  // Formato localizado a Perú (UTC-5) para que la fecha corresponda al día
+  // local del desistimiento, no al UTC del servidor.
+  return d
+    ? new Date(d).toLocaleDateString('es-PE', {
+        day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Lima',
+      })
+    : ''
 }
 
 export async function generarExcelDesistimientos(rows: DesistimientoRow[], titulo: string): Promise<Buffer> {

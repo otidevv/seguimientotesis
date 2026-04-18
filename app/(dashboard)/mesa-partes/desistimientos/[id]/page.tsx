@@ -129,7 +129,7 @@ export default function DesistimientoDetallePage() {
 
         {data.estadoSolicitud === 'APROBADO' && data.aprobadoPor && (
           <Card><CardContent className="py-4 text-sm">
-            Aprobado por <b>{data.aprobadoPor}</b> el {new Date(data.aprobadoAt!).toLocaleString('es-PE')}.
+            Aprobado por <b>{data.aprobadoPor}</b> el {new Date(data.aprobadoAt!).toLocaleString('es-PE', { timeZone: 'America/Lima' })}.
             {data.resolucionModificatoria && (<div className="mt-2">Resolución modificatoria: {data.resolucionModificatoria.nombre}</div>)}
           </CardContent></Card>
         )}

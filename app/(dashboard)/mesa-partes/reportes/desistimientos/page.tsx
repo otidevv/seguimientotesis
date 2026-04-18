@@ -21,8 +21,12 @@ interface ReporteData {
 }
 
 export default function ReporteDesistimientosPage() {
-  const [desde, setDesde] = useState(`${new Date().getFullYear()}-01-01`)
-  const [hasta, setHasta] = useState(new Date().toISOString().slice(0, 10))
+  // "Hoy" en zona horaria de Perú (UTC-5), para que la fecha del input
+  // coincida con el día local del usuario, no con UTC.
+  const hoyPeru = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' })
+  const anioPeru = hoyPeru.slice(0, 4)
+  const [desde, setDesde] = useState(`${anioPeru}-01-01`)
+  const [hasta, setHasta] = useState(hoyPeru)
   const [facultadId, setFacultadId] = useState('')
   const [motivo, setMotivo] = useState('')
   const [teniaCoautor, setTeniaCoautor] = useState('all')

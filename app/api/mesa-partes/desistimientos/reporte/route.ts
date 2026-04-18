@@ -22,9 +22,14 @@ export async function GET(request: NextRequest) {
     const estadosTesis = searchParams.getAll('estadoTesis')
     const teniaCoautor = searchParams.get('teniaCoautor')
 
+    // Parsear fechas como día local de Perú (UTC-5), no como UTC medianoche.
+    // `desde` = 00:00:00 del día en Perú; `hasta` = 23:59:59.999 del día en Perú.
+    // Esto evita que un desistimiento aprobado "hoy" en Perú quede fuera del rango
+    // cuando la hora UTC cae en otro día.
+    const PE_OFFSET = '-05:00'
     const aprobadoAtFilter: Prisma.DateTimeNullableFilter = {}
-    if (desde) aprobadoAtFilter.gte = new Date(desde)
-    if (hasta) aprobadoAtFilter.lte = new Date(hasta)
+    if (desde) aprobadoAtFilter.gte = new Date(`${desde}T00:00:00${PE_OFFSET}`)
+    if (hasta) aprobadoAtFilter.lte = new Date(`${hasta}T23:59:59.999${PE_OFFSET}`)
 
     const where: Prisma.ThesisWithdrawalWhereInput = {
       estadoSolicitud: 'APROBADO',
