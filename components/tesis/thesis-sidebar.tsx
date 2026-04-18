@@ -42,83 +42,93 @@ export function ThesisSidebar({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {tesis.autores.map((a) => (
-            <div key={a.id} className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                  a.estado === 'DESISTIDO'
-                    ? 'bg-slate-100 dark:bg-slate-800'
-                    : a.tipoParticipante === 'AUTOR_PRINCIPAL'
-                      ? 'bg-primary/10'
-                      : a.estado === 'ACEPTADO'
-                        ? 'bg-green-100 dark:bg-green-900/50'
-                        : a.estado === 'RECHAZADO'
-                          ? 'bg-red-100 dark:bg-red-900/50'
-                          : 'bg-yellow-100 dark:bg-yellow-900/50'
-                )}>
-                  <User className={cn(
-                    'w-4 h-4',
-                    a.estado === 'DESISTIDO'
-                      ? 'text-slate-400'
+          {tesis.autores.map((a) => {
+            const esDesistido = a.estado === 'DESISTIDO'
+            return (
+              <div key={a.id} className={cn('space-y-2', esDesistido && 'opacity-70')}>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
+                    esDesistido
+                      ? 'bg-slate-100 dark:bg-slate-800'
                       : a.tipoParticipante === 'AUTOR_PRINCIPAL'
-                        ? 'text-primary'
+                        ? 'bg-primary/10'
                         : a.estado === 'ACEPTADO'
-                          ? 'text-green-600'
+                          ? 'bg-green-100 dark:bg-green-900/50'
                           : a.estado === 'RECHAZADO'
-                            ? 'text-red-600'
-                            : 'text-yellow-600'
-                  )} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">
-                    {a.user.apellidoPaterno} {a.user.apellidoMaterno}, {a.user.nombres}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {a.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'} • {a.studentCareer.codigoEstudiante}
-                    </span>
-                    {(a.tipoParticipante === 'COAUTOR' || a.estado === 'DESISTIDO') && (
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          'text-[10px] px-1.5 py-0',
-                          a.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                          a.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
-                          a.estado === 'RECHAZADO' && 'border-red-500 text-red-600',
-                          a.estado === 'DESISTIDO' && 'border-slate-400 text-slate-500'
-                        )}
-                      >
-                        {a.estado === 'PENDIENTE' ? 'Pendiente' : a.estado === 'ACEPTADO' ? 'Aceptado' : a.estado === 'DESISTIDO' ? 'Desistido' : 'Rechazado'}
-                      </Badge>
-                    )}
+                            ? 'bg-red-100 dark:bg-red-900/50'
+                            : 'bg-yellow-100 dark:bg-yellow-900/50'
+                  )}>
+                    <User className={cn(
+                      'w-4 h-4',
+                      esDesistido
+                        ? 'text-slate-400'
+                        : a.tipoParticipante === 'AUTOR_PRINCIPAL'
+                          ? 'text-primary'
+                          : a.estado === 'ACEPTADO'
+                            ? 'text-green-600'
+                            : a.estado === 'RECHAZADO'
+                              ? 'text-red-600'
+                              : 'text-yellow-600'
+                    )} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={cn(
+                      'font-medium text-sm truncate',
+                      esDesistido && 'line-through text-muted-foreground',
+                    )}>
+                      {a.user.apellidoPaterno} {a.user.apellidoMaterno}, {a.user.nombres}
+                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-muted-foreground">
+                        {esDesistido
+                          ? 'Desistió del proyecto'
+                          : `${a.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'} • ${a.studentCareer.codigoEstudiante}`
+                        }
+                      </span>
+                      {(a.tipoParticipante === 'COAUTOR' || esDesistido) && (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'text-[10px] px-1.5 py-0',
+                            a.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
+                            a.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
+                            a.estado === 'RECHAZADO' && 'border-red-500 text-red-600',
+                            esDesistido && 'border-slate-400 text-slate-500',
+                          )}
+                        >
+                          {a.estado === 'PENDIENTE' ? 'Pendiente' : a.estado === 'ACEPTADO' ? 'Aceptado' : esDesistido ? 'Histórico' : 'Rechazado'}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
+                {/* Acciones: solo sobre coautor ACTIVO (no desistido, no aceptado) */}
+                {puedeParticipantes && esAutorPrincipal && a.tipoParticipante === 'COAUTOR' && !esDesistido && a.estado !== 'ACEPTADO' && (
+                  <div className="flex gap-2 ml-12">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => onReemplazar('COAUTOR', a.id)}
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      Cambiar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => onEliminar('COAUTOR', a.id)}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Eliminar
+                    </Button>
+                  </div>
+                )}
               </div>
-              {puedeParticipantes && esAutorPrincipal && a.tipoParticipante === 'COAUTOR' && a.estado !== 'ACEPTADO' && (
-                <div className="flex gap-2 ml-12">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => onReemplazar('COAUTOR', a.id)}
-                  >
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    Cambiar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => onEliminar('COAUTOR', a.id)}
-                  >
-                    <Trash2 className="w-3 h-3 mr-1" />
-                    Eliminar
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
 
           {puedeParticipantes && esAutorPrincipal && !coautor && (
             <Button
