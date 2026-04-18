@@ -2611,6 +2611,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         onOpenChange={setModalDesistirOpen}
         thesisId={tesis.id}
         tituloTesis={tesis.titulo}
+        tieneCoautor={tesis.autores.some(a => a.user.id !== user?.id && a.estado === 'ACEPTADO')}
         onSuccess={() => loadTesis()}
       />
     </div>

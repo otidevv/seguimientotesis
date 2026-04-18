@@ -311,11 +311,11 @@ export default function MisTesisPage() {
       {activeFilter === 'desistidas' && (
         desistidas.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mx-auto mb-3">
-              <Ban className="w-7 h-7 text-muted-foreground" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 mx-auto mb-3">
+              <Sparkles className="w-7 h-7 text-emerald-600" />
             </div>
-            <h3 className="text-sm font-semibold mb-1">Sin desistimientos registrados</h3>
-            <p className="text-xs text-muted-foreground">No has desistido de ningún proyecto de tesis.</p>
+            <h3 className="text-sm font-semibold mb-1">No has tenido que desistir de ningún proyecto</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">¡Buen trabajo! Sigue adelante con tu tesis.</p>
           </div>
         ) : (
           <div className="rounded-xl border overflow-hidden">
@@ -570,6 +570,9 @@ export default function MisTesisPage() {
           }}
           thesisId={tesisDesistir.id}
           tituloTesis={tesisDesistir.titulo}
+          tieneCoautor={tesisDesistir.autores.some(
+            a => a.user.id !== user?.id && a.estado === 'ACEPTADO',
+          )}
           onSuccess={() => {
             setTesisDesistir(null)
             loadTesis()
