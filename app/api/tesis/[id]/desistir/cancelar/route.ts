@@ -17,7 +17,6 @@ export async function POST(
       where: { id, deletedAt: null },
       include: {
         autores: { where: { userId: user.id } },
-        desistimientos: { where: { estadoSolicitud: 'PENDIENTE' }, orderBy: { createdAt: 'desc' }, take: 1 },
       },
     })
     if (!tesis) return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
@@ -25,8 +24,11 @@ export async function POST(
     const miAutor = tesis.autores[0]
     if (!miAutor) return NextResponse.json({ error: 'No eres autor de esta tesis' }, { status: 403 })
 
-    const solicitud = tesis.desistimientos.find(d => d.thesisAuthorId === miAutor.id)
-    if (!solicitud) {
+    // Buscar la solicitud del PROPIO autor (no de otros) — no asumir que solo hay una.
+    const solicitud = await prisma.thesisWithdrawal.findUnique({
+      where: { thesisAuthorId: miAutor.id },
+    })
+    if (!solicitud || solicitud.estadoSolicitud !== 'PENDIENTE') {
       return NextResponse.json({ error: 'No tienes una solicitud pendiente' }, { status: 404 })
     }
     // Defensa: si la tesis ya no está en SOLICITUD_DESISTIMIENTO,

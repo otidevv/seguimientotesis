@@ -79,18 +79,40 @@ export async function POST(
       }, { status: 400 })
     }
 
+    // Validación de cada archivo antes de persistir
+    const MAX_SIZE_BYTES = 25 * 1024 * 1024 // 25 MB
+    const validarArchivo = (f: File | null, etiqueta: string): string | null => {
+      if (!f) return null
+      if (f.type !== 'application/pdf') {
+        return `${etiqueta}: solo se permiten archivos PDF (recibido: ${f.type || 'desconocido'}).`
+      }
+      if (f.size > MAX_SIZE_BYTES) {
+        return `${etiqueta}: el archivo excede 25 MB.`
+      }
+      if (f.size === 0) {
+        return `${etiqueta}: el archivo está vacío.`
+      }
+      return null
+    }
+    const errJurado = validarArchivo(archivoJurado, 'Resolución modificatoria de jurado')
+    const errAprob = validarArchivo(archivoAprobacion, 'Resolución modificatoria de aprobación')
+    if (errJurado) return NextResponse.json({ error: errJurado }, { status: 400 })
+    if (errAprob) return NextResponse.json({ error: errAprob }, { status: 400 })
+
     async function persistirArchivo(f: File, prefijo: string): Promise<{ ruta: string; mime: string; size: number; nombre: string }> {
       const dir = path.join(UPLOAD_ROOT, w!.thesisId)
       await mkdir(dir, { recursive: true })
       const buffer = Buffer.from(await f.arrayBuffer())
-      const nombreArchivo = `${prefijo}-${randomUUID()}${path.extname(f.name) || '.pdf'}`
+      // Forzar extensión .pdf siempre — ya validamos MIME arriba.
+      const nombreArchivo = `${prefijo}-${randomUUID()}.pdf`
       const rutaFisica = path.join(dir, nombreArchivo)
       await writeFile(rutaFisica, buffer)
       return {
         ruta: `/uploads/tesis/${w!.thesisId}/${nombreArchivo}`,
-        mime: f.type || 'application/pdf',
+        mime: 'application/pdf',
         size: buffer.length,
-        nombre: f.name,
+        // Sanear nombre original para display: eliminar path separators/nulls
+        nombre: f.name.replace(/[\x00\/\\]/g, '_').slice(0, 200),
       }
     }
 
