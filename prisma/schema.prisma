@@ -89,6 +89,8 @@ model User {
   documentosSubidos     ThesisDocument[]
   cambiosEstadoTesis    ThesisStatusHistory[]
   notificaciones        Notification[]
+  desistimientos        ThesisWithdrawal[] @relation("DesistimientosUsuario")
+  desistimientosAprobados ThesisWithdrawal[] @relation("DesistimientosAprobados")
 
   @@index([email])
   @@index([numeroDocumento])
@@ -119,6 +121,7 @@ model StudentCareer {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   facultad          Faculty  @relation(fields: [facultadId], references: [id])
   tesisAutor        ThesisAuthor[]
+  desistimientos    ThesisWithdrawal[]
 
   @@unique([userId, codigoEstudiante])
   @@index([userId])
@@ -166,6 +169,7 @@ model Faculty {
   schools         School[]
   studentCareers  StudentCareer[]
   teacherInfo     TeacherInfo[]
+  desistimientos  ThesisWithdrawal[] @relation("FacultadDesistimientos")
 
   @@map("faculties")
 }
@@ -470,6 +474,7 @@ enum EstadoTesis {
   ARCHIVADA               // Archivada (histórico)
   RECHAZADA               // Rechazada definitivamente
   DESISTIDA               // Tesista desistió voluntariamente
+  SOLICITUD_DESISTIMIENTO // Tesista solicitó desistir, esperando mesa de partes
 
   @@map("estado_tesis")
 }
@@ -527,6 +532,30 @@ enum EstadoAutor {
   DESISTIDO           // Desistió voluntariamente
 
   @@map("estado_autor")
+}
+
+enum MotivoDesistimiento {
+  PERSONAL_FAMILIAR
+  ECONOMICO
+  SALUD
+  LABORAL
+  CAMBIO_TEMA
+  PROBLEMA_ASESOR
+  PROBLEMA_COAUTOR
+  FALTA_TIEMPO
+  CAMBIO_CARRERA
+  OTRO
+
+  @@map("motivo_desistimiento")
+}
+
+enum EstadoSolicitudDesistimiento {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+
+  @@map("estado_solicitud_desistimiento")
 }
 
 enum TipoDocumentoTesis {
@@ -610,6 +639,7 @@ model Thesis {
   historialEstados     ThesisStatusHistory[]
   jurados              ThesisJury[]
   evaluacionesJurado   JuryEvaluation[]
+  desistimientos       ThesisWithdrawal[]
 
   @@index([estado])
   @@index([createdAt])
@@ -638,6 +668,7 @@ model ThesisAuthor {
   thesis          Thesis      @relation(fields: [thesisId], references: [id], onDelete: Cascade)
   user            User        @relation(fields: [userId], references: [id])
   studentCareer   StudentCareer @relation(fields: [studentCareerId], references: [id])
+  desistimiento   ThesisWithdrawal?
 
   @@unique([thesisId, userId])
   @@index([thesisId])
@@ -689,6 +720,10 @@ model ThesisDocument {
   fechaFirma      DateTime?           @map("fecha_firma")
   hashDocumento   String?             @map("hash_documento") @db.VarChar(128)
 
+  // Versionado de modificatorias
+  esModificatoria        Boolean   @default(false) @map("es_modificatoria")
+  reemplazaDocumentoId   String?   @map("reemplaza_documento_id")
+
   // Timestamps
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
@@ -696,6 +731,9 @@ model ThesisDocument {
   // Relaciones
   thesis          Thesis              @relation(fields: [thesisId], references: [id], onDelete: Cascade)
   uploadedBy      User                @relation(fields: [uploadedById], references: [id])
+  reemplazaDocumento     ThesisDocument?  @relation("DocumentoModificatorias", fields: [reemplazaDocumentoId], references: [id])
+  modificatorias         ThesisDocument[] @relation("DocumentoModificatorias")
+  desistimientosAsociados ThesisWithdrawal[] @relation("ResolucionDesistimiento")
 
   @@index([thesisId])
   @@index([tipo])
@@ -722,6 +760,51 @@ model ThesisStatusHistory {
   @@index([thesisId])
   @@index([createdAt])
   @@map("thesis_status_history")
+}
+
+/// Historial estructurado de desistimientos (para reportes)
+model ThesisWithdrawal {
+  id                    String     @id @default(cuid())
+  thesisId              String     @map("thesis_id")
+  thesisAuthorId        String     @map("thesis_author_id")
+  userId                String     @map("user_id")
+  studentCareerId       String     @map("student_career_id")
+
+  motivoCategoria       MotivoDesistimiento @map("motivo_categoria")
+  motivoDescripcion     String     @map("motivo_descripcion") @db.Text
+
+  estadoSolicitud       EstadoSolicitudDesistimiento @default(PENDIENTE) @map("estado_solicitud")
+  solicitadoAt          DateTime   @default(now()) @map("solicitado_at")
+  aprobadoPorId         String?    @map("aprobado_por_id")
+  aprobadoAt            DateTime?  @map("aprobado_at")
+  motivoRechazoMesaPartes String?  @map("motivo_rechazo_mesa_partes") @db.Text
+  resolucionDocumentoId String?    @map("resolucion_documento_id")
+
+  estadoTesisAlSolicitar EstadoTesis @map("estado_tesis_al_solicitar")
+  faseActual            String?    @map("fase_actual") @db.VarChar(20)
+  teniaCoautor          Boolean    @map("tenia_coautor")
+  facultadIdSnapshot    String     @map("facultad_id_snapshot")
+  carreraNombreSnapshot String     @map("carrera_nombre_snapshot") @db.VarChar(150)
+
+  createdAt             DateTime   @default(now()) @map("created_at")
+  updatedAt             DateTime   @updatedAt @map("updated_at")
+
+  thesis                Thesis          @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  thesisAuthor          ThesisAuthor    @relation(fields: [thesisAuthorId], references: [id])
+  user                  User            @relation("DesistimientosUsuario", fields: [userId], references: [id])
+  aprobadoPor           User?           @relation("DesistimientosAprobados", fields: [aprobadoPorId], references: [id])
+  resolucionDocumento   ThesisDocument? @relation("ResolucionDesistimiento", fields: [resolucionDocumentoId], references: [id])
+  studentCareer         StudentCareer   @relation(fields: [studentCareerId], references: [id])
+  facultadSnapshot      Faculty         @relation("FacultadDesistimientos", fields: [facultadIdSnapshot], references: [id])
+
+  @@unique([thesisAuthorId])
+  @@index([userId])
+  @@index([thesisId])
+  @@index([estadoSolicitud])
+  @@index([motivoCategoria])
+  @@index([createdAt])
+  @@index([facultadIdSnapshot])
+  @@map("thesis_withdrawals")
 }
 
 // ============================================
