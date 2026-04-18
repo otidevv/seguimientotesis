@@ -264,6 +264,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     let nuevoEstado: EstadoTesis
     let mensajeHistorial: string
 
+    // fechaLimiteCorreccion se setea solo cuando el resultado es observado.
+    let fechaLimiteCorreccion: Date | null = null
     if (resultado === 'APROBADO') {
       if (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') {
         nuevoEstado = 'EN_SUSTENTACION'
@@ -273,7 +275,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         mensajeHistorial = 'Proyecto de tesis aprobado por el jurado.'
       }
     } else {
-      const fechaLimiteCorreccion = agregarDiasHabiles(new Date(), DIAS_HABILES_CORRECCION)
+      fechaLimiteCorreccion = agregarDiasHabiles(new Date(), DIAS_HABILES_CORRECCION)
 
       if (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') {
         nuevoEstado = 'OBSERVADA_INFORME'
@@ -282,18 +284,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         nuevoEstado = 'OBSERVADA_JURADO'
         mensajeHistorial = `Proyecto observado por el jurado. El estudiante tiene ${DIAS_HABILES_CORRECCION} días hábiles para corregir.`
       }
-
-      await prisma.thesis.update({
-        where: { id: thesisId },
-        data: { fechaLimiteCorreccion },
-      })
     }
 
+    // Atomicidad: actualizar estado + fechaLimite + history en la misma transacción.
+    // Antes `fechaLimiteCorreccion` se escribía fuera de la transacción, y si la
+    // transacción fallaba quedaba un registro inconsistente (fecha seteada, estado no).
     await prisma.$transaction([
       prisma.thesis.update({
         where: { id: thesisId },
         data: {
           estado: nuevoEstado,
+          ...(fechaLimiteCorreccion && { fechaLimiteCorreccion }),
           ...(resultado === 'APROBADO' && nuevoEstado === 'EN_SUSTENTACION' && {
             fechaAprobacion: new Date(),
             fechaSustentacion: new Date(`${fechaSustentacion}T${horaSustentacion}:00`),
