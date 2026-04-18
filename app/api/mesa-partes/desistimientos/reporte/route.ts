@@ -83,13 +83,57 @@ export async function GET(request: NextRequest) {
     const porMotivo = new Map<string, number>()
     const porFacultad = new Map<string, number>()
     const porEstadoTesis = new Map<string, number>()
+    const porMes = new Map<string, number>()
     let conCoautor = 0
+    let tiempoTotalMs = 0
+    let tiemposValidos = 0
+
     rows.forEach(r => {
       porMotivo.set(r.motivoCategoria, (porMotivo.get(r.motivoCategoria) ?? 0) + 1)
       porFacultad.set(r.facultad, (porFacultad.get(r.facultad) ?? 0) + 1)
       porEstadoTesis.set(r.estadoTesisAlSolicitar, (porEstadoTesis.get(r.estadoTesisAlSolicitar) ?? 0) + 1)
       if (r.teniaCoautor) conCoautor++
+      if (r.aprobadoAt) {
+        // YYYY-MM en zona horaria de Perú para la agrupación temporal
+        const mes = new Date(r.aprobadoAt)
+          .toLocaleDateString('en-CA', { timeZone: 'America/Lima' })
+          .slice(0, 7)
+        porMes.set(mes, (porMes.get(mes) ?? 0) + 1)
+        tiempoTotalMs += new Date(r.aprobadoAt).getTime() - new Date(r.solicitadoAt).getTime()
+        tiemposValidos++
+      }
     })
+
+    // KPIs operativos (sobre TODO el scope de la facultad, no solo APROBADOs)
+    const whereScope: Prisma.ThesisWithdrawalWhereInput = {}
+    if (facultadId) whereScope.facultadIdSnapshot = facultadId
+    const hace3DiasHabiles = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+
+    const [pendientesTotal, pendientesSlaExcedido, totalResueltas, totalRechazadas] = await Promise.all([
+      prisma.thesisWithdrawal.count({
+        where: { ...whereScope, estadoSolicitud: 'PENDIENTE' },
+      }),
+      prisma.thesisWithdrawal.count({
+        where: {
+          ...whereScope,
+          estadoSolicitud: 'PENDIENTE',
+          solicitadoAt: { lt: hace3DiasHabiles },
+        },
+      }),
+      prisma.thesisWithdrawal.count({
+        where: { ...whereScope, estadoSolicitud: { in: ['APROBADO', 'RECHAZADO'] } },
+      }),
+      prisma.thesisWithdrawal.count({
+        where: { ...whereScope, estadoSolicitud: 'RECHAZADO' },
+      }),
+    ])
+
+    const tiempoPromedioHoras = tiemposValidos > 0
+      ? +(tiempoTotalMs / tiemposValidos / (1000 * 60 * 60)).toFixed(1)
+      : 0
+    const tasaAprobacion = totalResueltas > 0
+      ? +(((totalResueltas - totalRechazadas) / totalResueltas) * 100).toFixed(1)
+      : 0
 
     return NextResponse.json({
       total: rows.length,
@@ -98,6 +142,15 @@ export async function GET(request: NextRequest) {
       porMotivo: Array.from(porMotivo, ([k, v]) => ({ key: k, count: v })),
       porFacultad: Array.from(porFacultad, ([k, v]) => ({ key: k, count: v })),
       porEstadoTesis: Array.from(porEstadoTesis, ([k, v]) => ({ key: k, count: v })),
+      porMes: Array.from(porMes.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, count]) => ({ key, count })),
+      kpis: {
+        tiempoPromedioHoras,
+        tasaAprobacion,
+        pendientesTotal,
+        pendientesSlaExcedido,
+      },
       items: rows,
     })
   } catch (error) {

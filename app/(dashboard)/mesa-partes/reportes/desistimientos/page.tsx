@@ -18,6 +18,13 @@ interface ReporteData {
   porMotivo: Array<{ key: string; count: number }>;
   porFacultad: Array<{ key: string; count: number }>;
   porEstadoTesis: Array<{ key: string; count: number }>;
+  porMes?: Array<{ key: string; count: number }>;
+  kpis?: {
+    tiempoPromedioHoras: number
+    tasaAprobacion: number
+    pendientesTotal: number
+    pendientesSlaExcedido: number
+  };
 }
 
 export default function ReporteDesistimientosPage() {
@@ -28,7 +35,7 @@ export default function ReporteDesistimientosPage() {
   const [desde, setDesde] = useState(`${anioPeru}-01-01`)
   const [hasta, setHasta] = useState(hoyPeru)
   const [facultadId, setFacultadId] = useState('')
-  const [motivo, setMotivo] = useState('')
+  const [motivos, setMotivos] = useState<string[]>([])
   const [teniaCoautor, setTeniaCoautor] = useState('all')
   const [facultades, setFacultades] = useState<Facultad[]>([])
   const [data, setData] = useState<ReporteData | null>(null)
@@ -43,11 +50,11 @@ export default function ReporteDesistimientosPage() {
     const p = new URLSearchParams()
     if (desde) p.set('desde', desde); if (hasta) p.set('hasta', hasta)
     if (facultadId) p.set('facultadId', facultadId)
-    if (motivo) p.append('motivo', motivo)
+    motivos.forEach(m => p.append('motivo', m))
     if (teniaCoautor !== 'all') p.set('teniaCoautor', teniaCoautor)
     if (formato) p.set('formato', formato)
     return p.toString()
-  }, [desde, hasta, facultadId, motivo, teniaCoautor])
+  }, [desde, hasta, facultadId, motivos, teniaCoautor])
 
   const cargar = useCallback(async () => {
     setLoading(true)
@@ -105,14 +112,32 @@ export default function ReporteDesistimientosPage() {
               </Select>
             </div>
             <div>
-              <Label>Motivo</Label>
-              <Select value={motivo || 'all'} onValueChange={v => setMotivo(v === 'all' ? '' : v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {MOTIVOS_DESISTIMIENTO.map(m => <SelectItem key={m.codigo} value={m.codigo}>{m.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Label>Motivos{motivos.length > 0 && <span className="ml-1 text-muted-foreground font-normal">({motivos.length})</span>}</Label>
+              <div className="flex flex-wrap gap-1 border rounded-md p-2 min-h-[40px]">
+                {MOTIVOS_DESISTIMIENTO.map(m => {
+                  const selected = motivos.includes(m.codigo)
+                  return (
+                    <button
+                      key={m.codigo}
+                      type="button"
+                      onClick={() => setMotivos(prev =>
+                        prev.includes(m.codigo)
+                          ? prev.filter(x => x !== m.codigo)
+                          : [...prev, m.codigo],
+                      )}
+                      className={
+                        'text-[11px] px-2 py-0.5 rounded-full border transition-colors cursor-pointer ' +
+                        (selected
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background hover:bg-accent text-muted-foreground')
+                      }
+                      aria-pressed={selected}
+                    >
+                      {m.label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
             <div>
               <Label>Coautor</Label>
