@@ -16,7 +16,7 @@ import {
 import {
   AlertCircle, CheckCircle, ChevronLeft, ChevronRight, ClipboardCheck,
   Clock, Eye, FileCheck, FileText, FileUp, Gavel, Inbox, Loader2,
-  Search, GraduationCap, UserPlus, X, Archive,
+  Search, GraduationCap, UserPlus, X, Archive, Ban, BarChart3, ArrowRight,
 } from 'lucide-react'
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -49,6 +49,7 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; bgColor: str
   APROBADA:               { label: 'Aprobada',          color: 'text-green-600',   bgColor: 'bg-green-100 dark:bg-green-900/30',     dotColor: 'bg-green-500',   icon: <CheckCircle className="w-3.5 h-3.5" /> },
   EN_SUSTENTACION:        { label: 'En Sustentación',   color: 'text-purple-600',  bgColor: 'bg-purple-100 dark:bg-purple-900/30',   dotColor: 'bg-purple-500',  icon: <GraduationCap className="w-3.5 h-3.5" /> },
   RECHAZADA:              { label: 'Rechazada',         color: 'text-red-600',     bgColor: 'bg-red-100 dark:bg-red-900/30',         dotColor: 'bg-red-500',     icon: <X className="w-3.5 h-3.5" /> },
+  SOLICITUD_DESISTIMIENTO:{ label: 'Desistimiento',     color: 'text-amber-700',   bgColor: 'bg-amber-100 dark:bg-amber-900/30',     dotColor: 'bg-amber-500',   icon: <Ban className="w-3.5 h-3.5" /> },
 }
 
 const TODOS_LOS_ESTADOS = Object.keys(ESTADO_CONFIG)
@@ -67,6 +68,7 @@ export default function MesaPartesPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [facultadAsignada, setFacultadAsignada] = useState<string | null>(null)
+  const [desistimientosPendientes, setDesistimientosPendientes] = useState(0)
   const ITEMS_PER_PAGE = 10
 
   useEffect(() => {
@@ -80,10 +82,12 @@ export default function MesaPartesPage() {
       setLoading(true)
       const result = await api.get<{
         data: Proyecto[]; contadores: Contadores; facultadAsignada?: string
+        desistimientosPendientes?: number
         pagination?: { totalPages: number; totalItems: number }
       }>('/api/mesa-partes', { params: { estado: filtroEstado, page, limit: ITEMS_PER_PAGE } })
       setProyectos(result.data); setContadores(result.contadores)
       if (result.facultadAsignada !== undefined) setFacultadAsignada(result.facultadAsignada)
+      if (typeof result.desistimientosPendientes === 'number') setDesistimientosPendientes(result.desistimientosPendientes)
       if (result.pagination) { setTotalPages(result.pagination.totalPages); setTotalItems(result.pagination.totalItems) }
     } catch (error) { console.error('Error cargando proyectos:', error) }
     finally { setLoading(false); setInitialLoading(false) }
@@ -155,6 +159,48 @@ export default function MesaPartesPage() {
         <p className="text-sm text-muted-foreground mt-0.5">
           {facultadAsignada ? `Gestión de proyectos de tesis de la ${facultadAsignada}` : 'Gestión de proyectos de tesis recibidos'}
         </p>
+      </div>
+
+      {/* Accesos rápidos: Desistimientos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Link
+          href="/mesa-partes/desistimientos"
+          className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-accent transition-colors"
+        >
+          <div className="relative w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+            <Ban className="w-6 h-6 text-amber-700" />
+            {desistimientosPendientes > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center px-1">
+                {desistimientosPendientes}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm">Solicitudes de desistimiento</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {desistimientosPendientes > 0
+                ? `${desistimientosPendientes} pendiente${desistimientosPendientes === 1 ? '' : 's'} de revisar`
+                : 'Revisa y resuelve las solicitudes de los tesistas'}
+            </p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        </Link>
+
+        <Link
+          href="/mesa-partes/reportes/desistimientos"
+          className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-accent transition-colors"
+        >
+          <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+            <BarChart3 className="w-6 h-6 text-blue-700" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm">Reporte de desistimientos</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Métricas por motivo, facultad y fase. Exporta a Excel.
+            </p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        </Link>
       </div>
 
       {/* Estado filter chips */}

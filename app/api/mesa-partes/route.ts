@@ -202,12 +202,21 @@ export async function GET(request: NextRequest) {
       APROBADA: 0,
       EN_SUSTENTACION: 0,
       RECHAZADA: 0,
+      SOLICITUD_DESISTIMIENTO: 0,
     }
 
     contadores.forEach((c) => {
       if (c.estado in contadoresFormateados) {
         contadoresFormateados[c.estado] = c._count
       }
+    })
+
+    // Contador de solicitudes de desistimiento pendientes (para quick-access card)
+    const desistimientosPendientes = await prisma.thesisWithdrawal.count({
+      where: {
+        estadoSolicitud: 'PENDIENTE',
+        ...(facultadId && { facultadIdSnapshot: facultadId }),
+      },
     })
 
     console.log('[MESA-PARTES] Tesis encontradas:', tesis.length)
@@ -227,6 +236,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: resultado,
       contadores: contadoresFormateados,
+      desistimientosPendientes,
       facultadAsignada: facultadNombre,
       pagination: {
         page,
