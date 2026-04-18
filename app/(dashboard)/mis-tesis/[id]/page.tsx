@@ -73,6 +73,7 @@ import {
   formatFileSize,
 } from '@/components/tesis'
 import type { Documento, Tesis, Participante } from '@/components/tesis'
+import { ModalSolicitarDesistimiento } from '@/components/desistimiento/modal-solicitar-desistimiento'
 
 export default function DetalleTesisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -89,6 +90,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [rechazoDialogOpen, setRechazoDialogOpen] = useState(false)
   const [motivoRechazo, setMotivoRechazo] = useState('')
   const [invitacionARechazar, setInvitacionARechazar] = useState<string | null>(null)
+  const [modalDesistirOpen, setModalDesistirOpen] = useState(false)
 
   const loadTesis = useCallback(async () => {
     try {
@@ -213,6 +215,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const miRegistroAutor = tesis.autores.find(a => a.user.id === user?.id)
   const yoDesisti = miRegistroAutor?.estado === 'DESISTIDO'
   const puedeEditar = !yoDesisti && ['BORRADOR', 'OBSERVADA', 'PROYECTO_OBSERVADO'].includes(tesis.estado)
+  const desistimientoPendiente = tesis.desistimientos?.[0] ?? null
   const tieneCoasesor = tesis.asesores.some((a) => a.tipoAsesor === 'COASESOR')
 
   // Parsear observaciones por documento del historial (para marcar documentos observados)
@@ -315,7 +318,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   // Esto ocurre cuando un nuevo coautor se agrega o un tesista es promovido post-desistimiento
   const esAutor = tesis.autores.some(a => a.user.id === user?.id && a.estado === 'ACEPTADO')
   const faltaMiSustentatorio = !miDocSustentatorio && !puedeEditar && esAutor
-  const necesitaSubirDocumentos = faltaMiSustentatorio && tesis.estado !== 'DESISTIDA' && tesis.estado !== 'RECHAZADA'
+  const necesitaSubirDocumentos = faltaMiSustentatorio && tesis.estado !== 'DESISTIDA' && tesis.estado !== 'RECHAZADA' && tesis.estado !== 'SOLICITUD_DESISTIMIENTO'
 
   // Obtener estado de asesores
   const asesor = tesis.asesores.find((a) => a.tipoAsesor === 'ASESOR')
@@ -417,6 +420,36 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   )}
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Banner de solicitud de desistimiento en trámite */}
+      {tesis.estado === 'SOLICITUD_DESISTIMIENTO' && desistimientoPendiente && (
+        <Card className="border-2 border-amber-400 bg-amber-50/80 dark:bg-amber-950/30">
+          <CardContent className="py-4 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-amber-800 dark:text-amber-200">
+                Solicitud de desistimiento en trámite
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                Mesa de partes está revisando tu solicitud. No puedes realizar acciones de flujo normal hasta que se resuelva.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={async () => {
+                  if (!confirm('¿Cancelar tu solicitud de desistimiento?')) return
+                  const res = await fetch(`/api/tesis/${tesis.id}/desistir/cancelar`, { method: 'POST' })
+                  if (res.ok) { toast.success('Solicitud cancelada'); loadTesis() }
+                  else { const d = await res.json(); toast.error(d.error ?? 'Error') }
+                }}
+              >
+                Cancelar solicitud
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -2141,9 +2174,9 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   <Button
                     size="lg"
                     onClick={enviarARevision}
-                    disabled={enviando || !puedeEnviar}
+                    disabled={enviando || !puedeEnviar || tesis.estado === 'SOLICITUD_DESISTIMIENTO'}
                     className={cn(
-                      puedeEnviar && 'bg-green-600 hover:bg-green-700'
+                      puedeEnviar && tesis.estado !== 'SOLICITUD_DESISTIMIENTO' && 'bg-green-600 hover:bg-green-700'
                     )}
                   >
                     {enviando ? (
@@ -2556,6 +2589,29 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         onSeleccionar={participants.setParticipanteSeleccionado}
         reemplazando={participants.reemplazando}
         onConfirmar={participants.ejecutar}
+      />
+
+      {/* Botón para solicitar desistimiento (solo para el autor principal, en estados activos) */}
+      {esAutorPrincipal && !yoDesisti && !['DESISTIDA', 'RECHAZADA', 'SUSTENTADA', 'SOLICITUD_DESISTIMIENTO'].includes(tesis.estado) && (
+        <div className="pt-4 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+            onClick={() => setModalDesistirOpen(true)}
+          >
+            <Ban className="w-4 h-4 mr-2" />
+            Solicitar desistimiento
+          </Button>
+        </div>
+      )}
+
+      <ModalSolicitarDesistimiento
+        open={modalDesistirOpen}
+        onOpenChange={setModalDesistirOpen}
+        thesisId={tesis.id}
+        tituloTesis={tesis.titulo}
+        onSuccess={() => loadTesis()}
       />
     </div>
   )

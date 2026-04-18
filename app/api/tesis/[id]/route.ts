@@ -126,6 +126,11 @@ export async function GET(
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
+        desistimientos: {
+          where: { estadoSolicitud: 'PENDIENTE' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
       },
     })
 
@@ -309,6 +314,12 @@ export async function GET(
         version: d.version,
         esVersionActual: d.esVersionActual,
         tamano: d.tamano,
+        createdAt: d.createdAt,
+      })),
+      // Solicitudes de desistimiento pendientes
+      desistimientos: tesis.desistimientos.map((d) => ({
+        id: d.id,
+        estadoSolicitud: d.estadoSolicitud,
         createdAt: d.createdAt,
       })),
     }
