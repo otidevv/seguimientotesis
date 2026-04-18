@@ -244,12 +244,13 @@ export default function MisTesisPage() {
           </div>
           <div className="flex gap-1.5 flex-wrap">
             {[
-              { key: null, label: 'Todos', count: stats.total },
-              { key: 'progreso', label: 'En progreso', count: stats.enProgreso },
-              { key: 'aprobadas', label: 'Aprobadas', count: stats.aprobadas },
-              { key: 'observadas', label: 'Observadas', count: stats.observadas },
-              { key: 'desistidas', label: 'Desistidas', count: desistidas.length },
-            ].map((f) => (
+              { key: null, label: 'Todos', count: stats.total, show: true },
+              { key: 'progreso', label: 'En progreso', count: stats.enProgreso, show: true },
+              { key: 'aprobadas', label: 'Aprobadas', count: stats.aprobadas, show: true },
+              { key: 'observadas', label: 'Observadas', count: stats.observadas, show: true },
+              // Solo muestra el chip si el usuario tiene al menos un desistimiento aprobado:
+              { key: 'desistidas', label: 'Desistidas', count: desistidas.length, show: desistidas.length > 0, highlight: true },
+            ].filter(f => f.show).map((f) => (
               <button
                 key={f.key ?? 'all'}
                 onClick={() => setActiveFilter(f.key)}
@@ -257,12 +258,14 @@ export default function MisTesisPage() {
                   'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all cursor-pointer',
                   activeFilter === f.key
                     ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'border bg-card hover:bg-accent text-muted-foreground',
-                  f.count === 0 && activeFilter !== f.key && 'opacity-50',
+                    : f.highlight
+                      ? 'border border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'
+                      : 'border bg-card hover:bg-accent text-muted-foreground',
+                  f.count === 0 && activeFilter !== f.key && !f.highlight && 'opacity-50',
                 )}
               >
                 {f.label}
-                <span className={cn('tabular-nums', activeFilter === f.key ? 'text-primary-foreground/70' : 'text-muted-foreground/50')}>{f.count}</span>
+                <span className={cn('tabular-nums', activeFilter === f.key ? 'text-primary-foreground/70' : f.highlight ? 'text-amber-700/70' : 'text-muted-foreground/50')}>{f.count}</span>
               </button>
             ))}
           </div>
