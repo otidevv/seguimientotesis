@@ -28,15 +28,21 @@ export async function GET(request: NextRequest) {
       (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
     )
 
-    // Obtener el contexto de facultad del rol MESA_PARTES (si existe y no es admin)
+    // Obtener el contexto de facultad del rol MESA_PARTES (si existe y no es admin).
+    // Solo consideramos contextType='FACULTAD' con contextId — una mesa-partes sin
+    // contexto es global (puede ver todas).
     const rolMesaPartes = !esAdmin ? user.roles?.find(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive &&
+             r.contextType === 'FACULTAD' && r.contextId
     ) : null
 
     // Obtener parámetros de búsqueda
     const { searchParams } = new URL(request.url)
     const estado = searchParams.get('estado')
-    const facultadId = searchParams.get('facultadId') || rolMesaPartes?.contextId
+    // Si el rol tiene scope de facultad, se enforza (ignora el query param).
+    // Esto previene escalada horizontal: operador scoped a FAC_A no puede
+    // ver FAC_B manipulando ?facultadId=.
+    const facultadId = rolMesaPartes?.contextId ?? searchParams.get('facultadId')
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
 

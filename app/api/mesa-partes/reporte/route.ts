@@ -46,8 +46,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Scope de facultad: enforce el contextId del rol si no es admin.
+    const esAdmin = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScope = !esAdmin ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive &&
+             r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+
     const { searchParams } = new URL(request.url)
-    const facultadId = searchParams.get('facultadId')
+    const facultadId = rolScope?.contextId ?? searchParams.get('facultadId')
     const anio = searchParams.get('anio')
 
     // Si no hay parámetros, retornar facultades y años disponibles
