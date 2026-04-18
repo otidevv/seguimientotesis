@@ -57,11 +57,12 @@ interface TeacherInfo {
 
 interface DesistimientoItem {
   id: string
+  thesisId: string
+  tituloTesis: string
   estadoSolicitud: string
   motivoCategoria: string
   solicitadoAt: string
-  createdAt: string
-  thesis: { titulo: string }
+  aprobadoAt: string | null
 }
 
 interface ProfileData {
@@ -848,7 +849,7 @@ export default function PerfilPage() {
               <div key={d.id} className="flex items-start gap-3 py-2 border-b last:border-0">
                 <Badge variant="outline">{d.estadoSolicitud}</Badge>
                 <div className="flex-1">
-                  <div className="font-medium">{d.thesis.titulo}</div>
+                  <div className="font-medium">{d.tituloTesis}</div>
                   <div className="text-xs text-muted-foreground">
                     Motivo: {MOTIVO_LABEL[d.motivoCategoria as keyof typeof MOTIVO_LABEL] ?? d.motivoCategoria} · Solicitado: {new Date(d.solicitadoAt).toLocaleDateString('es-PE')}
                   </div>
