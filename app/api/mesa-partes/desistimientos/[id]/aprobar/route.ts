@@ -187,8 +187,10 @@ export async function POST(
         w.thesisId
       )
 
-      await tx.thesisWithdrawal.update({
-        where: { id: w.id },
+      // updateMany con where condicional: si otro proceso lo cambió,
+      // count === 0 y abortamos la transacción (optimistic locking).
+      const updated = await tx.thesisWithdrawal.updateMany({
+        where: { id: w.id, estadoSolicitud: 'PENDIENTE' },
         data: {
           estadoSolicitud: 'APROBADO',
           aprobadoAt: new Date(),
@@ -196,6 +198,9 @@ export async function POST(
           resolucionDocumentoId: resolucionRegistradaId,
         },
       })
+      if (updated.count === 0) {
+        throw new Error('CONCURRENT_MODIFICATION')
+      }
 
       await tx.thesisStatusHistory.create({
         data: {
@@ -246,6 +251,12 @@ export async function POST(
       resolucionDocumentoId: resolucionPrincipalId,
     })
   } catch (error) {
+    if (error instanceof Error && error.message === 'CONCURRENT_MODIFICATION') {
+      return NextResponse.json(
+        { error: 'La solicitud fue modificada por otro proceso. Refresca la página.' },
+        { status: 409 }
+      )
+    }
     console.error('[Aprobar desistimiento]', error)
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }

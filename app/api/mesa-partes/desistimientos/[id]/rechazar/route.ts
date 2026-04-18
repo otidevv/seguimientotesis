@@ -42,8 +42,8 @@ export async function POST(
     }
 
     await prisma.$transaction(async (tx) => {
-      await tx.thesisWithdrawal.update({
-        where: { id },
+      const updated = await tx.thesisWithdrawal.updateMany({
+        where: { id, estadoSolicitud: 'PENDIENTE' },
         data: {
           estadoSolicitud: 'RECHAZADO',
           aprobadoPorId: user.id,
@@ -51,6 +51,9 @@ export async function POST(
           motivoRechazoMesaPartes: parsed.data.motivoRechazo,
         },
       })
+      if (updated.count === 0) {
+        throw new Error('CONCURRENT_MODIFICATION')
+      }
       await tx.$executeRawUnsafe(
         `UPDATE thesis SET estado = $1::"estado_tesis", updated_at = NOW() WHERE id = $2`,
         w.estadoTesisAlSolicitar,
@@ -77,6 +80,12 @@ export async function POST(
 
     return NextResponse.json({ message: 'Solicitud rechazada.' })
   } catch (error) {
+    if (error instanceof Error && error.message === 'CONCURRENT_MODIFICATION') {
+      return NextResponse.json(
+        { error: 'La solicitud fue modificada por otro proceso. Refresca la página.' },
+        { status: 409 }
+      )
+    }
     console.error('[Rechazar desistimiento]', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }

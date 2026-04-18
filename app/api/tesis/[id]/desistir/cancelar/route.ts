@@ -38,10 +38,13 @@ export async function POST(
     }
 
     await prisma.$transaction(async (tx) => {
-      await tx.thesisWithdrawal.update({
-        where: { id: solicitud.id },
+      const updated = await tx.thesisWithdrawal.updateMany({
+        where: { id: solicitud.id, estadoSolicitud: 'PENDIENTE' },
         data: { estadoSolicitud: 'CANCELADO' },
       })
+      if (updated.count === 0) {
+        throw new Error('CONCURRENT_MODIFICATION')
+      }
       await tx.$executeRawUnsafe(
         `UPDATE thesis SET estado = $1::"estado_tesis", updated_at = NOW() WHERE id = $2`,
         solicitud.estadoTesisAlSolicitar,
@@ -60,6 +63,12 @@ export async function POST(
 
     return NextResponse.json({ message: 'Solicitud cancelada.' })
   } catch (error) {
+    if (error instanceof Error && error.message === 'CONCURRENT_MODIFICATION') {
+      return NextResponse.json(
+        { error: 'Mesa de partes ya resolvió tu solicitud. Refresca la página.' },
+        { status: 409 }
+      )
+    }
     console.error('[Desistir cancelar] Error:', error)
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }

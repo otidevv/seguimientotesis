@@ -115,21 +115,24 @@ function tooltipEstado(estado: EstadoSolicitud): string {
 }
 
 export function ListaDesistimientos() {
-  // Restaurar filtros desde localStorage (si existen)
+  // Restaurar filtros desde localStorage validando valores (evita corrupción).
   const initial = (() => {
-    if (typeof window === 'undefined') return { estado: 'PENDIENTE' as FiltroEstado, busqueda: '', sortKey: 'solicitadoAt' as SortKey, sortDir: 'desc' as SortDir }
+    const defaults = { estado: 'PENDIENTE' as FiltroEstado, busqueda: '', sortKey: 'solicitadoAt' as SortKey, sortDir: 'desc' as SortDir }
+    if (typeof window === 'undefined') return defaults
     try {
       const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY)
-      if (!raw) return { estado: 'PENDIENTE' as FiltroEstado, busqueda: '', sortKey: 'solicitadoAt' as SortKey, sortDir: 'desc' as SortDir }
+      if (!raw) return defaults
       const parsed = JSON.parse(raw)
+      const estadosValidos: FiltroEstado[] = ['TODOS', 'PENDIENTE', 'APROBADO', 'RECHAZADO', 'CANCELADO']
+      const sortKeysValidos: SortKey[] = ['solicitadoAt', 'estudiante', 'motivoCategoria', 'estadoTesisAlSolicitar']
       return {
-        estado: (parsed.estado ?? 'PENDIENTE') as FiltroEstado,
+        estado: estadosValidos.includes(parsed.estado) ? parsed.estado : defaults.estado,
         busqueda: typeof parsed.busqueda === 'string' ? parsed.busqueda : '',
-        sortKey: (parsed.sortKey ?? 'solicitadoAt') as SortKey,
-        sortDir: (parsed.sortDir ?? 'desc') as SortDir,
+        sortKey: sortKeysValidos.includes(parsed.sortKey) ? parsed.sortKey : defaults.sortKey,
+        sortDir: (parsed.sortDir === 'asc' || parsed.sortDir === 'desc') ? parsed.sortDir : defaults.sortDir,
       }
     } catch {
-      return { estado: 'PENDIENTE' as FiltroEstado, busqueda: '', sortKey: 'solicitadoAt' as SortKey, sortDir: 'desc' as SortDir }
+      return defaults
     }
   })()
 

@@ -60,24 +60,37 @@ export function DesistimientoTimeline({
             fecha={formatDateTime(solicitadoAt)}
           />
 
-          {/* Paso 2: En revisión */}
-          <TimelineStep
-            icon={esResuelto ? Check : Clock}
-            iconColor={esResuelto ? 'text-emerald-600' : 'text-amber-600'}
-            bgColor={esResuelto ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}
-            ring={esResuelto ? 'ring-emerald-500' : 'ring-amber-500'}
-            activo
-            animado={!esResuelto}
-            titulo={esResuelto ? 'Revisión completada por mesa de partes' : 'En revisión por mesa de partes'}
-            subtitulo={
-              esResuelto
-                ? aprobadoPor
-                  ? `Revisado por ${aprobadoPor}.`
-                  : 'Mesa de partes resolvió la solicitud.'
-                : 'Tu solicitud está siendo evaluada. Recibirás una notificación cuando haya resolución.'
-            }
-            fecha={esResuelto ? formatDateTime(aprobadoAt) : undefined}
-          />
+          {/* Paso 2: En revisión por mesa de partes
+              CANCELADO: nunca hubo revisión (el tesista canceló antes) → paso inactivo */}
+          {estadoSolicitud === 'CANCELADO' ? (
+            <TimelineStep
+              icon={Ban}
+              iconColor="text-muted-foreground"
+              bgColor="bg-muted"
+              ring="ring-muted-foreground"
+              activo={false}
+              titulo="Revisión por mesa de partes (no se realizó)"
+              subtitulo="No fue necesaria revisión: el tesista canceló la solicitud antes de la resolución."
+            />
+          ) : (
+            <TimelineStep
+              icon={esResuelto ? Check : Clock}
+              iconColor={esResuelto ? 'text-emerald-600' : 'text-amber-600'}
+              bgColor={esResuelto ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}
+              ring={esResuelto ? 'ring-emerald-500' : 'ring-amber-500'}
+              activo
+              animado={!esResuelto}
+              titulo={esResuelto ? 'Revisión completada por mesa de partes' : 'En revisión por mesa de partes'}
+              subtitulo={
+                esResuelto
+                  ? aprobadoPor
+                    ? `Revisado por ${aprobadoPor}.`
+                    : 'Mesa de partes resolvió la solicitud.'
+                  : 'Tu solicitud está siendo evaluada. Recibirás una notificación cuando haya resolución.'
+              }
+              fecha={esResuelto ? formatDateTime(aprobadoAt) : undefined}
+            />
+          )}
 
           {/* Paso 3: Resolución */}
           <TimelineStep
