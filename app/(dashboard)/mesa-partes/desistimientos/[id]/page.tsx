@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, FileText, Loader2, ArrowRight } from 'lucide-react'
+import { ArrowLeft, FileText, Loader2, ArrowRight, Download } from 'lucide-react'
 import { PanelAprobacionDesistimiento } from '@/components/desistimiento/panel-aprobacion'
 import { DesistimientoTimeline } from '@/components/desistimiento/timeline'
 import { ESTADO_SOLICITUD_CONFIG, MOTIVO_COLOR } from '@/components/desistimiento/constants'
@@ -198,10 +198,20 @@ export default function DesistimientoDetallePage() {
         )}
 
         {data.estadoSolicitud === 'APROBADO' && data.aprobadoPor && (
-          <Card><CardContent className="py-4 text-sm">
-            Aprobado por <b>{data.aprobadoPor}</b> el {new Date(data.aprobadoAt!).toLocaleString('es-PE', { timeZone: 'America/Lima' })}.
-            {data.resolucionModificatoria && (<div className="mt-2">Resolución modificatoria: {data.resolucionModificatoria.nombre}</div>)}
-          </CardContent></Card>
+          <Card>
+            <CardContent className="py-4 text-sm space-y-3">
+              <div>
+                Aprobado por <b>{data.aprobadoPor}</b> el {new Date(data.aprobadoAt!).toLocaleString('es-PE', { timeZone: 'America/Lima' })}.
+                {data.resolucionModificatoria && (<div className="mt-2">Resolución modificatoria: {data.resolucionModificatoria.nombre}</div>)}
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <a href={`/api/mesa-partes/desistimientos/${data.id}/acta`} target="_blank" rel="noopener">
+                  <Download className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Descargar acta de desistimiento (PDF)
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {data.estadoSolicitud === 'RECHAZADO' && data.motivoRechazoMesaPartes && (

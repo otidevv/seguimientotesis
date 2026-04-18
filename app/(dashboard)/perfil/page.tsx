@@ -851,9 +851,21 @@ export default function PerfilPage() {
                 <div className="flex-1">
                   <div className="font-medium">{d.tituloTesis}</div>
                   <div className="text-xs text-muted-foreground">
-                    Motivo: {MOTIVO_LABEL[d.motivoCategoria as keyof typeof MOTIVO_LABEL] ?? d.motivoCategoria} · Solicitado: {new Date(d.solicitadoAt).toLocaleDateString('es-PE')}
+                    Motivo: {MOTIVO_LABEL[d.motivoCategoria as keyof typeof MOTIVO_LABEL] ?? d.motivoCategoria} · Solicitado: {new Date(d.solicitadoAt).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
                   </div>
                 </div>
+                {d.estadoSolicitud === 'APROBADO' && (
+                  <a
+                    href={`/api/mesa-partes/desistimientos/${d.id}/acta`}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md border hover:bg-accent transition-colors"
+                    title="Descargar acta de desistimiento"
+                  >
+                    <FileX className="w-3 h-3" />
+                    Acta
+                  </a>
+                )}
               </div>
             ))}
           </CardContent>
