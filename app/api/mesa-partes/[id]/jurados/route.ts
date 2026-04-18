@@ -87,13 +87,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const tesis = await prisma.thesis.findUnique({
       where: { id, deletedAt: null },
       include: {
-        autores: { select: { userId: true } },
+        autores: {
+          select: {
+            userId: true,
+            studentCareer: { select: { facultadId: true } },
+          },
+        },
         asesores: { select: { userId: true } },
       },
     })
 
     if (!tesis) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
+    }
+
+    // Enforce facultad scope
+    const esAdminJ = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopeJ = !esAdminJ ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopeJ) {
+      const fId = tesis.autores[0]?.studentCareer?.facultadId
+      if (fId && fId !== rolScopeJ.contextId) {
+        return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
+      }
     }
 
     if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
@@ -256,10 +275,31 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const tesis = await prisma.thesis.findUnique({
       where: { id, deletedAt: null },
+      include: {
+        autores: {
+          select: { studentCareer: { select: { facultadId: true } } },
+          orderBy: { orden: 'asc' },
+          take: 1,
+        },
+      },
     })
 
     if (!tesis) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
+    }
+
+    // Enforce facultad scope
+    const esAdminD = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopeD = !esAdminD ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopeD) {
+      const fId = tesis.autores[0]?.studentCareer?.facultadId
+      if (fId && fId !== rolScopeD.contextId) {
+        return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
+      }
     }
 
     if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {

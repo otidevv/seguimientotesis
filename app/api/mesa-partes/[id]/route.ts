@@ -151,6 +151,20 @@ export async function GET(
       )
     }
 
+    // Enforce facultad scope: mesa-partes con contextId solo ve tesis de su facultad
+    const esAdminGet = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopeGet = !esAdminGet ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopeGet) {
+      const facultadTesisId = tesis.autores[0]?.studentCareer?.facultad?.id
+      if (facultadTesisId && facultadTesisId !== rolScopeGet.contextId) {
+        return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
+      }
+    }
+
     // Deduplicar dictamenes: el query OR puede traer versiones viejas,
     // mantener solo el mas reciente por fase (Proyecto / Informe Final)
     const dictamenes = tesis.documentos.filter((d) => d.tipo === 'DICTAMEN_JURADO')
@@ -359,6 +373,20 @@ export async function PUT(
         { error: 'Proyecto no encontrado' },
         { status: 404 }
       )
+    }
+
+    // Enforce facultad scope para acciones de mesa-partes
+    const esAdminPut = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopePut = !esAdminPut ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopePut) {
+      const facultadTesisId = tesis.autores[0]?.studentCareer?.facultadId
+      if (facultadTesisId && facultadTesisId !== rolScopePut.contextId) {
+        return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
+      }
     }
 
     // Acción: CONFIRMAR_JURADOS (solo en ASIGNANDO_JURADOS)

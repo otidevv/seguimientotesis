@@ -8,7 +8,10 @@ import path from 'path'
 import { writeFile, mkdir } from 'fs/promises'
 import { randomUUID } from 'crypto'
 
-const UPLOAD_ROOT = path.join(process.cwd(), 'uploads', 'tesis')
+// Mismo directorio que /api/tesis/[id]/documentos: public/documentos/tesis/<thesisId>.
+// Next.js sirve estáticamente public/ al root — la URL /documentos/tesis/... resuelve.
+// Si se cambia a uploads/ externo, la URL pública no resuelve (404).
+const UPLOAD_ROOT = path.join(process.cwd(), 'public', 'documentos', 'tesis')
 
 export async function POST(
   request: NextRequest,
@@ -108,7 +111,7 @@ export async function POST(
       const rutaFisica = path.join(dir, nombreArchivo)
       await writeFile(rutaFisica, buffer)
       return {
-        ruta: `/uploads/tesis/${w!.thesisId}/${nombreArchivo}`,
+        ruta: `/documentos/tesis/${w!.thesisId}/${nombreArchivo}`,
         mime: 'application/pdf',
         size: buffer.length,
         // Sanear nombre original para display: eliminar path separators/nulls
