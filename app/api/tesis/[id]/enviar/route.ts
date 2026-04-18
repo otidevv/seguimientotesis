@@ -90,6 +90,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Cancélala o espera la resolución antes de enviar.' },
+        { status: 409 }
+      )
+    }
     // Verificar que la tesis está en estado BORRADOR u OBSERVADA (reenvío tras correcciones)
     if (tesis.estado !== 'BORRADOR' && tesis.estado !== 'OBSERVADA') {
       return NextResponse.json(

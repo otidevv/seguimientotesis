@@ -28,11 +28,17 @@ export async function POST(
 
     const w = await prisma.thesisWithdrawal.findUnique({
       where: { id },
-      include: { thesis: { select: { titulo: true } } },
+      include: { thesis: { select: { titulo: true, estado: true } } },
     })
     if (!w) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
     if (w.estadoSolicitud !== 'PENDIENTE') {
       return NextResponse.json({ error: `Estado actual: ${w.estadoSolicitud}` }, { status: 400 })
+    }
+    if (w.thesis.estado !== 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: `Conflicto: la tesis cambió de estado (${w.thesis.estado}). Refresca la página.` },
+        { status: 409 }
+      )
     }
 
     await prisma.$transaction(async (tx) => {

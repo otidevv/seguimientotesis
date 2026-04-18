@@ -45,6 +45,14 @@ export async function POST(
     if (w.estadoSolicitud !== 'PENDIENTE') {
       return NextResponse.json({ error: `Estado actual: ${w.estadoSolicitud}` }, { status: 400 })
     }
+    // Defensa contra concurrencia: la tesis debe seguir en SOLICITUD_DESISTIMIENTO.
+    // Si otro proceso la cambió (admin, otro operador), abortar.
+    if (w.thesis.estado !== 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: `Conflicto: la tesis cambió de estado (${w.thesis.estado}). Refresca la página.` },
+        { status: 409 }
+      )
+    }
 
     const resolJurado = w.thesis.documentos.find(d => d.tipo === 'RESOLUCION_JURADO')
     const resolAprob = w.thesis.documentos.find(d => d.tipo === 'RESOLUCION_APROBACION')

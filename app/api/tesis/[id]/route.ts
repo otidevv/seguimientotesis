@@ -369,6 +369,12 @@ export async function PUT(
       )
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. No puedes editar metadatos.' },
+        { status: 409 }
+      )
+    }
     // Solo permitir edición en ciertos estados
     const estadosEditables = ['BORRADOR', 'OBSERVADA']
     if (!estadosEditables.includes(tesis.estado)) {

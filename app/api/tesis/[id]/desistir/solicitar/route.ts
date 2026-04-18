@@ -29,10 +29,12 @@ export async function POST(
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 })
     }
 
+    // Solo un autor ya ACEPTADO puede desistir.
+    // Un coautor PENDIENTE debe RECHAZAR la invitación, no "desistir".
     const tesis = await prisma.thesis.findFirst({
       where: {
         id, deletedAt: null,
-        autores: { some: { userId: user.id, estado: { in: ['PENDIENTE', 'ACEPTADO'] } } },
+        autores: { some: { userId: user.id, estado: 'ACEPTADO' } },
       },
       include: {
         autores: {
@@ -51,8 +53,8 @@ export async function POST(
       }, { status: 400 })
     }
 
-    const miAutor = tesis.autores.find(a => a.user.id === user.id && a.estado !== 'DESISTIDO' && a.estado !== 'RECHAZADO')
-    if (!miAutor) return NextResponse.json({ error: 'No eres autor activo' }, { status: 404 })
+    const miAutor = tesis.autores.find(a => a.user.id === user.id && a.estado === 'ACEPTADO')
+    if (!miAutor) return NextResponse.json({ error: 'No eres autor activo de esta tesis' }, { status: 404 })
 
     const existente = await prisma.thesisWithdrawal.findUnique({ where: { thesisAuthorId: miAutor.id } })
     if (existente && existente.estadoSolicitud === 'PENDIENTE') {

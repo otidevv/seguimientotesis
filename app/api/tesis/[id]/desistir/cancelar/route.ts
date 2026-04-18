@@ -28,6 +28,14 @@ export async function POST(
     if (!solicitud) {
       return NextResponse.json({ error: 'No tienes una solicitud pendiente' }, { status: 404 })
     }
+    // Defensa: si la tesis ya no está en SOLICITUD_DESISTIMIENTO,
+    // mesa-partes probablemente ya resolvió — no cancelar.
+    if (tesis.estado !== 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Tu solicitud ya fue procesada por mesa de partes. Refresca la página.' },
+        { status: 409 }
+      )
+    }
 
     await prisma.$transaction(async (tx) => {
       await tx.thesisWithdrawal.update({

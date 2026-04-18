@@ -363,6 +363,12 @@ export async function PUT(
 
     // Acción: CONFIRMAR_JURADOS (solo en ASIGNANDO_JURADOS)
     if (accion === 'CONFIRMAR_JURADOS') {
+      if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+        return NextResponse.json(
+          { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de confirmar jurados.' },
+          { status: 409 }
+        )
+      }
       if (tesis.estado !== 'ASIGNANDO_JURADOS') {
         return NextResponse.json(
           { error: 'Solo se pueden confirmar jurados en estado ASIGNANDO_JURADOS' },
@@ -536,6 +542,12 @@ export async function PUT(
 
     // Acción: SUBIR_RESOLUCION (solo en PROYECTO_APROBADO)
     if (accion === 'SUBIR_RESOLUCION') {
+      if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+        return NextResponse.json(
+          { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de subir la resolución.' },
+          { status: 409 }
+        )
+      }
       if (tesis.estado !== 'PROYECTO_APROBADO') {
         return NextResponse.json(
           { error: 'Solo se puede subir resolución cuando el proyecto está aprobado por jurados' },
