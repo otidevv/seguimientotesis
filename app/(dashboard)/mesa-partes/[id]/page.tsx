@@ -315,14 +315,16 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const tieneAccesitarioInforme = tiposJuradoInforme.includes('ACCESITARIO')
   const juradosInformeCompletos = tienePresidenteInforme && tieneVocalInforme && tieneSecretarioInforme && tieneAccesitarioInforme
 
-  // Detectar si hubo desistimiento(s) en el historial
-  const desistimientos = proyecto.historial.filter(
-    h => h.comentario?.toLowerCase().includes('desistimiento')
-  )
-  const huboDesistimiento = desistimientos.length > 0
-  // La resolución actual podría necesitar actualización si hubo desistimiento después de subirla
-  const ultimoDesistimiento = desistimientos[0] // El más reciente (historial viene ordenado desc)
-  const resolucionRequiereActualizacion = huboDesistimiento && (docResolucionJurado || docResolucionAprobacion)
+  // Detectar desistimientos usando datos estructurados de ThesisWithdrawal
+  const desistimientosEstructurados = proyecto.desistimientos ?? []
+  const desistimientoPendiente = desistimientosEstructurados.find((d) => d.estadoSolicitud === 'PENDIENTE')
+  const desistimientosAprobados = desistimientosEstructurados.filter((d) => d.estadoSolicitud === 'APROBADO')
+  const ultimoAprobado = desistimientosAprobados[0]
+  const huboDesistimiento = desistimientosAprobados.length > 0
+  // La resolución requiere actualización si hubo desistimiento y aún no se subió resolución modificatoria
+  const resolucionRequiereActualizacion = huboDesistimiento
+    && (docResolucionJurado || docResolucionAprobacion)
+    && !ultimoAprobado?.resolucionDocumentoId
 
   const loaderMessages: Record<string, { title: string; description: string }> = {
     APROBAR: { title: 'Aprobando proyecto', description: 'Registrando la aprobación y notificando al tesista...' },
@@ -378,6 +380,24 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
           </div>
         </div>
 
+        {/* Banner: solicitud de desistimiento pendiente de revisión */}
+        {desistimientoPendiente && (
+          <Card className="border-2 border-amber-400 bg-amber-50/80 dark:bg-amber-950/30">
+            <CardContent className="py-4 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold">Solicitud de desistimiento pendiente</p>
+                <p className="text-sm mt-1">
+                  {desistimientoPendiente.user.nombres} {desistimientoPendiente.user.apellidoPaterno} solicitó desistir.
+                </p>
+                <Button asChild size="sm" variant="outline" className="mt-3">
+                  <Link href={`/mesa-partes/desistimientos/${desistimientoPendiente.id}`}>Revisar solicitud</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Alerta de desistimiento - resolución requiere actualización */}
         {resolucionRequiereActualizacion && (
           <Card className="border-2 border-amber-400 dark:border-amber-700 bg-amber-50/80 dark:bg-amber-950/30">
@@ -389,11 +409,11 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-amber-800 dark:text-amber-200">Desistimiento registrado — Resoluciones requieren actualización</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                    {ultimoDesistimiento?.comentario}
+                    {ultimoAprobado && `${ultimoAprobado.user.apellidoPaterno}, ${ultimoAprobado.user.nombres} desistió. Motivo: ${ultimoAprobado.motivoDescripcion}`}
                   </p>
                   <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                    {ultimoDesistimiento?.fecha && `Registrado el ${new Date(ultimoDesistimiento.fecha).toLocaleString('es-PE')}`}
-                    {ultimoDesistimiento?.realizadoPor && ` — Por: ${ultimoDesistimiento.realizadoPor}`}
+                    {(ultimoAprobado?.aprobadoAt ?? ultimoAprobado?.solicitadoAt) && `Registrado el ${new Date(ultimoAprobado.aprobadoAt ?? ultimoAprobado.solicitadoAt).toLocaleString('es-PE')}`}
+                    {ultimoAprobado?.aprobadoPor && ` — Por: ${ultimoAprobado.aprobadoPor.nombres} ${ultimoAprobado.aprobadoPor.apellidoPaterno}`}
                   </p>
                 </div>
               </div>

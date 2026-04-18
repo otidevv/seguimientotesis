@@ -58,6 +58,19 @@ export interface HistorialItem {
   realizadoPor: string
 }
 
+export interface DesistimientoItem {
+  id: string
+  estadoSolicitud: string
+  solicitadoAt: string
+  aprobadoAt: string | null
+  motivoCategoria: string
+  motivoDescripcion: string
+  motivoRechazoMesaPartes: string | null
+  resolucionDocumentoId: string | null
+  user: { nombres: string; apellidoPaterno: string }
+  aprobadoPor: { nombres: string; apellidoPaterno: string } | null
+}
+
 export interface Proyecto {
   id: string
   codigo: string
@@ -93,6 +106,7 @@ export interface Proyecto {
   faseActual: string | null
   fechaLimiteEvaluacion: string | null
   fechaLimiteCorreccion: string | null
+  desistimientos: DesistimientoItem[]
 }
 
 export interface BusquedaJurado {

@@ -133,6 +133,14 @@ export async function GET(
           },
           orderBy: { createdAt: 'desc' },
         },
+        desistimientos: {
+          where: { estadoSolicitud: { in: ['PENDIENTE', 'APROBADO'] } },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: { select: { nombres: true, apellidoPaterno: true } },
+            aprobadoPor: { select: { nombres: true, apellidoPaterno: true } },
+          },
+        },
       },
     })
 
@@ -254,6 +262,21 @@ export async function GET(
         realizadoPor: h.changedBy
           ? `${h.changedBy.nombres} ${h.changedBy.apellidoPaterno} ${h.changedBy.apellidoMaterno}`
           : 'Sistema',
+      })),
+      // Desistimientos estructurados
+      desistimientos: tesis.desistimientos.map((d) => ({
+        id: d.id,
+        estadoSolicitud: d.estadoSolicitud,
+        solicitadoAt: d.solicitadoAt,
+        aprobadoAt: d.aprobadoAt,
+        motivoCategoria: d.motivoCategoria,
+        motivoDescripcion: d.motivoDescripcion,
+        motivoRechazoMesaPartes: d.motivoRechazoMesaPartes,
+        resolucionDocumentoId: d.resolucionDocumentoId,
+        user: { nombres: d.user.nombres, apellidoPaterno: d.user.apellidoPaterno },
+        aprobadoPor: d.aprobadoPor
+          ? { nombres: d.aprobadoPor.nombres, apellidoPaterno: d.aprobadoPor.apellidoPaterno }
+          : null,
       })),
     }
 
