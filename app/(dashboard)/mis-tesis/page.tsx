@@ -9,17 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
   FileText, Plus, Clock, CheckCircle, AlertCircle, Users,
   GraduationCap, Calendar, Eye, Search, ArrowRight, Sparkles,
-  BookOpen, TrendingUp, Inbox, Ban, Loader2, MoreHorizontal,
+  BookOpen, TrendingUp, Inbox, Ban, MoreHorizontal,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -30,7 +22,7 @@ import {
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
+import { ModalSolicitarDesistimiento } from '@/components/desistimiento/modal-solicitar-desistimiento'
 
 interface Autor {
   id: string; tipoParticipante: string; estado: string
@@ -67,6 +59,7 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; dotColor: st
   ARCHIVADA:              { label: 'Archivada',            color: 'text-gray-600',    dotColor: 'bg-gray-400',    bgColor: 'bg-gray-100 dark:bg-gray-800/40',       icon: <FileText className="w-3.5 h-3.5" />,     step: 7 },
   RECHAZADA:              { label: 'Rechazada',            color: 'text-red-600',     dotColor: 'bg-red-500',     bgColor: 'bg-red-100 dark:bg-red-900/30',         icon: <AlertCircle className="w-3.5 h-3.5" />,  step: 0 },
   DESISTIDA:              { label: 'Desistida',            color: 'text-slate-600',   dotColor: 'bg-slate-400',   bgColor: 'bg-slate-100 dark:bg-slate-800/40',     icon: <Ban className="w-3.5 h-3.5" />,          step: 0 },
+  SOLICITUD_DESISTIMIENTO: { label: 'Solicitud en trámite', color: 'text-amber-700',   dotColor: 'bg-amber-500',   bgColor: 'bg-amber-100 dark:bg-amber-900/30',     icon: <Clock className="w-3.5 h-3.5" />,        step: 0 },
 }
 
 const MAX_STEPS = 7
@@ -91,8 +84,6 @@ export default function MisTesisPage() {
   // Desistimiento
   const [desistirDialogOpen, setDesistirDialogOpen] = useState(false)
   const [tesisDesistir, setTesisDesistir] = useState<Tesis | null>(null)
-  const [motivoDesistimiento, setMotivoDesistimiento] = useState('')
-  const [desistiendo, setDesistiendo] = useState(false)
 
   const loadTesis = useCallback(async () => {
     try {
@@ -112,27 +103,7 @@ export default function MisTesisPage() {
 
   const abrirDesistimiento = (t: Tesis) => {
     setTesisDesistir(t)
-    setMotivoDesistimiento('')
     setDesistirDialogOpen(true)
-  }
-
-  const desistirTesis = async () => {
-    if (!tesisDesistir || !motivoDesistimiento.trim()) return
-    setDesistiendo(true)
-    try {
-      const data = await api.post<{ message: string }>(`/api/tesis/${tesisDesistir.id}/desistir`, {
-        motivo: motivoDesistimiento.trim(),
-      })
-      toast.success(data.message)
-      setDesistirDialogOpen(false)
-      setTesisDesistir(null)
-      setMotivoDesistimiento('')
-      loadTesis()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al procesar el desistimiento')
-    } finally {
-      setDesistiendo(false)
-    }
   }
 
   const stats = useMemo(() => ({
@@ -489,73 +460,22 @@ export default function MisTesisPage() {
         </div>
       )}
 
-      {/* Diálogo de confirmación de desistimiento */}
-      <Dialog open={desistirDialogOpen} onOpenChange={setDesistirDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <Ban className="w-5 h-5" />
-              Desistir de la Tesis
-            </DialogTitle>
-            <DialogDescription>
-              Esta acción es <strong>irreversible</strong>. La tesis quedará en estado de desistimiento y podrás crear un nuevo proyecto.
-              Se notificará a tu asesor y coautores.
-            </DialogDescription>
-          </DialogHeader>
-
-          {tesisDesistir && (
-            <div className="rounded-lg border bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground mb-1">Tesis a desistir:</p>
-              <p className="text-sm font-medium leading-snug">{tesisDesistir.titulo}</p>
-              <p className="text-xs text-muted-foreground mt-1">{tesisDesistir.codigo}</p>
-            </div>
-          )}
-
-          <div className="space-y-3 py-1">
-            <label htmlFor="motivo-desistimiento-list" className="text-sm font-medium">
-              Motivo del desistimiento <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="motivo-desistimiento-list"
-              className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-              placeholder="Indica el motivo por el cual deseas desistir (mínimo 10 caracteres)..."
-              value={motivoDesistimiento}
-              onChange={(e) => setMotivoDesistimiento(e.target.value)}
-              disabled={desistiendo}
-            />
-            {motivoDesistimiento.trim().length > 0 && motivoDesistimiento.trim().length < 10 && (
-              <p className="text-xs text-red-500">El motivo debe tener al menos 10 caracteres</p>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => { setDesistirDialogOpen(false); setTesisDesistir(null) }}
-              disabled={desistiendo}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={desistirTesis}
-              disabled={desistiendo || motivoDesistimiento.trim().length < 10}
-            >
-              {desistiendo ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <Ban className="w-4 h-4 mr-2" />
-                  Confirmar Desistimiento
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal nuevo: solicita desistimiento con categoría + descripción */}
+      {tesisDesistir && (
+        <ModalSolicitarDesistimiento
+          open={desistirDialogOpen}
+          onOpenChange={(open) => {
+            setDesistirDialogOpen(open)
+            if (!open) setTesisDesistir(null)
+          }}
+          thesisId={tesisDesistir.id}
+          tituloTesis={tesisDesistir.titulo}
+          onSuccess={() => {
+            setTesisDesistir(null)
+            loadTesis()
+          }}
+        />
+      )}
     </div>
   )
 }
