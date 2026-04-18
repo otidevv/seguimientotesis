@@ -55,6 +55,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. No puedes subir la carta mientras esté en trámite.' },
+        { status: 409 }
+      )
+    }
+
+    const estadosCartaPermitidos = ['BORRADOR', 'EN_REVISION', 'OBSERVADA']
+    if (!estadosCartaPermitidos.includes(tesis.estado)) {
+      return NextResponse.json(
+        { error: `No se puede subir la carta en el estado actual de la tesis (${tesis.estado}).` },
+        { status: 400 }
+      )
+    }
+
     // Obtener el archivo del FormData
     const formData = await request.formData()
     const file = formData.get('file') as File | null

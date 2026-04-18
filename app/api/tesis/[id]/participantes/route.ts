@@ -44,6 +44,13 @@ export async function PUT(
       )
     }
 
+    // Bloquear explícitamente si hay solicitud de desistimiento pendiente
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de modificar participantes.' },
+        { status: 409 }
+      )
+    }
     // Solo permitir cambios en estado BORRADOR, OBSERVADA, OBSERVADA_JURADO o ASIGNANDO_JURADOS
     if (!['BORRADOR', 'OBSERVADA', 'OBSERVADA_JURADO', 'ASIGNANDO_JURADOS'].includes(tesis.estado)) {
       return NextResponse.json(

@@ -964,6 +964,12 @@ export async function PUT(
     }
 
     // Acciones estándar: APROBAR, OBSERVAR, RECHAZAR (solo en EN_REVISION u OBSERVADA)
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. Resuélvela antes de continuar.' },
+        { status: 409 }
+      )
+    }
     const estadosPermitidos: EstadoTesis[] = ['EN_REVISION', 'OBSERVADA']
     if (!estadosPermitidos.includes(tesis.estado)) {
       return NextResponse.json(

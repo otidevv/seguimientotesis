@@ -81,9 +81,16 @@ export async function POST(
     const coautoresActivos = w.thesis.autores.filter(
       a => a.user.id !== w.userId && a.estado === 'ACEPTADO'
     )
+    // Coautores PENDIENTES cuya invitación debe cancelarse (el inviter desiste)
+    const coautoresPendientes = w.thesis.autores.filter(
+      a => a.user.id !== w.userId && a.estado === 'PENDIENTE'
+    )
     const hayCoautor = coautoresActivos.length > 0
     const nuevoPrincipal = hayCoautor ? coautoresActivos[0] : null
     const estadoDestino = hayCoautor ? estadoDestinoConCoautor(w.estadoTesisAlSolicitar) : 'DESISTIDA'
+    // Si retrocede a ASIGNANDO_JURADOS, limpiar evaluaciones del proyecto y resetear ronda
+    // para que CONFIRMAR_JURADOS (que setea rondaActual=1) no colisione con registros existentes
+    const debeLimpiarEvaluaciones = estadoDestino === 'ASIGNANDO_JURADOS'
 
     const nombreDesistente = `${w.thesisAuthor.user.nombres} ${w.thesisAuthor.user.apellidoPaterno}`
 
@@ -140,8 +147,34 @@ export async function POST(
         await tx.thesisAuthor.update({ where: { id: nuevoPrincipal.id }, data: { orden: 1 } })
       }
 
+      // Cancelar invitaciones PENDIENTES: el inviter desistió, la invitación queda sin efecto
+      for (const pendiente of coautoresPendientes) {
+        await tx.thesisAuthor.update({
+          where: { id: pendiente.id },
+          data: {
+            estado: 'RECHAZADO',
+            fechaRespuesta: new Date(),
+            motivoRechazo: 'Invitación cancelada: el autor principal desistió del proyecto.',
+          },
+        })
+      }
+
+      // Si retrocede a ASIGNANDO_JURADOS: limpiar evaluaciones previas del proyecto
+      // y resetear rondaActual para evitar colisión de unique [juryMemberId, ronda]
+      if (debeLimpiarEvaluaciones) {
+        const juradosProyecto = await tx.thesisJury.findMany({
+          where: { thesisId: w.thesisId, fase: 'PROYECTO' },
+          select: { id: true },
+        })
+        if (juradosProyecto.length > 0) {
+          await tx.juryEvaluation.deleteMany({
+            where: { juryMemberId: { in: juradosProyecto.map(j => j.id) } },
+          })
+        }
+      }
+
       await tx.$executeRawUnsafe(
-        `UPDATE thesis SET estado = $1::"estado_tesis", fecha_limite_evaluacion = NULL, fecha_limite_correccion = NULL, updated_at = NOW() WHERE id = $2`,
+        `UPDATE thesis SET estado = $1::"estado_tesis", fecha_limite_evaluacion = NULL, fecha_limite_correccion = NULL, ronda_actual = 0, updated_at = NOW() WHERE id = $2`,
         estadoDestino,
         w.thesisId
       )

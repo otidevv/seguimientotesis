@@ -89,6 +89,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. No puedes registrar la carta mientras esté en trámite.' },
+        { status: 409 }
+      )
+    }
+
+    const estadosCartaPermitidos = ['BORRADOR', 'EN_REVISION', 'OBSERVADA']
+    if (!estadosCartaPermitidos.includes(tesis.estado)) {
+      return NextResponse.json(
+        { error: `No se puede registrar la carta en el estado actual de la tesis (${tesis.estado}).` },
+        { status: 400 }
+      )
+    }
+
     // Verificar que el archivo temporal existe
     const tempPath = path.join(
       process.cwd(),

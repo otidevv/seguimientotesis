@@ -2474,7 +2474,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         <ThesisSidebar
           tesis={tesis}
           puedeEditar={puedeEditar}
-          puedeGestionarParticipantes={puedeEditar || tesis.estado === 'ASIGNANDO_JURADOS'}
+          puedeGestionarParticipantes={tesis.estado !== 'SOLICITUD_DESISTIMIENTO' && (puedeEditar || tesis.estado === 'ASIGNANDO_JURADOS')}
           esAutorPrincipal={esAutorPrincipal}
           coautor={coautor}
           coasesor={coasesor}

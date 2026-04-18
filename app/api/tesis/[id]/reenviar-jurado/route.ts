@@ -72,6 +72,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Cancela la solicitud o espera la resolución antes de reenviar.' },
+        { status: 409 }
+      )
+    }
     // Solo permitir reenvio desde estados observados por jurado
     const estadosPermitidos = ['OBSERVADA_JURADO', 'OBSERVADA_INFORME']
     if (!estadosPermitidos.includes(tesis.estado)) {

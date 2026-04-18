@@ -47,6 +47,14 @@ export async function POST(
     })
 
     if (invitacionCoautor) {
+      // Bloquear si la tesis está congelada (desistimiento en trámite o cerrada)
+      const estadoCongelado = ['SOLICITUD_DESISTIMIENTO', 'DESISTIDA', 'RECHAZADA']
+      if (estadoCongelado.includes(invitacionCoautor.thesis.estado)) {
+        return NextResponse.json(
+          { error: 'No puedes responder a esta invitación: la tesis está con un proceso pendiente o cerrada.' },
+          { status: 409 }
+        )
+      }
       // Es una invitación como coautor
       // Para coautores, el motivo de rechazo es obligatorio
       if (accion === 'RECHAZAR' && !motivoRechazo) {
@@ -112,6 +120,14 @@ export async function POST(
     })
 
     if (invitacionAsesor) {
+      // Bloquear si la tesis está congelada
+      const estadoCongelado = ['SOLICITUD_DESISTIMIENTO', 'DESISTIDA', 'RECHAZADA']
+      if (estadoCongelado.includes(invitacionAsesor.thesis.estado)) {
+        return NextResponse.json(
+          { error: 'No puedes responder a esta invitación: la tesis está con un proceso pendiente o cerrada.' },
+          { status: 409 }
+        )
+      }
       // Es una invitación como asesor
       const nuevoEstado = accion === 'ACEPTAR' ? 'ACEPTADO' : 'RECHAZADO'
 
