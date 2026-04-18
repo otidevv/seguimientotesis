@@ -34,7 +34,7 @@ export async function POST(
             autores: {
               include: { user: { select: { id: true, nombres: true, apellidoPaterno: true } } },
             },
-            asesores: { select: { userId: true } },
+            asesores: { where: { estado: 'ACEPTADO' }, select: { userId: true } },
             documentos: { where: { esVersionActual: true } },
           },
         },

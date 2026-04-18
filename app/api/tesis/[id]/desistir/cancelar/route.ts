@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { EstadoTesis } from '@prisma/client'
 import { getCurrentUser } from '@/lib/auth'
+import { crearNotificacion } from '@/lib/notificaciones'
 
 export async function POST(
   request: NextRequest,
@@ -60,6 +61,42 @@ export async function POST(
         },
       })
     })
+
+    // Notificar a mesa-partes (si estaban revisando) que la solicitud se canceló
+    const tesisConFacultad = await prisma.thesis.findUnique({
+      where: { id },
+      select: {
+        titulo: true,
+        autores: {
+          where: { userId: user.id },
+          select: { studentCareer: { select: { facultadId: true } } },
+          take: 1,
+        },
+      },
+    })
+    const facultadId = tesisConFacultad?.autores[0]?.studentCareer?.facultadId
+    if (facultadId) {
+      const mesaPartesUsers = await prisma.userRole.findMany({
+        where: {
+          role: { codigo: 'MESA_PARTES' },
+          OR: [
+            { contextType: 'FACULTAD', contextId: facultadId },
+            { contextType: null },
+          ],
+          isActive: true,
+        },
+        select: { userId: true },
+      })
+      if (mesaPartesUsers.length > 0) {
+        await crearNotificacion({
+          userId: mesaPartesUsers.map(u => u.userId),
+          tipo: 'DESISTIMIENTO_CANCELADO',
+          titulo: 'Solicitud de desistimiento cancelada',
+          mensaje: `El tesista ${user.nombres} ${user.apellidoPaterno} canceló su solicitud de desistimiento de "${tesisConFacultad?.titulo ?? 'la tesis'}".`,
+          enlace: `/mesa-partes/desistimientos/${solicitud.id}`,
+        })
+      }
+    }
 
     return NextResponse.json({ message: 'Solicitud cancelada.' })
   } catch (error) {

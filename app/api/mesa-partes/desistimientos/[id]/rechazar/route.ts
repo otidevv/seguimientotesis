@@ -28,7 +28,16 @@ export async function POST(
 
     const w = await prisma.thesisWithdrawal.findUnique({
       where: { id },
-      include: { thesis: { select: { titulo: true, estado: true } } },
+      include: {
+        thesis: {
+          select: {
+            titulo: true,
+            estado: true,
+            autores: { where: { estado: 'ACEPTADO' }, select: { userId: true } },
+            asesores: { where: { estado: 'ACEPTADO' }, select: { userId: true } },
+          },
+        },
+      },
     })
     if (!w) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
     if (w.estadoSolicitud !== 'PENDIENTE') {
@@ -70,6 +79,7 @@ export async function POST(
       })
     })
 
+    // Notificar al tesista solicitante
     await crearNotificacion({
       userId: w.userId,
       tipo: 'DESISTIMIENTO_RECHAZADO',
@@ -77,6 +87,30 @@ export async function POST(
       mensaje: `Mesa de partes rechazó tu solicitud: ${parsed.data.motivoRechazo}`,
       enlace: `/mis-tesis/${w.thesisId}`,
     })
+
+    // Notificar al coautor ACEPTADO y asesores (si estaban en vilo por la solicitud)
+    const coautorIds = w.thesis.autores
+      .map(a => a.userId)
+      .filter(uid => uid !== w.userId)
+    if (coautorIds.length > 0) {
+      await crearNotificacion({
+        userId: coautorIds,
+        tipo: 'DESISTIMIENTO_RECHAZADO',
+        titulo: 'Solicitud de desistimiento del coautor rechazada',
+        mensaje: `Mesa de partes rechazó la solicitud. La tesis "${w.thesis.titulo}" continúa normalmente.`,
+        enlace: `/mis-tesis/${w.thesisId}`,
+      })
+    }
+    const asesorIds = w.thesis.asesores.map(a => a.userId)
+    if (asesorIds.length > 0) {
+      await crearNotificacion({
+        userId: asesorIds,
+        tipo: 'DESISTIMIENTO_RECHAZADO',
+        titulo: 'Solicitud de desistimiento rechazada',
+        mensaje: `Mesa de partes rechazó la solicitud en "${w.thesis.titulo}". La tesis continúa su trámite normal.`,
+        enlace: `/mis-asesorias`,
+      })
+    }
 
     return NextResponse.json({ message: 'Solicitud rechazada.' })
   } catch (error) {
