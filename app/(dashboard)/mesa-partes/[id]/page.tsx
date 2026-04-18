@@ -437,25 +437,31 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       <span className="text-amber-800 dark:text-amber-200">Subir resolución modificatoria de aprobación de proyecto</span>
                     </li>
                   )}
-                  <li className="flex items-center gap-2">
-                    {proyecto.autores.every((a) => docsSustentatorios.some((d) => d.subidoPor && a.nombre.startsWith(d.subidoPor)))
-                      ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                      : <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                    }
-                    <span className="text-amber-800 dark:text-amber-200">
-                      Verificar documentos sustentatorios de los autores actuales ({proyecto.autores.length} autor{proyecto.autores.length > 1 ? 'es' : ''})
-                    </span>
-                  </li>
+                  {(() => {
+                    const autoresActivos = proyecto.autores.filter((a) => a.estado !== 'DESISTIDO')
+                    const todosTienenDoc = autoresActivos.every((a) => docsSustentatorios.some((d) => d.subidoPor && a.nombre.startsWith(d.subidoPor)))
+                    return (
+                      <li className="flex items-center gap-2">
+                        {todosTienenDoc
+                          ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                          : <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                        }
+                        <span className="text-amber-800 dark:text-amber-200">
+                          Verificar documentos sustentatorios de los autores actuales ({autoresActivos.length} autor{autoresActivos.length === 1 ? '' : 'es'})
+                        </span>
+                      </li>
+                    )
+                  })()}
                 </ul>
 
-                {/* Autores actuales */}
+                {/* Autores actuales (excluye desistidos históricos) */}
                 <div className="pt-2 border-t border-amber-200 dark:border-amber-800">
                   <p className="text-xs font-medium text-muted-foreground mb-2">Autores actuales de la tesis:</p>
                   <div className="space-y-1.5">
-                    {proyecto.autores.map((autor) => {
+                    {proyecto.autores.filter((autor) => autor.estado !== 'DESISTIDO').map((autor) => {
                       const tieneDocSust = docsSustentatorios.some((d) => d.subidoPor && autor.nombre.startsWith(d.subidoPor))
                       return (
-                        <div key={autor.nombre} className="flex items-center gap-2 text-sm">
+                        <div key={autor.id} className="flex items-center gap-2 text-sm">
                           <div className={cn(
                             'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
                             tieneDocSust ? 'bg-green-100 dark:bg-green-900/50' : 'bg-amber-100 dark:bg-amber-900/50'

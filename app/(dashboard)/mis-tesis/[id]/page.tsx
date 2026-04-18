@@ -214,16 +214,16 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const estadoConfig = ESTADO_CONFIG[tesis.estado] || ESTADO_CONFIG.BORRADOR
   const miRegistroAutor = tesis.autores.find(a => a.user.id === user?.id)
   const yoDesisti = miRegistroAutor?.estado === 'DESISTIDO'
-  const puedeEditar = !yoDesisti && ['BORRADOR', 'OBSERVADA', 'PROYECTO_OBSERVADO'].includes(tesis.estado)
+  const puedeEditar = !yoDesisti && ['BORRADOR', 'OBSERVADA'].includes(tesis.estado)
   const desistimientoPendiente = tesis.desistimientos?.[0] ?? null
   const tieneCoasesor = tesis.asesores.some((a) => a.tipoAsesor === 'COASESOR')
 
   // Parsear observaciones por documento del historial (para marcar documentos observados)
   const obsMap: Record<string, string> = {}
   let fechaObservacion: Date | null = null
-  if (tesis.estado === 'OBSERVADA' || tesis.estado === 'PROYECTO_OBSERVADO') {
+  if (tesis.estado === 'OBSERVADA') {
     const obsEntry = ((tesis as any).historial || []).find(
-      (h: any) => h.estadoNuevo === 'OBSERVADA' || h.estadoNuevo === 'PROYECTO_OBSERVADO'
+      (h: any) => h.estadoNuevo === 'OBSERVADA'
     )
     if (obsEntry?.fecha) fechaObservacion = new Date(obsEntry.fecha)
     const obsComentario: string = obsEntry?.comentario || ''
