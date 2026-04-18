@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,14 +34,14 @@ export default function DesistimientoDetallePage() {
   const [data, setData] = useState<Detalle | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    const res = await fetch(`/api/mesa-partes/desistimientos/${id}`)
-    if (res.ok) setData(await res.json())
-    setLoading(false)
+  useEffect(() => {
+    let alive = true
+    fetch(`/api/mesa-partes/desistimientos/${id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (alive && d) setData(d) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
   }, [id])
-
-  useEffect(() => { load() }, [load])
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin" /></div>
   if (!data) return <div className="py-20 text-center">No encontrado</div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma, EstadoSolicitudDesistimiento } from '@prisma/client'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -16,8 +17,8 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') ?? '1', 10)
     const pageSize = Math.min(parseInt(searchParams.get('pageSize') ?? '20', 10), 100)
 
-    const where: any = {}
-    if (estado !== 'TODOS') where.estadoSolicitud = estado
+    const where: Prisma.ThesisWithdrawalWhereInput = {}
+    if (estado !== 'TODOS') where.estadoSolicitud = estado as EstadoSolicitudDesistimiento
     if (facultadId) where.facultadIdSnapshot = facultadId
 
     const [total, items] = await Promise.all([

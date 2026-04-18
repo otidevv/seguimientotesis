@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { EstadoTesis } from '@prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function POST(
@@ -41,7 +42,7 @@ export async function POST(
       await tx.thesisStatusHistory.create({
         data: {
           thesisId: id,
-          estadoAnterior: 'SOLICITUD_DESISTIMIENTO' as any,
+          estadoAnterior: EstadoTesis.SOLICITUD_DESISTIMIENTO,
           estadoNuevo: solicitud.estadoTesisAlSolicitar,
           comentario: 'Cancelación de solicitud de desistimiento por el tesista.',
           changedById: user.id,

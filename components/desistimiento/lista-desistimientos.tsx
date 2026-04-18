@@ -26,11 +26,10 @@ export function ListaDesistimientos() {
 
   useEffect(() => {
     let alive = true
-    setLoading(true)
     fetch(`/api/mesa-partes/desistimientos?estado=${estado}&page=${page}&pageSize=20`)
       .then(r => r.json())
-      .then(d => { if (alive) { setItems(d.items); setTotal(d.total) } })
-      .finally(() => { if (alive) setLoading(false) })
+      .then(d => { if (alive) { setItems(d.items); setTotal(d.total); setLoading(false) } })
+      .catch(() => { if (alive) setLoading(false) })
     return () => { alive = false }
   }, [estado, page])
 

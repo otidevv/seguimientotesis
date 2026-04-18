@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma, MotivoDesistimiento, EstadoTesis } from '@prisma/client'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { generarExcelDesistimientos, type DesistimientoRow } from '@/lib/excel/reporte-desistimientos'
 
@@ -21,15 +22,20 @@ export async function GET(request: NextRequest) {
     const estadosTesis = searchParams.getAll('estadoTesis')
     const teniaCoautor = searchParams.get('teniaCoautor')
 
-    const where: any = { estadoSolicitud: 'APROBADO' }
-    if (desde) where.aprobadoAt = { ...(where.aprobadoAt || {}), gte: new Date(desde) }
-    if (hasta) where.aprobadoAt = { ...(where.aprobadoAt || {}), lte: new Date(hasta) }
-    if (facultadId) where.facultadIdSnapshot = facultadId
-    if (carrera) where.carreraNombreSnapshot = carrera
-    if (motivos.length > 0) where.motivoCategoria = { in: motivos }
-    if (estadosTesis.length > 0) where.estadoTesisAlSolicitar = { in: estadosTesis }
-    if (teniaCoautor === 'true') where.teniaCoautor = true
-    if (teniaCoautor === 'false') where.teniaCoautor = false
+    const aprobadoAtFilter: Prisma.DateTimeNullableFilter = {}
+    if (desde) aprobadoAtFilter.gte = new Date(desde)
+    if (hasta) aprobadoAtFilter.lte = new Date(hasta)
+
+    const where: Prisma.ThesisWithdrawalWhereInput = {
+      estadoSolicitud: 'APROBADO',
+      ...(desde || hasta ? { aprobadoAt: aprobadoAtFilter } : {}),
+      ...(facultadId ? { facultadIdSnapshot: facultadId } : {}),
+      ...(carrera ? { carreraNombreSnapshot: carrera } : {}),
+      ...(motivos.length > 0 ? { motivoCategoria: { in: motivos as MotivoDesistimiento[] } } : {}),
+      ...(estadosTesis.length > 0 ? { estadoTesisAlSolicitar: { in: estadosTesis as EstadoTesis[] } } : {}),
+      ...(teniaCoautor === 'true' ? { teniaCoautor: true } : {}),
+      ...(teniaCoautor === 'false' ? { teniaCoautor: false } : {}),
+    }
 
     const items = await prisma.thesisWithdrawal.findMany({
       where,

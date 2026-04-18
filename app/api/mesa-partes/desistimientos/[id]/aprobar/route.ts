@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { estadoDestinoConCoautor, requiereModificatoria } from '@/lib/desistimiento/transiciones'
+import { EstadoTesis } from '@prisma/client'
 import path from 'path'
 import { writeFile, mkdir } from 'fs/promises'
 import { randomUUID } from 'crypto'
@@ -158,8 +159,8 @@ export async function POST(
       await tx.thesisStatusHistory.create({
         data: {
           thesisId: w.thesisId,
-          estadoAnterior: 'SOLICITUD_DESISTIMIENTO' as any,
-          estadoNuevo: estadoDestino as any,
+          estadoAnterior: EstadoTesis.SOLICITUD_DESISTIMIENTO,
+          estadoNuevo: estadoDestino as EstadoTesis,
           comentario: hayCoautor
             ? `Desistimiento aprobado de ${nombreDesistente}. ${nuevoPrincipal!.user.nombres} ${nuevoPrincipal!.user.apellidoPaterno} asume como autor principal.`
             : `Desistimiento aprobado de ${nombreDesistente}. Tesis dada de baja.`,

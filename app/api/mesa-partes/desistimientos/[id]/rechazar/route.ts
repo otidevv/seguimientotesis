@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { crearNotificacion } from '@/lib/notificaciones'
+import { EstadoTesis } from '@prisma/client'
 
 const Body = z.object({
   motivoRechazo: z.string().min(10).max(1000),
@@ -52,7 +53,7 @@ export async function POST(
       await tx.thesisStatusHistory.create({
         data: {
           thesisId: w.thesisId,
-          estadoAnterior: 'SOLICITUD_DESISTIMIENTO' as any,
+          estadoAnterior: EstadoTesis.SOLICITUD_DESISTIMIENTO,
           estadoNuevo: w.estadoTesisAlSolicitar,
           comentario: `Solicitud de desistimiento rechazada por mesa de partes. Motivo: ${parsed.data.motivoRechazo}`,
           changedById: user.id,

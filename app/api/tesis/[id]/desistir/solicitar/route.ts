@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
+import { EstadoTesis } from '@prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { ESTADOS_PERMITIDOS_DESISTIMIENTO } from '@/lib/desistimiento/transiciones'
@@ -123,7 +124,7 @@ export async function POST(
         data: {
           thesisId: id,
           estadoAnterior: tesis.estado,
-          estadoNuevo: 'SOLICITUD_DESISTIMIENTO' as any,
+          estadoNuevo: EstadoTesis.SOLICITUD_DESISTIMIENTO,
           comentario: `Solicitud de desistimiento de ${miAutor.user.nombres} ${miAutor.user.apellidoPaterno}. Motivo: ${parsed.data.motivoCategoria}.`,
           changedById: user.id,
         },
