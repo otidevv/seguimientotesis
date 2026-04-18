@@ -124,7 +124,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       detalle: asesor
         ? asesorAcepto
           ? `${asesor.user.nombres} ${asesor.user.apellidoPaterno} aceptó`
-          : 'Esperando aceptación del asesor'
+          : asesor.estado === 'RECHAZADO'
+            ? `${asesor.user.nombres} ${asesor.user.apellidoPaterno} rechazó la asesoría. Debes reemplazarlo antes de enviar.`
+            : 'Esperando aceptación del asesor'
         : 'No hay asesor asignado',
     })
 
@@ -165,8 +167,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    // 6. Coautor (si existe) aceptó
-    const coautor = tesis.autores.find((a) => a.orden > 1)
+    // 6. Coautor activo (si existe) aceptó. Los DESISTIDOs son históricos
+    // y no deben bloquear el envío del nuevo autor principal.
+    const coautor = tesis.autores.find((a) => a.orden > 1 && a.estado !== 'DESISTIDO')
     if (coautor) {
       const coautorAcepto = coautor.estado === 'ACEPTADO'
       requisitos.push({
@@ -175,7 +178,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         detalle: coautorAcepto
           ? `${coautor.user.nombres} ${coautor.user.apellidoPaterno} aceptó`
           : coautor.estado === 'RECHAZADO'
-            ? 'El coautor rechazó participar'
+            ? `${coautor.user.nombres} ${coautor.user.apellidoPaterno} rechazó participar. Debes reemplazarlo o eliminarlo antes de enviar.`
             : 'Esperando aceptación del coautor',
       })
     }
@@ -190,9 +193,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         : 'Falta subir el voucher de pago de S/. 30.00 (código 277)',
     })
 
-    // 8. Documento sustentatorio (cada tesista activo debe subir el suyo)
+    // 8. Documento sustentatorio (cada tesista ACEPTADO debe subir el suyo).
+    // PENDIENTE no puede subir docs hasta aceptar; RECHAZADO debe reemplazarse;
+    // DESISTIDO es histórico. Solo pedimos sustentatorio de quienes participan.
     const docsSustentatorios = tesis.documentos.filter((d) => d.tipo === 'DOCUMENTO_SUSTENTATORIO')
-    const autoresActivos = tesis.autores.filter(a => a.estado !== 'DESISTIDO')
+    const autoresActivos = tesis.autores.filter(a => a.estado === 'ACEPTADO')
     for (const autor of autoresActivos) {
       const tieneDoc = docsSustentatorios.some((d) => d.uploadedById === autor.userId)
       const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno}`

@@ -43,6 +43,10 @@ export async function POST(
             studentCareer: { include: { facultad: { select: { id: true, nombre: true } } } },
           },
         },
+        asesores: {
+          where: { estado: 'ACEPTADO' },
+          select: { userId: true },
+        },
       },
     })
     if (!tesis) return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
@@ -143,6 +147,32 @@ export async function POST(
         titulo: 'Nueva solicitud de desistimiento',
         mensaje: `${nombre} solicitó desistir de la tesis "${tesis.titulo}".`,
         enlace: `/mesa-partes/desistimientos/${result.id}`,
+      })
+    }
+
+    // Notificar al coautor ACEPTADO (si existe): está afectado por esta solicitud
+    const coautorAceptado = tesis.autores.find(
+      a => a.user.id !== user.id && a.estado === 'ACEPTADO',
+    )
+    if (coautorAceptado) {
+      await crearNotificacion({
+        userId: coautorAceptado.user.id,
+        tipo: 'COAUTOR_SOLICITO_DESISTIMIENTO',
+        titulo: 'Tu coautor solicitó desistir',
+        mensaje: `${nombre} solicitó desistir de la tesis "${tesis.titulo}". Si mesa de partes aprueba, tú continuarás como autor principal.`,
+        enlace: `/mis-tesis/${id}`,
+      })
+    }
+
+    // Notificar a asesores ACEPTADOs: también están afectados
+    const asesorIds = tesis.asesores.map(a => a.userId)
+    if (asesorIds.length > 0) {
+      await crearNotificacion({
+        userId: asesorIds,
+        tipo: 'TESISTA_SOLICITO_DESISTIMIENTO',
+        titulo: 'Tesista solicitó desistimiento',
+        mensaje: `${nombre} solicitó desistir de la tesis "${tesis.titulo}" que asesoras. Mesa de partes revisará la solicitud.`,
+        enlace: `/mis-asesorias`,
       })
     }
 

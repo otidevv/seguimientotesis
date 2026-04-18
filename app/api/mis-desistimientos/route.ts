@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         estadoSolicitud: d.estadoSolicitud,
         motivoCategoria: d.motivoCategoria,
         motivoDescripcion: d.motivoDescripcion,
+        motivoRechazoMesaPartes: d.motivoRechazoMesaPartes,
         solicitadoAt: d.solicitadoAt,
         aprobadoAt: d.aprobadoAt,
         teniaCoautor: d.teniaCoautor,
