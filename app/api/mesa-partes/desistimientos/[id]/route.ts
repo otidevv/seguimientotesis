@@ -31,8 +31,8 @@ export async function GET(
               include: { user: { select: { id: true, nombres: true, apellidoPaterno: true } } },
             },
             documentos: {
-              where: { tipo: { in: ['RESOLUCION_JURADO', 'RESOLUCION_APROBACION'] }, esVersionActual: true },
-              orderBy: { createdAt: 'desc' },
+              where: { tipo: { in: ['RESOLUCION_JURADO', 'RESOLUCION_APROBACION'] } },
+              orderBy: [{ tipo: 'asc' }, { version: 'asc' }],
             },
           },
         },
@@ -80,8 +80,20 @@ export async function GET(
           nombre: `${a.user.nombres} ${a.user.apellidoPaterno}`,
           tipo: a.tipo,
         })),
-        resolucionesVigentes: w.thesis.documentos.map(d => ({
-          id: d.id, tipo: d.tipo, nombre: d.nombre, version: d.version, createdAt: d.createdAt,
+        resolucionesVigentes: w.thesis.documentos
+          .filter(d => d.esVersionActual)
+          .map(d => ({
+            id: d.id, tipo: d.tipo, nombre: d.nombre, version: d.version, createdAt: d.createdAt,
+          })),
+        cadenaResoluciones: w.thesis.documentos.map(d => ({
+          id: d.id,
+          tipo: d.tipo,
+          nombre: d.nombre,
+          version: d.version,
+          esVersionActual: d.esVersionActual,
+          esModificatoria: d.esModificatoria,
+          reemplazaDocumentoId: d.reemplazaDocumentoId,
+          createdAt: d.createdAt,
         })),
       },
       resolucionModificatoria: w.resolucionDocumento ? {

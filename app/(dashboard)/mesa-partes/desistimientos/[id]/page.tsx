@@ -6,11 +6,23 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, FileText, Loader2 } from 'lucide-react'
+import { ArrowLeft, FileText, Loader2, ArrowRight } from 'lucide-react'
 import { PanelAprobacionDesistimiento } from '@/components/desistimiento/panel-aprobacion'
+import { DesistimientoTimeline } from '@/components/desistimiento/timeline'
 import { ESTADO_SOLICITUD_CONFIG, MOTIVO_COLOR } from '@/components/desistimiento/constants'
 import { MOTIVO_LABEL } from '@/lib/constants/motivos-desistimiento'
 import { cn } from '@/lib/utils'
+
+interface CadenaDoc {
+  id: string
+  tipo: string
+  nombre: string
+  version: number
+  esVersionActual: boolean
+  esModificatoria: boolean
+  reemplazaDocumentoId: string | null
+  createdAt: string
+}
 
 interface Detalle {
   id: string; estadoSolicitud: keyof typeof ESTADO_SOLICITUD_CONFIG;
@@ -24,8 +36,14 @@ interface Detalle {
     coautoresActivos: Array<{ id: string; nombre: string; codigo: string }>;
     asesores: Array<{ nombre: string; tipo: string }>;
     resolucionesVigentes: Array<{ id: string; tipo: string; nombre: string; version: number; createdAt: string }>;
+    cadenaResoluciones: CadenaDoc[];
   };
   resolucionModificatoria: { id: string; nombre: string } | null;
+}
+
+const TIPO_RESOLUCION_LABEL: Record<string, string> = {
+  RESOLUCION_JURADO: 'Resolución de conformación de jurado',
+  RESOLUCION_APROBACION: 'Resolución de aprobación de proyecto',
 }
 
 export default function DesistimientoDetallePage() {
@@ -66,6 +84,16 @@ export default function DesistimientoDetallePage() {
           </div>
         </div>
 
+        {/* Timeline visual del flujo */}
+        <DesistimientoTimeline
+          estadoSolicitud={data.estadoSolicitud}
+          solicitadoAt={data.solicitadoAt}
+          aprobadoAt={data.aprobadoAt}
+          aprobadoPor={data.aprobadoPor}
+          motivoRechazo={data.motivoRechazoMesaPartes}
+          solicitanteNombre={data.estudiante.nombreCompleto}
+        />
+
         <Card>
           <CardHeader><CardTitle>Estudiante que solicita desistimiento</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 text-sm">
@@ -98,19 +126,61 @@ export default function DesistimientoDetallePage() {
           </Card>
         )}
 
-        {data.tesis.resolucionesVigentes.length > 0 && (
+        {data.tesis.cadenaResoluciones.length > 0 && (
           <Card>
-            <CardHeader><CardTitle>Resoluciones vigentes ({data.tesis.resolucionesVigentes.length})</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
-              {data.tesis.resolucionesVigentes.map(r => (
-                <div key={r.id} className="flex items-center gap-2 text-sm">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  <span>{r.tipo}</span>
-                  <Badge variant="outline">v{r.version}</Badge>
-                  <span className="text-muted-foreground truncate">{r.nombre}</span>
-                </div>
-              ))}
-              {data.requiereModificatoria && (
+            <CardHeader>
+              <CardTitle>
+                {data.estadoSolicitud === 'APROBADO' ? 'Cadena de resoluciones' : 'Resoluciones vigentes'}
+                <span className="text-muted-foreground font-normal text-sm ml-2">
+                  ({data.tesis.resolucionesVigentes.length} vigente{data.tesis.resolucionesVigentes.length === 1 ? '' : 's'})
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(['RESOLUCION_JURADO', 'RESOLUCION_APROBACION'] as const).map(tipo => {
+                const docsDeEsteTipo = data.tesis.cadenaResoluciones
+                  .filter(d => d.tipo === tipo)
+                  .sort((a, b) => a.version - b.version)
+                if (docsDeEsteTipo.length === 0) return null
+                return (
+                  <div key={tipo} className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {TIPO_RESOLUCION_LABEL[tipo]}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {docsDeEsteTipo.map((d, idx) => (
+                        <div key={d.id} className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg border px-2.5 py-1.5',
+                              d.esVersionActual
+                                ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30'
+                                : 'border-muted bg-muted/30 opacity-70',
+                            )}
+                          >
+                            <FileText className={cn('w-3.5 h-3.5', d.esVersionActual ? 'text-emerald-600' : 'text-muted-foreground')} />
+                            <span className="text-xs font-medium">v{d.version}</span>
+                            {d.esModificatoria && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-amber-400 text-amber-700">
+                                Modificatoria
+                              </Badge>
+                            )}
+                            {d.esVersionActual && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-emerald-400 text-emerald-700">
+                                Vigente
+                              </Badge>
+                            )}
+                          </div>
+                          {idx < docsDeEsteTipo.length - 1 && (
+                            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+              {data.estadoSolicitud === 'PENDIENTE' && data.requiereModificatoria && (
                 <p className="text-xs text-amber-700 mt-2">Al aprobar, deberás subir las modificatorias correspondientes.</p>
               )}
             </CardContent>
