@@ -49,6 +49,18 @@ export async function GET(
     if (!esMesaPartes && !esPropioTesista) {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
     }
+    // Si es mesa-partes (no tesista propio) y tiene scope de facultad, enforce
+    if (esMesaPartes && !esPropioTesista) {
+      const esAdmin = user.roles?.some(
+        r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+      )
+      const rolMesaPartes = !esAdmin ? user.roles?.find(
+        r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+      ) : null
+      if (rolMesaPartes && w.facultadIdSnapshot !== rolMesaPartes.contextId) {
+        return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+      }
+    }
 
     if (w.estadoSolicitud !== 'APROBADO') {
       return NextResponse.json(

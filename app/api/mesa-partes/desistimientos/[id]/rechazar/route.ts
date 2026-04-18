@@ -21,6 +21,14 @@ export async function POST(
     const puede = await checkPermission(user.id, 'mesa-partes', 'edit')
     if (!puede) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
+    // Scope de facultad
+    const esAdmin = user.roles?.some(
+      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolMesaPartes = !esAdmin ? user.roles?.find(
+      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+
     const parsed = Body.safeParse(await request.json())
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 })
@@ -40,6 +48,9 @@ export async function POST(
       },
     })
     if (!w) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+    if (rolMesaPartes && w.facultadIdSnapshot !== rolMesaPartes.contextId) {
+      return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+    }
     if (w.estadoSolicitud !== 'PENDIENTE') {
       return NextResponse.json({ error: `Estado actual: ${w.estadoSolicitud}` }, { status: 400 })
     }

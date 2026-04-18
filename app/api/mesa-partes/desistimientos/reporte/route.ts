@@ -12,11 +12,20 @@ export async function GET(request: NextRequest) {
     const puede = await checkPermission(user.id, 'mesa-partes', 'view')
     if (!puede) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
+    // Scope de facultad: si tiene MESA_PARTES con contextId, se enforza.
+    const esAdmin = user.roles?.some(
+      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolMesaPartes = !esAdmin ? user.roles?.find(
+      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+
     const { searchParams } = new URL(request.url)
     const formato = searchParams.get('formato') ?? 'json'
     const desde = searchParams.get('desde')
     const hasta = searchParams.get('hasta')
-    const facultadId = searchParams.get('facultadId')
+    const facultadIdParam = searchParams.get('facultadId')
+    const facultadId = rolMesaPartes?.contextId ?? facultadIdParam
     const carrera = searchParams.get('carrera')
     const motivos = searchParams.getAll('motivo')
     const estadosTesis = searchParams.getAll('estadoTesis')

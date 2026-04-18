@@ -11,9 +11,21 @@ export async function GET(request: NextRequest) {
     const puede = await checkPermission(user.id, 'mesa-partes', 'view')
     if (!puede) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
+    // Determinar scope de facultad: si el usuario tiene rol MESA_PARTES con
+    // contextId (facultad asignada) y no es ADMIN, su facultad se enforza;
+    // no puede manipular el query param para ver otras facultades.
+    const esAdmin = user.roles?.some(
+      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolMesaPartes = !esAdmin ? user.roles?.find(
+      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+
     const { searchParams } = new URL(request.url)
     const estado = searchParams.get('estado') ?? 'PENDIENTE'
-    const facultadId = searchParams.get('facultadId') ?? undefined
+    const facultadIdParam = searchParams.get('facultadId') ?? undefined
+    // Si el usuario tiene scope de facultad, se aplica siempre (ignora el param).
+    const facultadId = rolMesaPartes?.contextId ?? facultadIdParam
     const page = parseInt(searchParams.get('page') ?? '1', 10)
     const pageSize = Math.min(parseInt(searchParams.get('pageSize') ?? '20', 10), 100)
 

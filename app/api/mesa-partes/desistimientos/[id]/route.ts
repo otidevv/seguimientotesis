@@ -15,6 +15,15 @@ export async function GET(
     const puede = await checkPermission(user.id, 'mesa-partes', 'view')
     if (!puede) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
+    // Scope de facultad: si el user es MESA_PARTES con contextId, solo
+    // accede a desistimientos de su facultad asignada.
+    const esAdmin = user.roles?.some(
+      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolMesaPartes = !esAdmin ? user.roles?.find(
+      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+
     const w = await prisma.thesisWithdrawal.findUnique({
       where: { id },
       include: {
@@ -42,6 +51,11 @@ export async function GET(
       },
     })
     if (!w) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+
+    // Enforce facultad scope
+    if (rolMesaPartes && w.facultadIdSnapshot !== rolMesaPartes.contextId) {
+      return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+    }
 
     const coautoresActivos = w.thesis.autores.filter(a => a.user.id !== w.userId && a.estado === 'ACEPTADO')
 
