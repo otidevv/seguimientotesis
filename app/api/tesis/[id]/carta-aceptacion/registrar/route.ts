@@ -191,7 +191,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const facultadNombre = facultad?.nombre || 'Facultad'
 
     // Notificación in-app a cada autor
-    const autorIds = tesis.autores.map(a => a.user.id)
+    const autorIds = tesis.autores.filter(a => a.estado !== 'DESISTIDO').map(a => a.user.id)
     if (autorIds.length > 0) {
       try {
         await crearNotificacion({
@@ -206,8 +206,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Email a cada autor
-    for (const autor of tesis.autores) {
+    // Email a cada autor activo (excluye desistidos)
+    for (const autor of tesis.autores.filter(a => a.estado !== 'DESISTIDO')) {
       if (autor.user?.email) {
         try {
           const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()

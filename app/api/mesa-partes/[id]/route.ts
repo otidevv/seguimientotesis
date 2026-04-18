@@ -449,9 +449,10 @@ export async function PUT(
           const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
           const fechaLimiteStr = fechaLimite.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
-          const nombresAutores = tesisCompleta.autores.map(a =>
-            `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno || ''}`.trim()
-          ).join(', ')
+          const nombresAutores = tesisCompleta.autores
+            .filter(a => a.estado !== 'DESISTIDO')
+            .map(a => `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno || ''}`.trim())
+            .join(', ')
 
           const TIPO_JURADO_NOMBRE: Record<string, string> = {
             PRESIDENTE: 'Presidente',
@@ -471,7 +472,7 @@ export async function PUT(
 
           // Notificación en sistema a tesistas
           await crearNotificacion({
-            userId: tesisCompleta.autores.map(a => a.user.id),
+            userId: tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO').map(a => a.user.id),
             tipo: 'JURADOS_CONFIRMADOS',
             titulo: 'Jurados asignados - Evaluacion iniciada',
             mensaje: `Los jurados de tu proyecto "${tesisCompleta.titulo}" han sido confirmados. Fecha limite de evaluacion: ${fechaLimiteStr}`,
@@ -506,7 +507,7 @@ export async function PUT(
           }
 
           // Email a cada tesista
-          for (const autor of tesisCompleta.autores) {
+          for (const autor of tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO')) {
             if (!autor.user.email) continue
             try {
               const nombreTesista = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -813,7 +814,7 @@ export async function PUT(
             }
 
             // Notificación en sistema a tesistas
-            const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+            const idsAutores = tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO').map(a => a.user.id)
             if (idsAutores.length > 0) {
               await crearNotificacion({
                 userId: idsAutores,
@@ -852,7 +853,7 @@ export async function PUT(
             }
 
             // Email a cada tesista
-            for (const autor of tesisCompleta.autores) {
+            for (const autor of tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO')) {
               if (!autor.user.email) continue
               try {
                 const nombreTesista = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -923,7 +924,7 @@ export async function PUT(
           })
 
           if (tesisCompleta) {
-            const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+            const idsAutores = tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO').map(a => a.user.id)
             if (idsAutores.length > 0) {
               await crearNotificacion({
                 userId: idsAutores,
@@ -940,7 +941,7 @@ export async function PUT(
             const facultadCodigo = primerAutor?.studentCareer?.facultad?.codigo || 'FI'
             const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
 
-            for (const autor of tesisCompleta.autores) {
+            for (const autor of tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO')) {
               if (!autor.user.email) continue
               try {
                 const nombreCompleto = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -1057,8 +1058,8 @@ export async function PUT(
       })
       if (tesisCompleta) {
         const destinatarios = [
-          ...tesisCompleta.autores.map(a => a.user.id),
-          ...tesisCompleta.asesores.map(a => a.user.id),
+          ...tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO').map(a => a.user.id),
+          ...tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id),
         ]
         const tipoNotifMap: Record<string, string> = {
           APROBAR: 'TESIS_APROBADA',
@@ -1077,7 +1078,7 @@ export async function PUT(
         }
 
         // Notificación en sistema a autores (enlace a /mis-tesis/)
-        const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+        const idsAutores = tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO').map(a => a.user.id)
         if (idsAutores.length > 0) {
           await crearNotificacion({
             userId: idsAutores,
@@ -1089,7 +1090,7 @@ export async function PUT(
         }
 
         // Notificación en sistema a asesores (enlace a /mis-asesorias/)
-        const idsAsesores = tesisCompleta.asesores.map(a => a.user.id)
+        const idsAsesores = tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id)
         if (idsAsesores.length > 0) {
           await crearNotificacion({
             userId: idsAsesores,
@@ -1103,7 +1104,7 @@ export async function PUT(
         // Si es OBSERVAR, notificar específicamente al asesor/coasesor si su carta fue observada
         if (accion === 'OBSERVAR' && comentario) {
           const comentarioLower = comentario.toLowerCase()
-          for (const asesor of tesisCompleta.asesores) {
+          for (const asesor of tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO')) {
             const esPrincipal = asesor.tipo === 'PRINCIPAL'
             const tipoLabel = esPrincipal ? 'Asesor' : 'Coasesor'
             const cartaLabel = esPrincipal ? 'carta de aceptación del asesor' : 'carta de aceptación del coasesor'
@@ -1126,7 +1127,7 @@ export async function PUT(
         const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
 
         // Emails a autores (con URL /mis-tesis/)
-        for (const autor of tesisCompleta.autores) {
+        for (const autor of tesisCompleta.autores.filter(a => a.estado !== 'DESISTIDO')) {
           if (!autor.user.email) continue
           try {
             const nombreCompleto = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -1152,7 +1153,7 @@ export async function PUT(
         }
 
         // Emails a asesores (con URL /mis-asesorias/)
-        for (const asesor of tesisCompleta.asesores) {
+        for (const asesor of tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO')) {
           if (!asesor.user.email) continue
           try {
             const nombreCompleto = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()

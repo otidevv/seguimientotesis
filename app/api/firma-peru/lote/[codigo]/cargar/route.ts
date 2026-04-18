@@ -285,8 +285,8 @@ export async function POST(
               });
             }
 
-            // Email a cada autor
-            for (const autor of tesisConAutores.autores) {
+            // Email a cada autor activo (excluye desistidos)
+            for (const autor of tesisConAutores.autores.filter(a => a.estado !== 'DESISTIDO')) {
               if (autor.user?.email) {
                 const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim();
                 const tesisUrl = `${appUrl}/mis-tesis/${loteExtendido.tesisId}`;

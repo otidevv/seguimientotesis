@@ -190,21 +190,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         : 'Falta subir el voucher de pago de S/. 30.00 (código 277)',
     })
 
-    // 8. Documento sustentatorio (cada tesista debe subir el suyo)
+    // 8. Documento sustentatorio (cada tesista activo debe subir el suyo)
     const docsSustentatorios = tesis.documentos.filter((d) => d.tipo === 'DOCUMENTO_SUSTENTATORIO')
-    for (const autor of tesis.autores) {
+    const autoresActivos = tesis.autores.filter(a => a.estado !== 'DESISTIDO')
+    for (const autor of autoresActivos) {
       const tieneDoc = docsSustentatorios.some((d) => d.uploadedById === autor.userId)
       const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno}`
       requisitos.push({
-        nombre: tesis.autores.length > 1
+        nombre: autoresActivos.length > 1
           ? `Documento Sustentatorio - ${nombreAutor}`
           : 'Documento Sustentatorio',
         cumplido: tieneDoc,
         detalle: tieneDoc
-          ? tesis.autores.length > 1
+          ? autoresActivos.length > 1
             ? `Documento sustentatorio de ${nombreAutor} subido`
             : 'Documento sustentatorio subido'
-          : tesis.autores.length > 1
+          : autoresActivos.length > 1
             ? `Falta documento sustentatorio de ${nombreAutor} (ficha de matrícula, inscripción SUNEDU o constancia de egresado)`
             : 'Falta subir documento sustentatorio (ficha de matrícula, inscripción SUNEDU o constancia de egresado)',
       })
@@ -279,7 +280,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const facultadNombre = facultad?.nombre || 'Facultad'
 
     // Email a cada autor (tesistas)
-    for (const autor of tesis.autores) {
+    for (const autor of tesis.autores.filter(a => a.estado !== 'DESISTIDO')) {
       if (autor.user?.email) {
         try {
           const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -304,7 +305,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Email a cada asesor
-    for (const asesor of tesis.asesores) {
+    for (const asesor of tesis.asesores.filter(a => a.estado === 'ACEPTADO')) {
       if (asesor.user?.email) {
         try {
           const nombreAsesor = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()
