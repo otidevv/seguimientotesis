@@ -21,7 +21,11 @@ export async function GET(request: NextRequest) {
     if (estado !== 'TODOS') where.estadoSolicitud = estado as EstadoSolicitudDesistimiento
     if (facultadId) where.facultadIdSnapshot = facultadId
 
-    const [total, items] = await Promise.all([
+    // whereContadores: mismo scope (facultad) pero SIN filtro por estado
+    const whereContadores: Prisma.ThesisWithdrawalWhereInput = {}
+    if (facultadId) whereContadores.facultadIdSnapshot = facultadId
+
+    const [total, items, gruposEstado] = await Promise.all([
       prisma.thesisWithdrawal.count({ where }),
       prisma.thesisWithdrawal.findMany({
         where,
@@ -34,10 +38,24 @@ export async function GET(request: NextRequest) {
           facultadSnapshot: { select: { nombre: true, codigo: true } },
         },
       }),
+      prisma.thesisWithdrawal.groupBy({
+        by: ['estadoSolicitud'],
+        where: whereContadores,
+        _count: true,
+      }),
     ])
+
+    const contadores: Record<string, number> = {
+      PENDIENTE: 0, APROBADO: 0, RECHAZADO: 0, CANCELADO: 0, TOTAL: 0,
+    }
+    for (const g of gruposEstado) {
+      contadores[g.estadoSolicitud] = g._count
+      contadores.TOTAL += g._count
+    }
 
     return NextResponse.json({
       total, page, pageSize,
+      contadores,
       items: items.map(w => ({
         id: w.id,
         thesisId: w.thesisId,
