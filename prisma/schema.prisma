@@ -731,7 +731,7 @@ model ThesisDocument {
   // Relaciones
   thesis          Thesis              @relation(fields: [thesisId], references: [id], onDelete: Cascade)
   uploadedBy      User                @relation(fields: [uploadedById], references: [id])
-  reemplazaDocumento     ThesisDocument?  @relation("DocumentoModificatorias", fields: [reemplazaDocumentoId], references: [id])
+  reemplazaDocumento     ThesisDocument?  @relation("DocumentoModificatorias", fields: [reemplazaDocumentoId], references: [id], onDelete: SetNull)
   modificatorias         ThesisDocument[] @relation("DocumentoModificatorias")
   desistimientosAsociados ThesisWithdrawal[] @relation("ResolucionDesistimiento")
 
@@ -790,12 +790,12 @@ model ThesisWithdrawal {
   updatedAt             DateTime   @updatedAt @map("updated_at")
 
   thesis                Thesis          @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  thesisAuthor          ThesisAuthor    @relation(fields: [thesisAuthorId], references: [id])
-  user                  User            @relation("DesistimientosUsuario", fields: [userId], references: [id])
-  aprobadoPor           User?           @relation("DesistimientosAprobados", fields: [aprobadoPorId], references: [id])
-  resolucionDocumento   ThesisDocument? @relation("ResolucionDesistimiento", fields: [resolucionDocumentoId], references: [id])
-  studentCareer         StudentCareer   @relation(fields: [studentCareerId], references: [id])
-  facultadSnapshot      Faculty         @relation("FacultadDesistimientos", fields: [facultadIdSnapshot], references: [id])
+  thesisAuthor          ThesisAuthor    @relation(fields: [thesisAuthorId], references: [id], onDelete: Restrict)
+  user                  User            @relation("DesistimientosUsuario", fields: [userId], references: [id], onDelete: Restrict)
+  aprobadoPor           User?           @relation("DesistimientosAprobados", fields: [aprobadoPorId], references: [id], onDelete: SetNull)
+  resolucionDocumento   ThesisDocument? @relation("ResolucionDesistimiento", fields: [resolucionDocumentoId], references: [id], onDelete: SetNull)
+  studentCareer         StudentCareer   @relation(fields: [studentCareerId], references: [id], onDelete: Restrict)
+  facultadSnapshot      Faculty         @relation("FacultadDesistimientos", fields: [facultadIdSnapshot], references: [id], onDelete: Restrict)
 
   @@unique([thesisAuthorId])
   @@index([userId])
@@ -803,6 +803,7 @@ model ThesisWithdrawal {
   @@index([estadoSolicitud])
   @@index([motivoCategoria])
   @@index([createdAt])
+  @@index([aprobadoAt])
   @@index([facultadIdSnapshot])
   @@map("thesis_withdrawals")
 }

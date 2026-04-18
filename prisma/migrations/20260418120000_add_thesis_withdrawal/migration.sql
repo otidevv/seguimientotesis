@@ -62,17 +62,26 @@ CREATE INDEX IF NOT EXISTS "thesis_withdrawals_created_at_idx" ON "thesis_withdr
 CREATE INDEX IF NOT EXISTS "thesis_withdrawals_facultad_id_snapshot_idx" ON "thesis_withdrawals"("facultad_id_snapshot");
 
 ALTER TABLE "thesis_withdrawals"
+  DROP CONSTRAINT IF EXISTS "thesis_withdrawals_thesis_id_fkey",
+  DROP CONSTRAINT IF EXISTS "thesis_withdrawals_thesis_author_id_fkey",
+  DROP CONSTRAINT IF EXISTS "thesis_withdrawals_user_id_fkey",
+  DROP CONSTRAINT IF EXISTS "thesis_withdrawals_aprobado_por_id_fkey",
+  DROP CONSTRAINT IF EXISTS "thesis_withdrawals_resolucion_documento_id_fkey",
+  DROP CONSTRAINT IF EXISTS "thesis_withdrawals_student_career_id_fkey",
+  DROP CONSTRAINT IF EXISTS "thesis_withdrawals_facultad_id_snapshot_fkey",
   ADD CONSTRAINT "thesis_withdrawals_thesis_id_fkey"
     FOREIGN KEY ("thesis_id") REFERENCES "thesis"("id") ON DELETE CASCADE,
   ADD CONSTRAINT "thesis_withdrawals_thesis_author_id_fkey"
-    FOREIGN KEY ("thesis_author_id") REFERENCES "thesis_authors"("id"),
+    FOREIGN KEY ("thesis_author_id") REFERENCES "thesis_authors"("id") ON DELETE RESTRICT,
   ADD CONSTRAINT "thesis_withdrawals_user_id_fkey"
-    FOREIGN KEY ("user_id") REFERENCES "users"("id"),
+    FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT,
   ADD CONSTRAINT "thesis_withdrawals_aprobado_por_id_fkey"
-    FOREIGN KEY ("aprobado_por_id") REFERENCES "users"("id"),
+    FOREIGN KEY ("aprobado_por_id") REFERENCES "users"("id") ON DELETE SET NULL,
   ADD CONSTRAINT "thesis_withdrawals_resolucion_documento_id_fkey"
-    FOREIGN KEY ("resolucion_documento_id") REFERENCES "thesis_documents"("id"),
+    FOREIGN KEY ("resolucion_documento_id") REFERENCES "thesis_documents"("id") ON DELETE SET NULL,
   ADD CONSTRAINT "thesis_withdrawals_student_career_id_fkey"
-    FOREIGN KEY ("student_career_id") REFERENCES "student_careers"("id"),
+    FOREIGN KEY ("student_career_id") REFERENCES "student_careers"("id") ON DELETE RESTRICT,
   ADD CONSTRAINT "thesis_withdrawals_facultad_id_snapshot_fkey"
-    FOREIGN KEY ("facultad_id_snapshot") REFERENCES "faculties"("id");
+    FOREIGN KEY ("facultad_id_snapshot") REFERENCES "faculties"("id") ON DELETE RESTRICT;
+
+CREATE INDEX IF NOT EXISTS "thesis_withdrawals_aprobado_at_idx" ON "thesis_withdrawals"("aprobado_at");
