@@ -13,8 +13,14 @@ import { MOTIVO_LABEL } from '@/lib/constants/motivos-desistimiento'
 import {
   ArrowRight, ArrowUpRight, BarChart3, Ban, CheckCircle2, ChevronLeft,
   ChevronRight, Clock, Inbox, RefreshCw, Search, Users, XCircle,
+  ArrowDownUp, ArrowUp, ArrowDown,
 } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+
+const FILTERS_STORAGE_KEY = 'desistimientos-filters-v1'
+type SortKey = 'solicitadoAt' | 'estudiante' | 'motivoCategoria' | 'estadoTesisAlSolicitar'
+type SortDir = 'asc' | 'desc'
 
 type EstadoSolicitud = keyof typeof ESTADO_SOLICITUD_CONFIG
 
@@ -81,15 +87,70 @@ function formatoFecha(d: string): string {
   })
 }
 
+function filtrarPorQuery(busqueda: string) {
+  const q = busqueda.trim().toLowerCase()
+  return (i: Item) =>
+    i.estudiante.toLowerCase().includes(q) ||
+    i.tituloTesis.toLowerCase().includes(q) ||
+    i.documento.toLowerCase().includes(q) ||
+    i.carrera.toLowerCase().includes(q)
+}
+
+function obtenerValor(i: Item, key: SortKey): string | number {
+  switch (key) {
+    case 'solicitadoAt': return new Date(i.solicitadoAt).getTime()
+    case 'estudiante': return i.estudiante.toLowerCase()
+    case 'motivoCategoria': return i.motivoCategoria
+    case 'estadoTesisAlSolicitar': return i.estadoTesisAlSolicitar
+  }
+}
+
+function tooltipEstado(estado: EstadoSolicitud): string {
+  switch (estado) {
+    case 'PENDIENTE':  return 'El tesista solicitó desistir y la solicitud está a la espera de revisión de mesa de partes.'
+    case 'APROBADO':   return 'Mesa de partes aprobó el desistimiento. Se aplicaron los cambios en la tesis.'
+    case 'RECHAZADO':  return 'Mesa de partes rechazó la solicitud. La tesis continúa en su estado previo.'
+    case 'CANCELADO':  return 'El propio tesista canceló su solicitud antes de ser resuelta.'
+  }
+}
+
 export function ListaDesistimientos() {
-  const [estado, setEstado] = useState<FiltroEstado>('PENDIENTE')
+  // Restaurar filtros desde localStorage (si existen)
+  const initial = (() => {
+    if (typeof window === 'undefined') return { estado: 'PENDIENTE' as FiltroEstado, busqueda: '', sortKey: 'solicitadoAt' as SortKey, sortDir: 'desc' as SortDir }
+    try {
+      const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY)
+      if (!raw) return { estado: 'PENDIENTE' as FiltroEstado, busqueda: '', sortKey: 'solicitadoAt' as SortKey, sortDir: 'desc' as SortDir }
+      const parsed = JSON.parse(raw)
+      return {
+        estado: (parsed.estado ?? 'PENDIENTE') as FiltroEstado,
+        busqueda: typeof parsed.busqueda === 'string' ? parsed.busqueda : '',
+        sortKey: (parsed.sortKey ?? 'solicitadoAt') as SortKey,
+        sortDir: (parsed.sortDir ?? 'desc') as SortDir,
+      }
+    } catch {
+      return { estado: 'PENDIENTE' as FiltroEstado, busqueda: '', sortKey: 'solicitadoAt' as SortKey, sortDir: 'desc' as SortDir }
+    }
+  })()
+
+  const [estado, setEstado] = useState<FiltroEstado>(initial.estado)
   const [items, setItems] = useState<Item[]>([])
   const [contadores, setContadores] = useState<Contadores>({ PENDIENTE: 0, APROBADO: 0, RECHAZADO: 0, CANCELADO: 0, TOTAL: 0 })
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [busqueda, setBusqueda] = useState('')
+  const [busqueda, setBusqueda] = useState(initial.busqueda)
+  const [sortKey, setSortKey] = useState<SortKey>(initial.sortKey)
+  const [sortDir, setSortDir] = useState<SortDir>(initial.sortDir)
+
+  // Persistir filtros y ordenamiento
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({ estado, busqueda, sortKey, sortDir }))
+    } catch { /* silencioso */ }
+  }, [estado, busqueda, sortKey, sortDir])
 
   const cargar = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -115,16 +176,29 @@ export function ListaDesistimientos() {
     return () => ctrl.abort()
   }, [cargar])
 
+  // Handler de ordenamiento: si la misma columna, invierte dir; si es otra, asigna default.
+  const toggleSort = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortDir(key === 'solicitadoAt' ? 'desc' : 'asc')
+    }
+  }, [sortKey])
+
   const itemsFiltrados = useMemo(() => {
-    if (!busqueda.trim()) return items
-    const q = busqueda.trim().toLowerCase()
-    return items.filter(i =>
-      i.estudiante.toLowerCase().includes(q) ||
-      i.tituloTesis.toLowerCase().includes(q) ||
-      i.documento.toLowerCase().includes(q) ||
-      i.carrera.toLowerCase().includes(q),
-    )
-  }, [items, busqueda])
+    const filtrados = busqueda.trim()
+      ? items.filter(filtrarPorQuery(busqueda))
+      : items
+    const ordenados = [...filtrados].sort((a, b) => {
+      const va = obtenerValor(a, sortKey)
+      const vb = obtenerValor(b, sortKey)
+      if (va < vb) return sortDir === 'asc' ? -1 : 1
+      if (va > vb) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+    return ordenados
+  }, [items, busqueda, sortKey, sortDir])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -240,13 +314,29 @@ export function ListaDesistimientos() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="text-xs w-[140px]">Fecha / Antigüedad</TableHead>
-                  <TableHead className="text-xs">Estudiante</TableHead>
+                  <TableHead className="text-xs w-[140px]">
+                    <SortButton col="solicitadoAt" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort}>
+                      Fecha / Antigüedad
+                    </SortButton>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <SortButton col="estudiante" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort}>
+                      Estudiante
+                    </SortButton>
+                  </TableHead>
                   <TableHead className="text-xs max-w-[260px]">Tesis</TableHead>
-                  <TableHead className="text-xs">Motivo</TableHead>
-                  <TableHead className="text-xs">Fase / Coautor</TableHead>
+                  <TableHead className="text-xs">
+                    <SortButton col="motivoCategoria" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort}>
+                      Motivo
+                    </SortButton>
+                  </TableHead>
+                  <TableHead className="text-xs">
+                    <SortButton col="estadoTesisAlSolicitar" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort}>
+                      Fase / Coautor
+                    </SortButton>
+                  </TableHead>
                   <TableHead className="text-xs">Estado</TableHead>
-                  <TableHead className="text-right w-[80px]"></TableHead>
+                  <TableHead className="text-right w-[80px]"><span className="sr-only">Acciones</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -297,9 +387,18 @@ export function ListaDesistimientos() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={cn(cfg.bgColor, cfg.color, 'gap-1 text-[11px] font-medium border-transparent')}>
-                          {cfg.icon}{cfg.label}
-                        </Badge>
+                        <TooltipProvider delayDuration={300}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge className={cn(cfg.bgColor, cfg.color, 'gap-1 text-[11px] font-medium border-transparent cursor-help')}>
+                                {cfg.icon}{cfg.label}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs max-w-xs">{tooltipEstado(i.estadoSolicitud)}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -383,12 +482,12 @@ export function ListaDesistimientos() {
                 <span className="font-medium text-foreground">{total}</span>
               </p>
               <div className="flex items-center gap-1">
-                <Button variant="outline" size="sm" className="h-8 px-2.5" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                  <ChevronLeft className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="h-8 px-2.5" disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label="Página anterior">
+                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                 </Button>
                 <span className="text-xs text-muted-foreground px-2 tabular-nums">{page} / {totalPages}</span>
-                <Button variant="outline" size="sm" className="h-8 px-2.5" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                  <ChevronRight className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="h-8 px-2.5" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} aria-label="Página siguiente">
+                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
                 </Button>
               </div>
             </div>
@@ -423,6 +522,34 @@ function StatCard({
         <p className="text-2xl font-bold leading-none tabular-nums">{value}</p>
         <p className="text-[11px] text-muted-foreground mt-1">{label}</p>
       </div>
+    </button>
+  )
+}
+
+function SortButton({
+  col, sortKey, sortDir, onClick, children,
+}: {
+  col: SortKey
+  sortKey: SortKey
+  sortDir: SortDir
+  onClick: (k: SortKey) => void
+  children: React.ReactNode
+}) {
+  const activo = sortKey === col
+  const Icon = activo ? (sortDir === 'asc' ? ArrowUp : ArrowDown) : ArrowDownUp
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(col)}
+      className={cn(
+        'inline-flex items-center gap-1 transition-colors cursor-pointer',
+        activo ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+      )}
+      aria-label={`Ordenar por ${typeof children === 'string' ? children : col}`}
+      aria-pressed={activo}
+    >
+      {children}
+      <Icon className="w-3 h-3 opacity-70" aria-hidden="true" />
     </button>
   )
 }
