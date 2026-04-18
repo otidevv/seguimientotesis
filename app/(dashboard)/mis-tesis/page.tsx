@@ -23,6 +23,7 @@ import Link from 'next/link'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { ModalSolicitarDesistimiento } from '@/components/desistimiento/modal-solicitar-desistimiento'
+import { MOTIVO_LABEL } from '@/lib/constants/motivos-desistimiento'
 
 interface Autor {
   id: string; tipoParticipante: string; estado: string
@@ -37,6 +38,22 @@ interface Tesis {
   createdAt: string; fechaRegistro: string | null
   autores: Autor[]; asesores: Asesor[]
   facultad: { nombre: string }
+}
+
+interface DesistimientoHistorial {
+  id: string
+  thesisId: string
+  tituloTesis: string
+  estadoTesisActual: string
+  estadoSolicitud: string
+  motivoCategoria: string
+  motivoDescripcion: string
+  solicitadoAt: string
+  aprobadoAt: string | null
+  teniaCoautor: boolean
+  estadoTesisAlSolicitar: string
+  carreraNombre: string
+  facultad: string
 }
 
 const ESTADO_CONFIG: Record<string, { label: string; color: string; dotColor: string; bgColor: string; icon: React.ReactNode; step: number }> = {
@@ -84,6 +101,7 @@ export default function MisTesisPage() {
   // Desistimiento
   const [desistirDialogOpen, setDesistirDialogOpen] = useState(false)
   const [tesisDesistir, setTesisDesistir] = useState<Tesis | null>(null)
+  const [desistidas, setDesistidas] = useState<DesistimientoHistorial[]>([])
 
   const loadTesis = useCallback(async () => {
     try {
@@ -97,9 +115,23 @@ export default function MisTesisPage() {
     }
   }, [])
 
+  const loadDesistidas = useCallback(async () => {
+    try {
+      const result = await api.get<{ data: DesistimientoHistorial[] }>(
+        '/api/mis-desistimientos?estadoSolicitud=APROBADO',
+      )
+      setDesistidas(result.data)
+    } catch {
+      // silencioso: no es crítico para el renderizado de la lista activa
+    }
+  }, [])
+
   useEffect(() => {
-    if (!authLoading && user) loadTesis()
-  }, [authLoading, user, loadTesis])
+    if (!authLoading && user) {
+      loadTesis()
+      loadDesistidas()
+    }
+  }, [authLoading, user, loadTesis, loadDesistidas])
 
   const abrirDesistimiento = (t: Tesis) => {
     setTesisDesistir(t)
@@ -204,7 +236,7 @@ export default function MisTesisPage() {
       )}
 
       {/* Search + filter chips */}
-      {tesis.length > 0 && (
+      {(tesis.length > 0 || desistidas.length > 0) && (
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -216,6 +248,7 @@ export default function MisTesisPage() {
               { key: 'progreso', label: 'En progreso', count: stats.enProgreso },
               { key: 'aprobadas', label: 'Aprobadas', count: stats.aprobadas },
               { key: 'observadas', label: 'Observadas', count: stats.observadas },
+              { key: 'desistidas', label: 'Desistidas', count: desistidas.length },
             ].map((f) => (
               <button
                 key={f.key ?? 'all'}
@@ -224,7 +257,8 @@ export default function MisTesisPage() {
                   'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all cursor-pointer',
                   activeFilter === f.key
                     ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'border bg-card hover:bg-accent text-muted-foreground'
+                    : 'border bg-card hover:bg-accent text-muted-foreground',
+                  f.count === 0 && activeFilter !== f.key && 'opacity-50',
                 )}
               >
                 {f.label}
@@ -244,7 +278,7 @@ export default function MisTesisPage() {
       )}
 
       {/* Empty state */}
-      {tesis.length === 0 && (
+      {tesis.length === 0 && activeFilter !== 'desistidas' && (
         <Card>
           <CardContent className="py-16 text-center">
             <div className="relative inline-block mb-5">
@@ -270,8 +304,71 @@ export default function MisTesisPage() {
         </Card>
       )}
 
+      {/* Pestaña "Desistidas": vista de solo lectura, tesis que el usuario dejó */}
+      {activeFilter === 'desistidas' && (
+        desistidas.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mx-auto mb-3">
+              <Ban className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <h3 className="text-sm font-semibold mb-1">Sin desistimientos registrados</h3>
+            <p className="text-xs text-muted-foreground">No has desistido de ningún proyecto de tesis.</p>
+          </div>
+        ) : (
+          <div className="rounded-xl border overflow-hidden">
+            <div className="p-4 bg-amber-50/50 dark:bg-amber-950/10 border-b">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-800 dark:text-amber-200">
+                  Estos proyectos ya no se encuentran activos para ti. La información no se actualiza — refleja el momento del desistimiento.
+                </p>
+              </div>
+            </div>
+            <div className="divide-y">
+              {desistidas
+                .filter(d => !searchQuery.trim() || d.tituloTesis.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(d => {
+                  const fechaAprob = d.aprobadoAt
+                    ? new Date(d.aprobadoAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Lima' })
+                    : '—'
+                  const tesisContinua = d.estadoTesisActual !== 'DESISTIDA'
+                  return (
+                    <div key={d.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm leading-snug line-clamp-2">{d.tituloTesis}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{d.carreraNombre} · {d.facultad}</p>
+                        </div>
+                        <Badge variant="outline" className="gap-1 text-[11px] border-slate-400 text-slate-600 bg-slate-100 dark:bg-slate-800/40">
+                          <Ban className="w-3 h-3" />Desistida
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-700">
+                          {MOTIVO_LABEL[d.motivoCategoria as keyof typeof MOTIVO_LABEL] ?? d.motivoCategoria}
+                        </Badge>
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />Aprobado {fechaAprob}
+                        </span>
+                        {d.teniaCoautor && (
+                          <span className="text-[11px] text-muted-foreground">
+                            {tesisContinua ? '· Continuó con el coautor' : '· La tesis quedó desistida'}
+                          </span>
+                        )}
+                      </div>
+                      {d.motivoDescripcion && (
+                        <p className="text-xs text-muted-foreground italic line-clamp-2">“{d.motivoDescripcion}”</p>
+                      )}
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        )
+      )}
+
       {/* No search results */}
-      {tesis.length > 0 && filteredTesis.length === 0 && (
+      {tesis.length > 0 && filteredTesis.length === 0 && activeFilter !== 'desistidas' && (
         <div className="py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mx-auto mb-3">
             <Inbox className="w-7 h-7 text-muted-foreground" />
@@ -282,7 +379,7 @@ export default function MisTesisPage() {
       )}
 
       {/* Tabla de tesis */}
-      {filteredTesis.length > 0 && (
+      {filteredTesis.length > 0 && activeFilter !== 'desistidas' && (
         <div className="rounded-xl border overflow-hidden">
           {/* Desktop table */}
           <div className="hidden md:block overflow-x-auto">
