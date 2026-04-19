@@ -141,9 +141,11 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
 
     if (docsObservados.size === 0) return
 
-    // Auto-marcar como OK los docs que NO fueron observados
+    // Auto-marcar como OK los docs que NO fueron observados.
+    // Solo autores ACTIVOS tienen sust_i (consistente con allLabels y checksSustentatorios).
+    const autoresActivosKeys = proyecto.autores.filter((a: any) => a.estado !== 'DESISTIDO')
     const allKeys = ['proyecto', 'carta_asesor', 'carta_coasesor', 'voucher',
-      ...proyecto.autores.map((_: any, i: number) => `sust_${i}`)]
+      ...autoresActivosKeys.map((_: any, i: number) => `sust_${i}`)]
     const allLabels: Record<string, string> = {
       proyecto: 'proyecto de tesis',
       carta_asesor: 'carta de aceptación del asesor',
