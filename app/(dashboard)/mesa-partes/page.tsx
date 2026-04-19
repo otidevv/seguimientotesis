@@ -165,7 +165,7 @@ export default function MesaPartesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Link
           href="/mesa-partes/desistimientos"
-          className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-accent transition-colors"
+          className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-accent transition-colors cursor-pointer"
         >
           <div className="relative w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
             <Ban className="w-6 h-6 text-amber-700" />
@@ -188,7 +188,7 @@ export default function MesaPartesPage() {
 
         <Link
           href="/reportes-mp/desistimientos"
-          className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-accent transition-colors"
+          className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-accent transition-colors cursor-pointer"
         >
           <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
             <BarChart3 className="w-6 h-6 text-blue-700" />
@@ -216,7 +216,7 @@ export default function MesaPartesPage() {
                 key={estado}
                 onClick={() => handleFiltroEstado(estado)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all',
+                  'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all cursor-pointer',
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'border bg-card hover:bg-accent',
