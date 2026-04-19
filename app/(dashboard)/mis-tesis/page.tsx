@@ -56,6 +56,27 @@ interface DesistimientoHistorial {
   facultad: string
 }
 
+interface InvitacionRechazada {
+  id: string
+  tipoInvitacion: 'COAUTOR' | 'ASESOR'
+  estado: string
+  fechaRespuesta: string | null
+  motivoRechazo: string | null
+  createdAt: string
+  tesis: {
+    id: string
+    titulo: string
+    estado: string
+    carreraNombre: string
+    facultad: { nombre: string }
+  }
+  autorPrincipal: {
+    nombres: string
+    apellidoPaterno: string
+    apellidoMaterno: string
+  } | null
+}
+
 const ESTADO_CONFIG: Record<string, { label: string; color: string; dotColor: string; bgColor: string; icon: React.ReactNode; step: number }> = {
   BORRADOR:               { label: 'Borrador',             color: 'text-gray-600',    dotColor: 'bg-gray-400',    bgColor: 'bg-gray-100 dark:bg-gray-800/40',       icon: <FileText className="w-3.5 h-3.5" />,     step: 1 },
   EN_REVISION:            { label: 'En Revisión',          color: 'text-blue-600',    dotColor: 'bg-blue-500',    bgColor: 'bg-blue-100 dark:bg-blue-900/30',       icon: <Clock className="w-3.5 h-3.5" />,        step: 2 },
@@ -102,6 +123,7 @@ export default function MisTesisPage() {
   const [desistirDialogOpen, setDesistirDialogOpen] = useState(false)
   const [tesisDesistir, setTesisDesistir] = useState<Tesis | null>(null)
   const [desistidas, setDesistidas] = useState<DesistimientoHistorial[]>([])
+  const [rechazadas, setRechazadas] = useState<InvitacionRechazada[]>([])
 
   const loadTesis = useCallback(async () => {
     try {
@@ -126,12 +148,24 @@ export default function MisTesisPage() {
     }
   }, [])
 
+  const loadRechazadas = useCallback(async () => {
+    try {
+      const result = await api.get<{ data: InvitacionRechazada[] }>(
+        '/api/mis-invitaciones?estado=RECHAZADO&limit=50',
+      )
+      setRechazadas(result.data)
+    } catch {
+      // silencioso
+    }
+  }, [])
+
   useEffect(() => {
     if (!authLoading && user) {
       loadTesis()
       loadDesistidas()
+      loadRechazadas()
     }
-  }, [authLoading, user, loadTesis, loadDesistidas])
+  }, [authLoading, user, loadTesis, loadDesistidas, loadRechazadas])
 
   const abrirDesistimiento = (t: Tesis) => {
     setTesisDesistir(t)
@@ -236,7 +270,7 @@ export default function MisTesisPage() {
       )}
 
       {/* Search + filter chips */}
-      {(tesis.length > 0 || desistidas.length > 0) && (
+      {(tesis.length > 0 || desistidas.length > 0 || rechazadas.length > 0) && (
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -250,6 +284,8 @@ export default function MisTesisPage() {
               { key: 'observadas', label: 'Observadas', count: stats.observadas, show: true },
               // Solo muestra el chip si el usuario tiene al menos un desistimiento aprobado:
               { key: 'desistidas', label: 'Desistidas', count: desistidas.length, show: desistidas.length > 0, highlight: true },
+              // Invitaciones que rechazaste (tesis de otros donde declinaste ser parte):
+              { key: 'rechazadas', label: 'Rechazadas', count: rechazadas.length, show: rechazadas.length > 0, highlight: true },
             ].filter(f => f.show).map((f) => (
               <button
                 key={f.key ?? 'all'}
@@ -281,7 +317,7 @@ export default function MisTesisPage() {
       )}
 
       {/* Empty state */}
-      {tesis.length === 0 && activeFilter !== 'desistidas' && (
+      {tesis.length === 0 && activeFilter !== 'desistidas' && activeFilter !== 'rechazadas' && (
         <Card>
           <CardContent className="py-16 text-center">
             <div className="relative inline-block mb-5">
@@ -370,8 +406,71 @@ export default function MisTesisPage() {
         )
       )}
 
+      {/* Pestaña "Rechazadas": invitaciones que el usuario declinó */}
+      {activeFilter === 'rechazadas' && (
+        rechazadas.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mx-auto mb-3">
+              <AlertCircle className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <h3 className="text-sm font-semibold mb-1">Sin invitaciones rechazadas</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">No has rechazado invitaciones a proyectos de otros tesistas.</p>
+          </div>
+        ) : (
+          <div className="rounded-xl border overflow-hidden">
+            <div className="p-4 bg-red-50/50 dark:bg-red-950/10 border-b">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-red-800 dark:text-red-200">
+                  Estas son invitaciones a proyectos de otros tesistas/docentes que declinaste. No participaste en estos proyectos.
+                </p>
+              </div>
+            </div>
+            <div className="divide-y">
+              {rechazadas
+                .filter(r => !searchQuery.trim() || r.tesis.titulo.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(r => {
+                  const fechaResp = r.fechaRespuesta
+                    ? new Date(r.fechaRespuesta).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Lima' })
+                    : '—'
+                  const invitadoPor = r.autorPrincipal
+                    ? `${r.autorPrincipal.apellidoPaterno} ${r.autorPrincipal.apellidoMaterno}, ${r.autorPrincipal.nombres}`
+                    : 'Desconocido'
+                  return (
+                    <div key={r.id} className="p-4 space-y-2">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm leading-snug line-clamp-2">{r.tesis.titulo}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{r.tesis.carreraNombre} · {r.tesis.facultad.nombre}</p>
+                        </div>
+                        <Badge variant="outline" className="gap-1 text-[11px] border-red-400 text-red-700 bg-red-50 dark:bg-red-950/30">
+                          <AlertCircle className="w-3 h-3" />Rechazada
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <Badge variant="outline" className="text-[10px]">
+                          {r.tipoInvitacion === 'COAUTOR' ? 'Como coautor' : 'Como asesor'}
+                        </Badge>
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Users className="w-3 h-3" />Invitado por: {invitadoPor}
+                        </span>
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />Rechazado el {fechaResp}
+                        </span>
+                      </div>
+                      {r.motivoRechazo && (
+                        <p className="text-xs text-muted-foreground italic line-clamp-2">“{r.motivoRechazo}”</p>
+                      )}
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        )
+      )}
+
       {/* No search results */}
-      {tesis.length > 0 && filteredTesis.length === 0 && activeFilter !== 'desistidas' && (
+      {tesis.length > 0 && filteredTesis.length === 0 && activeFilter !== 'desistidas' && activeFilter !== 'rechazadas' && (
         <div className="py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mx-auto mb-3">
             <Inbox className="w-7 h-7 text-muted-foreground" />
@@ -382,7 +481,7 @@ export default function MisTesisPage() {
       )}
 
       {/* Tabla de tesis */}
-      {filteredTesis.length > 0 && activeFilter !== 'desistidas' && (
+      {filteredTesis.length > 0 && activeFilter !== 'desistidas' && activeFilter !== 'rechazadas' && (
         <div className="rounded-xl border overflow-hidden">
           {/* Desktop table */}
           <div className="hidden md:block overflow-x-auto">
