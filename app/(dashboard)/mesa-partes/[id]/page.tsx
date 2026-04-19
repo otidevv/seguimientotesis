@@ -326,9 +326,21 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const desistimientosAprobados = desistimientosEstructurados.filter((d) => d.estadoSolicitud === 'APROBADO')
   const ultimoAprobado = desistimientosAprobados[0]
   const huboDesistimiento = desistimientosAprobados.length > 0
-  // La resolución requiere actualización si hubo desistimiento y aún no se subió resolución modificatoria
+
+  // Una resolución requiere modificatoria solo si fue EMITIDA ANTES del desistimiento
+  // aprobado (con datos de autores que ya no corresponden). Si la resolución se
+  // emitió DESPUÉS del desistimiento, ya lleva los autores actuales y no requiere
+  // actualización.
+  const fechaUltimoDesistimiento = ultimoAprobado?.aprobadoAt
+    ? new Date(ultimoAprobado.aprobadoAt)
+    : null
+  const fueEmitidaAntesDelDesistimiento = (doc: { fechaSubida?: string } | undefined | null) =>
+    !!doc && !!fechaUltimoDesistimiento && new Date(doc.fechaSubida ?? 0) < fechaUltimoDesistimiento
+
+  const resolJuradoRequiereModif = fueEmitidaAntesDelDesistimiento(docResolucionJurado)
+  const resolAprobRequiereModif = fueEmitidaAntesDelDesistimiento(docResolucionAprobacion)
   const resolucionRequiereActualizacion = huboDesistimiento
-    && (docResolucionJurado || docResolucionAprobacion)
+    && (resolJuradoRequiereModif || resolAprobRequiereModif)
     && !ultimoAprobado?.resolucionDocumentoId
 
   const loaderMessages: Record<string, { title: string; description: string }> = {
@@ -430,7 +442,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
               <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-background p-4 space-y-3">
                 <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">Pendientes por resolver:</p>
                 <ul className="space-y-2 text-sm">
-                  {docResolucionJurado && (
+                  {resolJuradoRequiereModif && (
                     <li className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                       <span className="text-amber-800 dark:text-amber-200">
@@ -438,7 +450,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       </span>
                     </li>
                   )}
-                  {docResolucionAprobacion && (
+                  {resolAprobRequiereModif && (
                     <li className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                       <span className="text-amber-800 dark:text-amber-200">Subir resolución modificatoria de aprobación de proyecto</span>
