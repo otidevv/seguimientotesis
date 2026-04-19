@@ -30,6 +30,7 @@ interface Detalle {
   motivoCategoria: string; motivoDescripcion: string; motivoRechazoMesaPartes: string | null;
   estadoTesisAlSolicitar: string; faseActual: string | null; teniaCoautor: boolean;
   requiereModificatoria: boolean;
+  hayCoautorQueContinua: boolean;
   estudiante: { nombreCompleto: string; email: string; documento: string; carrera: string; facultad: string };
   tesis: {
     id: string; titulo: string; estado: string;
@@ -192,6 +193,7 @@ export default function DesistimientoDetallePage() {
             desistimientoId={data.id}
             thesisId={data.tesis.id}
             requiereModificatoria={data.requiereModificatoria}
+            hayCoautorQueContinua={data.hayCoautorQueContinua}
             resolucionesVigentes={data.tesis.resolucionesVigentes}
             onDone={() => router.push('/mesa-partes/desistimientos')}
           />

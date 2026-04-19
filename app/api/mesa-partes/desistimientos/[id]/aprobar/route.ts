@@ -71,12 +71,19 @@ export async function POST(
     const resolJurado = w.thesis.documentos.find(d => d.tipo === 'RESOLUCION_JURADO')
     const resolAprob = w.thesis.documentos.find(d => d.tipo === 'RESOLUCION_APROBACION')
 
-    if (requiereModificatoria(w.estadoTesisAlSolicitar) && resolJurado && !archivoJurado) {
+    // ¿Hay coautor que continúa con la tesis?
+    // Si NO hay coautor, la tesis pasa a DESISTIDA (ningún autor la continúa)
+    // → no tiene sentido pedir modificatoria de resolución: la tesis se cierra.
+    const hayCoautorQueContinua = w.thesis.autores.some(
+      a => a.user.id !== w.userId && a.estado === 'ACEPTADO'
+    )
+
+    if (hayCoautorQueContinua && requiereModificatoria(w.estadoTesisAlSolicitar) && resolJurado && !archivoJurado) {
       return NextResponse.json({
         error: 'Debe subir la resolución modificatoria de conformación de jurado'
       }, { status: 400 })
     }
-    if (resolAprob && w.estadoTesisAlSolicitar === 'PROYECTO_APROBADO' && !archivoAprobacion) {
+    if (hayCoautorQueContinua && resolAprob && w.estadoTesisAlSolicitar === 'PROYECTO_APROBADO' && !archivoAprobacion) {
       return NextResponse.json({
         error: 'Debe subir la resolución modificatoria de aprobación de proyecto'
       }, { status: 400 })

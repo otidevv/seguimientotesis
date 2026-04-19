@@ -58,6 +58,7 @@ export async function GET(
     }
 
     const coautoresActivos = w.thesis.autores.filter(a => a.user.id !== w.userId && a.estado === 'ACEPTADO')
+    const hayCoautorQueContinua = coautoresActivos.length > 0
 
     return NextResponse.json({
       id: w.id,
@@ -71,7 +72,12 @@ export async function GET(
       estadoTesisAlSolicitar: w.estadoTesisAlSolicitar,
       faseActual: w.faseActual,
       teniaCoautor: w.teniaCoautor,
-      requiereModificatoria: requiereModificatoria(w.estadoTesisAlSolicitar),
+      hayCoautorQueContinua,
+      // Solo requiere modificatoria si:
+      // 1) el estado previo tenía resolución emitida, Y
+      // 2) hay un coautor que continúa (si no hay, la tesis pasa a DESISTIDA
+      //    y no tiene sentido modificar una resolución de un proyecto cerrado).
+      requiereModificatoria: requiereModificatoria(w.estadoTesisAlSolicitar) && hayCoautorQueContinua,
       estudiante: {
         id: w.user.id,
         nombreCompleto: `${w.user.apellidoPaterno} ${w.user.apellidoMaterno}, ${w.user.nombres}`,

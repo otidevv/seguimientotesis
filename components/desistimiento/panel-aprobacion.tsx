@@ -16,11 +16,13 @@ interface Props {
   desistimientoId: string
   thesisId: string
   requiereModificatoria: boolean
+  /** Si NO hay coautor que continúe, la tesis pasa a DESISTIDA y no se piden modificatorias. */
+  hayCoautorQueContinua: boolean
   resolucionesVigentes: ResolucionVigente[]
   onDone?: () => void
 }
 
-export function PanelAprobacionDesistimiento({ desistimientoId, requiereModificatoria, resolucionesVigentes, onDone }: Props) {
+export function PanelAprobacionDesistimiento({ desistimientoId, requiereModificatoria, hayCoautorQueContinua, resolucionesVigentes, onDone }: Props) {
   const [aprobarOpen, setAprobarOpen] = useState(false)
   const [rechazarOpen, setRechazarOpen] = useState(false)
   const [archivoJurado, setArchivoJurado] = useState<File | null>(null)
@@ -93,21 +95,27 @@ export function PanelAprobacionDesistimiento({ desistimientoId, requiereModifica
         <DialogContent className="max-w-xl">
           <DialogHeader><DialogTitle>Aprobar desistimiento</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            {tieneJurado && (
+            {!hayCoautorQueContinua && (
+              <div className="rounded-md border border-red-300 bg-red-50/60 dark:bg-red-950/30 p-3 text-sm text-red-900 dark:text-red-100">
+                El tesista es <strong>autor único</strong>. Al aprobar, la tesis pasará a <strong>DESISTIDA</strong> y se dará de baja.
+                No se requiere modificatoria de resoluciones porque el proyecto se cierra.
+              </div>
+            )}
+            {hayCoautorQueContinua && tieneJurado && (
               <div className="space-y-2">
                 <Label htmlFor="resJurado">Resolución modificatoria de conformación de jurado (PDF)</Label>
                 <Input id="resJurado" type="file" accept="application/pdf" onChange={(e) => setArchivoJurado(e.target.files?.[0] ?? null)} />
                 <p className="text-xs text-muted-foreground">Reemplaza la v{versionJurado}.</p>
               </div>
             )}
-            {tieneAprob && (
+            {hayCoautorQueContinua && tieneAprob && (
               <div className="space-y-2">
                 <Label htmlFor="resAprob">Resolución modificatoria de aprobación (PDF, opcional)</Label>
                 <Input id="resAprob" type="file" accept="application/pdf" onChange={(e) => setArchivoAprob(e.target.files?.[0] ?? null)} />
               </div>
             )}
-            {!tieneJurado && !tieneAprob && (
-              <p className="text-sm text-muted-foreground">No hay resoluciones vigentes que requieran modificatoria.</p>
+            {hayCoautorQueContinua && !tieneJurado && !tieneAprob && (
+              <p className="text-sm text-muted-foreground">No hay resoluciones vigentes que requieran modificatoria. Al aprobar, el coautor continuará como autor principal.</p>
             )}
             {error && <div className="text-sm text-red-600">{error}</div>}
           </div>
