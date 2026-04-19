@@ -355,7 +355,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Notificación en sistema a tesistas
         await crearNotificacion({
-          userId: tesisNotifDictamen.autores.filter(a => a.estado !== 'DESISTIDO').map(a => a.user.id),
+          userId: tesisNotifDictamen.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id),
           tipo: tipoNotif,
           titulo: tituloNotif,
           mensaje: mensajeNotif,
@@ -372,7 +372,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         })
 
         // Email a tesistas
-        for (const autor of tesisNotifDictamen.autores.filter(a => a.estado !== 'DESISTIDO')) {
+        for (const autor of tesisNotifDictamen.autores.filter(a => a.estado === 'ACEPTADO')) {
           if (!autor.user.email) continue
           try {
             const nombre = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()

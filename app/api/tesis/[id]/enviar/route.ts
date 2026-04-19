@@ -81,8 +81,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    // Verificar que el usuario es autor ACTIVO (no desistido) de la tesis
-    const esAutor = tesis.autores.some((a) => a.userId === user.id && a.estado !== 'DESISTIDO')
+    // Verificar que el usuario es autor ACTIVO (no desistido ni rechazado) de la tesis
+    const esAutor = tesis.autores.some(
+      (a) => a.userId === user.id && a.estado !== 'DESISTIDO' && a.estado !== 'RECHAZADO'
+    )
     if (!esAutor) {
       return NextResponse.json(
         { error: 'Solo los autores activos pueden enviar la tesis a revisión' },
@@ -285,7 +287,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const facultadNombre = facultad?.nombre || 'Facultad'
 
     // Email a cada autor (tesistas)
-    for (const autor of tesis.autores.filter(a => a.estado !== 'DESISTIDO')) {
+    for (const autor of tesis.autores.filter(a => a.estado === 'ACEPTADO')) {
       if (autor.user?.email) {
         try {
           const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()

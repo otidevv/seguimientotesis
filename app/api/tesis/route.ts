@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Por defecto, mostrar tesis donde es autor no desistido, o asesor
       whereClause.OR = [
-        { autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } } },
+        { autores: { some: { userId: user.id, estado: { notIn: ['DESISTIDO', 'RECHAZADO'] } } } },
         { asesores: { some: { userId: user.id } } },
       ]
     }

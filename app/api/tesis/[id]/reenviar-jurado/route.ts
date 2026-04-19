@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       where: {
         id: tesisId,
         deletedAt: null,
-        autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } },
+        autores: { some: { userId: user.id, estado: { notIn: ['DESISTIDO', 'RECHAZADO'] } } },
       },
       include: {
         autores: {

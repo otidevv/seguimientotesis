@@ -25,7 +25,7 @@ export async function GET(
       where: {
         id,
         OR: [
-          { autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } } },
+          { autores: { some: { userId: user.id, estado: { notIn: ['DESISTIDO', 'RECHAZADO'] } } } },
           { asesores: { some: { userId: user.id } } },
         ],
         deletedAt: null,
@@ -359,7 +359,7 @@ export async function PUT(
     const tesis = await prisma.thesis.findFirst({
       where: {
         id,
-        autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } },
+        autores: { some: { userId: user.id, estado: { notIn: ['DESISTIDO', 'RECHAZADO'] } } },
         deletedAt: null,
       },
     })
@@ -440,7 +440,7 @@ export async function DELETE(
     const tesis = await prisma.thesis.findFirst({
       where: {
         id,
-        autores: { some: { userId: user.id, estado: { not: 'DESISTIDO' } } },
+        autores: { some: { userId: user.id, estado: { notIn: ['DESISTIDO', 'RECHAZADO'] } } },
         deletedAt: null,
       },
     })
