@@ -423,19 +423,21 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                 </div>
               </div>
 
-              {/* Checklist de pendientes post-desistimiento */}
+              {/* Checklist de pendientes post-desistimiento.
+                  Solo listamos resoluciones que REALMENTE fueron emitidas
+                  antes del desistimiento — si nunca se subió la resolución,
+                  no hay nada que modificar en ese ítem. */}
               <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-background p-4 space-y-3">
                 <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">Pendientes por resolver:</p>
                 <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    {docResolucionJurado
-                      ? <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                      : <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                    }
-                    <span className={docResolucionJurado ? 'text-amber-800 dark:text-amber-200' : 'text-green-700 dark:text-green-300'}>
-                      {docResolucionJurado ? 'Subir resolución modificatoria de conformación de jurado' : 'Resolución de jurado (sin subir aún)'}
-                    </span>
-                  </li>
+                  {docResolucionJurado && (
+                    <li className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span className="text-amber-800 dark:text-amber-200">
+                        Subir resolución modificatoria de conformación de jurado
+                      </span>
+                    </li>
+                  )}
                   {docResolucionAprobacion && (
                     <li className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
