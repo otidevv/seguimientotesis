@@ -37,7 +37,9 @@ export function PanelAprobacionDesistimiento({ desistimientoId, requiereModifica
 
   async function aprobar() {
     setError(null)
-    if (requiereModificatoria && tieneJurado && !archivoJurado) {
+    // Solo se exige modificatoria cuando hay coautor que continúa con la tesis.
+    // Si es autor único, la tesis pasa a DESISTIDA y no hay nada que modificar.
+    if (hayCoautorQueContinua && requiereModificatoria && tieneJurado && !archivoJurado) {
       setError('Sube la resolución modificatoria de conformación de jurado'); return
     }
     setLoading(true)
