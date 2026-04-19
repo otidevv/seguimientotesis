@@ -42,9 +42,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (authResponse.refreshToken) {
+      const refreshMaxAge = authResponse.refreshExpiresIn
+        ? Math.floor(authResponse.refreshExpiresIn / 1000)
+        : (result.data.rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60)
       response.cookies.set(REFRESH_TOKEN_COOKIE, authResponse.refreshToken, {
         ...COOKIE_OPTIONS,
-        maxAge: result.data.rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60,
+        maxAge: refreshMaxAge,
       })
     }
 

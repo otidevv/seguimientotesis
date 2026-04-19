@@ -75,6 +75,34 @@ export async function GET(request: NextRequest) {
       take: 10,
     })
 
+    // Detectar cuáles de estos estudiantes ya tienen una tesis activa
+    // (como autor principal o coautor) — PENDIENTE o ACEPTADO, y la tesis
+    // no está rechazada/archivada. Se usa para marcarlos como ya asignados.
+    const userIds = estudiantes.map((e) => e.user.id).filter(Boolean)
+    const participacionesActivas = userIds.length > 0
+      ? await prisma.thesisAuthor.findMany({
+          where: {
+            userId: { in: userIds },
+            estado: { in: ['PENDIENTE', 'ACEPTADO'] },
+            thesis: {
+              deletedAt: null,
+              estado: { notIn: ['RECHAZADA', 'ARCHIVADA'] },
+            },
+          },
+          select: {
+            userId: true,
+            thesis: { select: { titulo: true } },
+          },
+        })
+      : []
+
+    const userIdsConTesisActiva = new Map<string, string>()
+    for (const p of participacionesActivas) {
+      if (!userIdsConTesisActiva.has(p.userId)) {
+        userIdsConTesisActiva.set(p.userId, p.thesis.titulo)
+      }
+    }
+
     // Formatear respuesta
     const resultado = estudiantes
       .filter((e) => e.user) // Solo incluir registros con usuario válido
@@ -91,6 +119,8 @@ export async function GET(request: NextRequest) {
         carrera: e.carreraNombre,
         facultad: e.facultad?.nombre || 'Sin facultad',
         studentCareerId: e.id,
+        tieneTesisActiva: userIdsConTesisActiva.has(e.user.id),
+        tesisActivaTitulo: userIdsConTesisActiva.get(e.user.id) ?? null,
       }))
 
     return NextResponse.json({

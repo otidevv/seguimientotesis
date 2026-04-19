@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -17,6 +18,128 @@ function calcularTendencia(actual: number, anterior: number): number {
   return Math.round(((actual - anterior) / anterior) * 100)
 }
 
+type ScopeType = 'global' | 'facultad' | 'personal' | 'mixed' | 'empty'
+
+interface DashboardScope {
+  thesisWhere: Prisma.ThesisWhereInput
+  type: ScopeType
+  facultadIds: string[]
+}
+
+/**
+ * Calcula el alcance (where-clause de Thesis) según los roles del usuario.
+ * - ADMIN/SUPER_ADMIN: ve todo
+ * - MESA_PARTES con contexto FACULTAD: solo esa facultad
+ * - MESA_PARTES sin contexto: todas las facultades (global)
+ * - ESTUDIANTE: solo tesis donde es autor
+ * - DOCENTE/EXTERNO: solo tesis donde es asesor (ACEPTADO) o jurado activo
+ * - Multi-rol: unión (OR) de los alcances aplicables
+ */
+type UserRoleRow = {
+  role: { codigo: string }
+  isActive: boolean
+  contextType: string | null
+  contextId: string | null
+}
+
+type ScopedUser = {
+  id: string
+  roles: UserRoleRow[]
+}
+
+function buildScope(user: ScopedUser): DashboardScope {
+  const roles = user.roles ?? []
+  const isAdmin = roles.some(
+    (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+  )
+
+  if (isAdmin) {
+    return {
+      thesisWhere: { deletedAt: null },
+      type: 'global',
+      facultadIds: [],
+    }
+  }
+
+  const conditions: Prisma.ThesisWhereInput[] = []
+  const facultadIds: string[] = []
+  let sawPersonal = false
+  let sawFacultad = false
+  let sawGlobalMesaPartes = false
+
+  for (const r of roles) {
+    if (!r.isActive) continue
+    if (r.role.codigo === 'MESA_PARTES') {
+      if (r.contextType === 'FACULTAD' && r.contextId) {
+        conditions.push({
+          autores: {
+            some: { studentCareer: { facultadId: r.contextId } },
+          },
+        })
+        facultadIds.push(r.contextId)
+        sawFacultad = true
+      } else {
+        // Mesa de partes sin contexto de facultad: alcance global
+        sawGlobalMesaPartes = true
+      }
+    }
+  }
+
+  // Si es mesa-partes global, no agregamos más filtros (ve todo)
+  if (sawGlobalMesaPartes) {
+    return {
+      thesisWhere: { deletedAt: null },
+      type: 'global',
+      facultadIds: [],
+    }
+  }
+
+  const isEstudiante = roles.some(
+    (r) => r.role.codigo === 'ESTUDIANTE' && r.isActive
+  )
+  if (isEstudiante) {
+    conditions.push({
+      autores: { some: { userId: user.id } },
+    })
+    sawPersonal = true
+  }
+
+  const isAdvisor = roles.some(
+    (r) => ['DOCENTE', 'EXTERNO'].includes(r.role.codigo) && r.isActive
+  )
+  if (isAdvisor) {
+    conditions.push({
+      OR: [
+        { asesores: { some: { userId: user.id, estado: 'ACEPTADO' } } },
+        { jurados: { some: { userId: user.id, isActive: true } } },
+      ],
+    })
+    sawPersonal = true
+  }
+
+  if (conditions.length === 0) {
+    // Usuario sin roles que otorguen acceso: no ve nada.
+    return {
+      thesisWhere: { deletedAt: null, id: '__no_access__' },
+      type: 'empty',
+      facultadIds: [],
+    }
+  }
+
+  const type: ScopeType =
+    sawFacultad && sawPersonal
+      ? 'mixed'
+      : sawFacultad
+        ? 'facultad'
+        : 'personal'
+
+  return {
+    thesisWhere: { deletedAt: null, OR: conditions },
+    type,
+    facultadIds,
+  }
+}
+
 // GET /api/dashboard
 export async function GET(request: NextRequest) {
   try {
@@ -25,11 +148,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
+    const scope = buildScope(user)
+    const { thesisWhere } = scope
+
     const ahora = new Date()
     const inicioMesActual = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
     const inicioMesPasado = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1)
 
-    // 1. Contadores principales + tendencias mensuales
+    // 1. Contadores principales + tendencias mensuales (todo respetando el scope)
     const [
       totalTesis,
       aprobadas,
@@ -42,23 +168,49 @@ export async function GET(request: NextRequest) {
       docsEsteMes,
       docsMesPasado,
     ] = await Promise.all([
-      prisma.thesis.count({ where: { deletedAt: null } }),
-      prisma.thesis.count({ where: { deletedAt: null, estado: { in: [...ESTADOS_APROBADOS] } } }),
-      prisma.thesis.count({ where: { deletedAt: null, estado: { in: [...ESTADOS_EN_PROCESO] } } }),
-      prisma.thesisDocument.count(),
-      prisma.thesis.count({ where: { createdAt: { gte: inicioMesActual }, deletedAt: null } }),
-      prisma.thesis.count({ where: { createdAt: { gte: inicioMesPasado, lt: inicioMesActual }, deletedAt: null } }),
-      prisma.thesisStatusHistory.count({
-        where: { createdAt: { gte: inicioMesActual }, estadoNuevo: { in: [...ESTADOS_APROBADOS] } },
+      prisma.thesis.count({ where: thesisWhere }),
+      prisma.thesis.count({
+        where: { ...thesisWhere, estado: { in: [...ESTADOS_APROBADOS] } },
+      }),
+      prisma.thesis.count({
+        where: { ...thesisWhere, estado: { in: [...ESTADOS_EN_PROCESO] } },
+      }),
+      prisma.thesisDocument.count({ where: { thesis: thesisWhere } }),
+      prisma.thesis.count({
+        where: { ...thesisWhere, createdAt: { gte: inicioMesActual } },
+      }),
+      prisma.thesis.count({
+        where: {
+          ...thesisWhere,
+          createdAt: { gte: inicioMesPasado, lt: inicioMesActual },
+        },
       }),
       prisma.thesisStatusHistory.count({
-        where: { createdAt: { gte: inicioMesPasado, lt: inicioMesActual }, estadoNuevo: { in: [...ESTADOS_APROBADOS] } },
+        where: {
+          createdAt: { gte: inicioMesActual },
+          estadoNuevo: { in: [...ESTADOS_APROBADOS] },
+          thesis: thesisWhere,
+        },
       }),
-      prisma.thesisDocument.count({ where: { createdAt: { gte: inicioMesActual } } }),
-      prisma.thesisDocument.count({ where: { createdAt: { gte: inicioMesPasado, lt: inicioMesActual } } }),
+      prisma.thesisStatusHistory.count({
+        where: {
+          createdAt: { gte: inicioMesPasado, lt: inicioMesActual },
+          estadoNuevo: { in: [...ESTADOS_APROBADOS] },
+          thesis: thesisWhere,
+        },
+      }),
+      prisma.thesisDocument.count({
+        where: { createdAt: { gte: inicioMesActual }, thesis: thesisWhere },
+      }),
+      prisma.thesisDocument.count({
+        where: {
+          createdAt: { gte: inicioMesPasado, lt: inicioMesActual },
+          thesis: thesisWhere,
+        },
+      }),
     ])
 
-    // 2. Actividad mensual (ultimos 6 meses)
+    // 2. Actividad mensual (últimos 6 meses) — scoped
     const mesesData: { label: string; inicio: Date; fin: Date }[] = []
     for (let i = 5; i >= 0; i--) {
       const inicio = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1)
@@ -68,25 +220,33 @@ export async function GET(request: NextRequest) {
 
     const actividadMensual = await Promise.all(
       mesesData.map(async (mes) => {
-        // Tesis creadas en este mes
         const creadas = await prisma.thesis.count({
-          where: { createdAt: { gte: mes.inicio, lte: mes.fin }, deletedAt: null },
+          where: {
+            ...thesisWhere,
+            createdAt: { gte: mes.inicio, lte: mes.fin },
+          },
         })
 
-        // Tesis distintas que recibieron algun cambio de estado en este mes
         const cambiosDistintos = await prisma.thesisStatusHistory.findMany({
-          where: { createdAt: { gte: mes.inicio, lte: mes.fin } },
+          where: {
+            createdAt: { gte: mes.inicio, lte: mes.fin },
+            thesis: thesisWhere,
+          },
           select: { thesisId: true },
           distinct: ['thesisId'],
         })
 
-        return { month: mes.label, registradas: creadas, actualizadas: cambiosDistintos.length }
+        return {
+          month: mes.label,
+          registradas: creadas,
+          actualizadas: cambiosDistintos.length,
+        }
       })
     )
 
-    // 3. Tesis por facultad
+    // 3. Tesis por facultad — scoped
     const tesisConFacultad = await prisma.thesis.findMany({
-      where: { deletedAt: null },
+      where: thesisWhere,
       select: {
         autores: {
           take: 1,
@@ -119,9 +279,9 @@ export async function GET(request: NextRequest) {
         color: COLORES_FACULTAD[i % COLORES_FACULTAD.length],
       }))
 
-    // 4. Tesis recientes (ultimas 5)
+    // 4. Tesis recientes — scoped
     const tesisRecientes = await prisma.thesis.findMany({
-      where: { deletedAt: null },
+      where: thesisWhere,
       take: 5,
       orderBy: { createdAt: 'desc' },
       select: {
@@ -142,8 +302,9 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // 5. Actividad reciente (ultimos 8 cambios de estado)
+    // 5. Actividad reciente (últimos 8 cambios de estado) — scoped al alcance
     const actividadReciente = await prisma.thesisStatusHistory.findMany({
+      where: { thesis: thesisWhere },
       take: 8,
       orderBy: { createdAt: 'desc' },
       select: {
@@ -156,10 +317,10 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // 6. Proximos eventos (tesis en sustentacion o aprobadas)
+    // 6. Próximos eventos — scoped
     const proximosEventos = await prisma.thesis.findMany({
       where: {
-        deletedAt: null,
+        ...thesisWhere,
         estado: { in: ['EN_SUSTENTACION', 'APROBADA'] },
       },
       take: 5,
@@ -184,10 +345,9 @@ export async function GET(request: NextRequest) {
     // 7. Stats avanzados
     const tasaAprobacion = totalTesis > 0 ? Math.round((aprobadas / totalTesis) * 1000) / 10 : 0
 
-    // Tiempo promedio desde creacion hasta aprobacion
     const tesisParaTiempo = await prisma.thesis.findMany({
       where: {
-        deletedAt: null,
+        ...thesisWhere,
         estado: { in: [...ESTADOS_APROBADOS] },
       },
       select: {
@@ -213,6 +373,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      scope: {
+        type: scope.type,
+        facultadIds: scope.facultadIds,
+      },
       stats: {
         totalTesis,
         aprobadas,

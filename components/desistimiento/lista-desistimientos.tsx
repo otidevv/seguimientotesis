@@ -166,6 +166,12 @@ export function ListaDesistimientos() {
       setItems(d.items ?? [])
       setTotal(d.total ?? 0)
       if (d.contadores) setContadores(d.contadores)
+    } catch (e) {
+      // AbortError se lanza cuando el componente desmonta o cambian las deps:
+      // es comportamiento esperado, no un error real que reportar.
+      if (e instanceof DOMException && e.name === 'AbortError') return
+      if (e instanceof Error && e.name === 'AbortError') return
+      console.error('[ListaDesistimientos] Error al cargar:', e)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -285,7 +291,7 @@ export function ListaDesistimientos() {
                 Actualizar
               </Button>
               <Button asChild variant="outline" size="sm">
-                <Link href="/mesa-partes/reportes/desistimientos">
+                <Link href="/reportes-mp/desistimientos">
                   <BarChart3 className="w-4 h-4 mr-1.5" />
                   Ver reportes
                 </Link>

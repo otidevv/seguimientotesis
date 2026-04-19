@@ -65,7 +65,18 @@ export default function DashboardPage() {
     )
   }
 
-  const { stats, actividadMensual, tesisPorFacultad, tesisRecientes, actividadReciente, proximosEventos, statsAvanzados } = data
+  const { stats, actividadMensual, tesisPorFacultad, tesisRecientes, actividadReciente, proximosEventos, statsAvanzados, scope } = data
+
+  const subtitulo =
+    scope?.type === 'personal'
+      ? 'Resumen de tus tesis y participaciones'
+      : scope?.type === 'facultad'
+        ? 'Resumen de tu facultad'
+        : scope?.type === 'mixed'
+          ? 'Resumen de tu facultad y tus participaciones'
+          : scope?.type === 'empty'
+            ? 'No tienes información asignada todavía'
+            : 'Resumen general del sistema de tesis'
 
   return (
     <div className="space-y-6">
@@ -79,7 +90,7 @@ export default function DashboardPage() {
             Bienvenido, {user?.nombres}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Resumen general del sistema de tesis
+            {subtitulo}
           </p>
           <div className="flex gap-2 mt-2.5">
             {user?.roles.map((role) => (
@@ -106,10 +117,16 @@ export default function DashboardPage() {
       <StatsCards stats={stats} />
 
       {/* Charts */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-7 overflow-hidden">
-        <ActivityChart data={actividadMensual} />
-        <FacultyChart data={tesisPorFacultad} />
-      </div>
+      {(scope?.type === 'personal' || scope?.type === 'empty') ? (
+        <div className="grid gap-4 grid-cols-1">
+          <ActivityChart data={actividadMensual} />
+        </div>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-7 overflow-hidden">
+          <ActivityChart data={actividadMensual} />
+          <FacultyChart data={tesisPorFacultad} />
+        </div>
+      )}
 
       <RecentTabs
         tesisRecientes={tesisRecientes}

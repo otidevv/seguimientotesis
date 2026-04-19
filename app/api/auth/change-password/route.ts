@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import {
   verifyAccessToken,
+  extractRefreshTokenId,
   ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
   AuthError,
   verifyPassword,
   hashPassword,
@@ -76,6 +78,27 @@ export async function POST(request: NextRequest) {
       data: {
         passwordHash: newPasswordHash,
         updatedAt: new Date(),
+      },
+    })
+
+    // Revocar todos los refresh tokens de otros dispositivos.
+    // Conservamos el de la sesión actual para no desloguear al usuario
+    // que acaba de cambiar su propia contraseña.
+    const currentRefreshCookie = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value
+    const currentTokenId = currentRefreshCookie
+      ? await extractRefreshTokenId(currentRefreshCookie)
+      : null
+
+    await prisma.refreshToken.updateMany({
+      where: {
+        userId: user.id,
+        isRevoked: false,
+        ...(currentTokenId ? { NOT: { token: currentTokenId } } : {}),
+      },
+      data: {
+        isRevoked: true,
+        revokedAt: new Date(),
+        revokedReason: 'Password changed',
       },
     })
 

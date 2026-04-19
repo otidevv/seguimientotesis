@@ -168,7 +168,7 @@ const docenteNavItems: NavItem[] = [
 
 const mesaPartesNavItems: NavItem[] = [
   { title: 'Mesa de Partes', href: '/mesa-partes', icon: Inbox, moduleCode: 'mesa-partes' },
-  { title: 'Reportes MP', href: '/mesa-partes/reportes', icon: FileSpreadsheet, moduleCode: 'mesa-partes' },
+  { title: 'Reportes MP', href: '/reportes-mp', icon: FileSpreadsheet, moduleCode: 'reportes-mp' },
 ]
 
 const adminNavItems: NavItem[] = [

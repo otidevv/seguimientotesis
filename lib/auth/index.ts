@@ -19,6 +19,7 @@ export {
   verifyAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
+  extractRefreshTokenId,
   revokeRefreshToken,
   revokeAllUserTokens,
   generateTokens,

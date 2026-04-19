@@ -187,7 +187,7 @@ export default function MesaPartesPage() {
         </Link>
 
         <Link
-          href="/mesa-partes/reportes/desistimientos"
+          href="/reportes-mp/desistimientos"
           className="group flex items-center gap-4 rounded-xl border bg-card p-4 hover:bg-accent transition-colors"
         >
           <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">

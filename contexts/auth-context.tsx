@@ -198,9 +198,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Verificar autenticación al cargar con timeout
   const checkAuth = useCallback(async () => {
-    // Timeout de 5 segundos para evitar que se quede colgado
+    // Timeout de 8 segundos para permitir el auto-refresh interno de /api/auth/me
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
 
     try {
       const response = await fetch('/api/auth/me', {
@@ -209,6 +209,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
 
       clearTimeout(timeoutId)
+
+      // 503: servicio transitoriamente no disponible. NO tocar el estado de
+      // autenticación — preservar lo que había (evita desloguear al usuario
+      // por un blip de BD/red).
+      if (response.status === 503) {
+        console.warn('[Auth] /api/auth/me transitoriamente no disponible, conservando estado')
+        return
+      }
+
       const data = await response.json()
 
       if (data.success && data.user) {
@@ -223,13 +232,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     } catch (error) {
       clearTimeout(timeoutId)
-      // Error de red, timeout u otro - asumir no autenticado
+      // Error de red, timeout u otro. Si la app no sabía si estaba autenticado
+      // (primer mount, isAuthenticated=false), cae a no-autenticado; si ya
+      // estaba autenticado, conserva ese estado para aguantar blips.
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('[Auth] Timeout verificando sesión, asumiendo no autenticado')
+        console.log('[Auth] Timeout verificando sesión')
       }
-      setUser(null)
-      setPermissions([])
-      setIsAuthenticated(false)
     } finally {
       setIsLoading(false)
     }

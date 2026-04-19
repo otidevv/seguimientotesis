@@ -9,8 +9,12 @@ export async function GET(request: NextRequest) {
     const user = await getCurrentUser(request)
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-    const puede = await checkPermission(user.id, 'mesa-partes', 'view')
-    if (!puede) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
+    // Acepta permiso de Reportes MP (módulo propio) o mesa-partes (fallback).
+    const [tieneReportes, tieneMesa] = await Promise.all([
+      checkPermission(user.id, 'reportes-mp', 'view'),
+      checkPermission(user.id, 'mesa-partes', 'view'),
+    ])
+    if (!tieneReportes && !tieneMesa) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
     // Scope de facultad: si tiene MESA_PARTES con contextId, se enforza.
     const esAdmin = user.roles?.some(

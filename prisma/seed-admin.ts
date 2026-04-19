@@ -285,6 +285,18 @@ async function main() {
       },
     }),
     prisma.systemModule.upsert({
+      where: { codigo: 'reportes-mp' },
+      update: {},
+      create: {
+        nombre: 'Reportes MP',
+        codigo: 'reportes-mp',
+        descripcion: 'Reportes de Mesa de Partes: tesis por facultad/año y desistimientos',
+        icono: 'FileSpreadsheet',
+        ruta: '/reportes-mp',
+        orden: 16,
+      },
+    }),
+    prisma.systemModule.upsert({
       where: { codigo: 'mis-tesis' },
       update: {},
       create: {
@@ -486,7 +498,7 @@ async function main() {
   // ============================================
   console.log('Asignando permisos al Admin...')
 
-  const modulosAdmin = ['dashboard', 'tesis', 'usuarios', 'auditoria', 'reportes', 'firma-digital', 'configuracion']
+  const modulosAdmin = ['dashboard', 'tesis', 'usuarios', 'auditoria', 'reportes', 'reportes-mp', 'firma-digital', 'configuracion']
   for (const modulo of modulos) {
     const tieneAcceso = modulosAdmin.includes(modulo.codigo)
     await prisma.rolePermission.upsert({
@@ -715,7 +727,7 @@ async function main() {
   console.log('Asignando permisos a Mesa de Partes...')
 
   for (const modulo of modulos) {
-    const tieneAcceso = ['dashboard', 'mesa-partes', 'tesis', 'reportes'].includes(modulo.codigo)
+    const tieneAcceso = ['dashboard', 'mesa-partes', 'reportes-mp', 'tesis', 'reportes'].includes(modulo.codigo)
     await prisma.rolePermission.upsert({
       where: {
         roleId_moduleId: {

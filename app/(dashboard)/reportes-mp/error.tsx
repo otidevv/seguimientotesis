@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-export default function MesaPartesReportesError({
+export default function ReportesMpError({
   error,
   reset,
 }: {
@@ -14,7 +14,7 @@ export default function MesaPartesReportesError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Mesa Partes Reportes error:', error)
+    console.error('Reportes MP error:', error)
   }, [error])
 
   return (
@@ -27,7 +27,7 @@ export default function MesaPartesReportesError({
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-semibold">Error al cargar reportes</h2>
-              <p className="text-sm text-muted-foreground">No se pudieron cargar los reportes de mesa de partes.</p>
+              <p className="text-sm text-muted-foreground">No se pudieron cargar los reportes.</p>
             </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={reset}>
@@ -35,7 +35,7 @@ export default function MesaPartesReportesError({
                 Reintentar
               </Button>
               <Button variant="ghost" asChild>
-                <Link href="/mesa-partes">
+                <Link href="/dashboard">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Volver
                 </Link>

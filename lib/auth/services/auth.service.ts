@@ -279,9 +279,12 @@ export class AuthService {
 
     const roles = user.roles.map((ur) => ur.role.codigo)
 
+    // Preservar el rememberMe original para no degradar la duración
+    // de la sesión tras cada rotación del refresh token.
     const tokens = await generateTokens(
       { id: user.id, email: user.email },
-      roles
+      roles,
+      payload.rememberMe
     )
 
     const userResponse = this.formatUserResponse(user)

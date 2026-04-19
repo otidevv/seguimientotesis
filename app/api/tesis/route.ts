@@ -316,6 +316,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validar que el coautor NO esté ya vinculado a otro proyecto activo
+    // (como autor principal o coautor, PENDIENTE o ACEPTADO). Esto impide
+    // inscribir a alguien que ya está en otra tesis en curso.
+    if (coautorId) {
+      const coautorEnOtraTesis = await prisma.thesisAuthor.findFirst({
+        where: {
+          userId: coautorId,
+          estado: { in: ['PENDIENTE', 'ACEPTADO'] },
+          thesis: {
+            deletedAt: null,
+            estado: { notIn: ['RECHAZADA', 'ARCHIVADA'] },
+          },
+        },
+        include: {
+          thesis: { select: { id: true, titulo: true, estado: true } },
+        },
+      })
+
+      if (coautorEnOtraTesis) {
+        const estadoPart = coautorEnOtraTesis.estado === 'PENDIENTE'
+          ? 'una invitación pendiente'
+          : 'un proyecto activo'
+        return NextResponse.json(
+          {
+            error: `El coautor seleccionado ya tiene ${estadoPart} en otra tesis ("${coautorEnOtraTesis.thesis.titulo}"). No puede participar en dos proyectos simultáneamente.`,
+            detalles: {
+              coautorId,
+              tesisId: coautorEnOtraTesis.thesis.id,
+              titulo: coautorEnOtraTesis.thesis.titulo,
+              estadoAutor: coautorEnOtraTesis.estado,
+            },
+          },
+          { status: 400 }
+        )
+      }
+    }
+
     // Crear la tesis
     const tesis = await prisma.thesis.create({
       data: {

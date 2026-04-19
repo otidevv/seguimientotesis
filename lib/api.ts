@@ -23,6 +23,36 @@ type RequestOptions = {
   params?: Record<string, string | number | boolean | undefined | null> | object
 }
 
+// Deduplica refreshes concurrentes: si varios requests reciben 401 al mismo tiempo,
+// comparten un único POST a /api/auth/refresh.
+let refreshPromise: Promise<boolean> | null = null
+
+const REFRESH_TIMEOUT_MS = 8000
+
+async function tryRefresh(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), REFRESH_TIMEOUT_MS)
+      try {
+        const response = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+          signal: controller.signal,
+        })
+        return response.ok
+      } catch {
+        return false
+      } finally {
+        clearTimeout(timeoutId)
+      }
+    })().finally(() => {
+      refreshPromise = null
+    })
+  }
+  return refreshPromise
+}
+
 async function request<T = Record<string, unknown>>(
   url: string,
   init?: RequestInit,
@@ -41,11 +71,26 @@ async function request<T = Record<string, unknown>>(
     if (qs) url += (url.includes('?') ? '&' : '?') + qs
   }
 
+  const doFetch = () => fetch(url, {
+    credentials: 'include',
+    ...init,
+  })
+
   try {
-    const response = await fetch(url, {
-      credentials: 'include',
-      ...init,
-    })
+    let response = await doFetch()
+
+    // Auto-refresh en 401: intentar renovar el access token y reintentar la petición
+    // una única vez. No reintentar sobre /api/auth/* para evitar bucles.
+    if (response.status === 401 && !url.includes('/api/auth/')) {
+      const preview = await response.clone().json().catch(() => null)
+      const code = preview?.code
+      if (code === 'TOKEN_INVALID' || code === 'UNAUTHORIZED') {
+        const refreshed = await tryRefresh()
+        if (refreshed) {
+          response = await doFetch()
+        }
+      }
+    }
 
     const data = await response.json()
 
