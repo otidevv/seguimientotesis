@@ -150,9 +150,12 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
       carta_coasesor: 'carta de aceptación del coasesor',
       voucher: 'voucher de pago',
     }
-    proyecto.autores.forEach((a: any, i: number) => {
-      allLabels[`sust_${i}`] = `sustentatorio — ${a.nombre}`.toLowerCase()
-    })
+    // Solo indexar sustentatorios de autores ACTIVOS (no DESISTIDOs)
+    proyecto.autores
+      .filter((a: any) => a.estado !== 'DESISTIDO')
+      .forEach((a: any, i: number) => {
+        allLabels[`sust_${i}`] = `sustentatorio — ${a.nombre}`.toLowerCase()
+      })
 
     const preVerificacion: Record<string, 'ok'> = {}
     allKeys.forEach(key => {
@@ -574,20 +577,23 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                 { key: 'voucher', label: 'Voucher de Pago (S/. 30.00 - Cód. 277)', presentado: !!docVoucher, doc: docVoucher, subidoPor: docVoucher?.subidoPor },
               ].filter(c => !c.opcional)
 
-              const checksSustentatorios = proyecto.autores.map((autor: any, idx: number) => {
-                const docSust = docsSustentatorios.find((d: any) =>
-                  d.subidoPor && autor.nombre && (
-                    autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+              // Solo pedir sustentatorio de autores ACTIVOS (excluye DESISTIDOs históricos).
+              const checksSustentatorios = proyecto.autores
+                .filter((autor: any) => autor.estado !== 'DESISTIDO')
+                .map((autor: any, idx: number) => {
+                  const docSust = docsSustentatorios.find((d: any) =>
+                    d.subidoPor && autor.nombre && (
+                      autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                    )
                   )
-                )
-                return {
-                  key: `sust_${idx}`,
-                  label: `Sustentatorio — ${autor.nombre}`,
-                  presentado: !!docSust,
-                  doc: docSust,
-                  subidoPor: autor.nombre,
-                }
-              })
+                  return {
+                    key: `sust_${idx}`,
+                    label: `Sustentatorio — ${autor.nombre}`,
+                    presentado: !!docSust,
+                    doc: docSust,
+                    subidoPor: autor.nombre,
+                  }
+                })
 
               const checks = [...checksBase, ...checksSustentatorios]
               const docsConArchivo = checks.filter(c => c.presentado)
@@ -779,14 +785,17 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   ? [{ label: 'Carta de Aceptación del Coasesor', doc: docCartaCoasesor }]
                   : []),
                 { label: 'Voucher de Pago', doc: docVoucher },
-                ...proyecto.autores.map((autor: any, idx: number) => {
-                  const docSust = docsSustentatorios.find((d: any) =>
-                    d.subidoPor && autor.nombre && (
-                      autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                // Solo autores ACTIVOS (DESISTIDOs son históricos, no se revisan).
+                ...proyecto.autores
+                  .filter((autor: any) => autor.estado !== 'DESISTIDO')
+                  .map((autor: any) => {
+                    const docSust = docsSustentatorios.find((d: any) =>
+                      d.subidoPor && autor.nombre && (
+                        autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                      )
                     )
-                  )
-                  return { label: `Sustentatorio — ${autor.nombre}`, doc: docSust }
-                }),
+                    return { label: `Sustentatorio — ${autor.nombre}`, doc: docSust }
+                  }),
               ]
               // Obtener la última observación del historial
               const ultimaObs = proyecto.historial.find(
