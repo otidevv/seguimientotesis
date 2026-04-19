@@ -74,6 +74,7 @@ import {
 } from '@/components/tesis'
 import type { Documento, Tesis, Participante } from '@/components/tesis'
 import { ModalSolicitarDesistimiento } from '@/components/desistimiento/modal-solicitar-desistimiento'
+import { ModalConfirmarEnvio } from '@/components/tesis/modal-confirmar-envio'
 
 export default function DetalleTesisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -91,6 +92,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [motivoRechazo, setMotivoRechazo] = useState('')
   const [invitacionARechazar, setInvitacionARechazar] = useState<string | null>(null)
   const [modalDesistirOpen, setModalDesistirOpen] = useState(false)
+  const [modalConfirmarEnvioOpen, setModalConfirmarEnvioOpen] = useState(false)
 
   const loadTesis = useCallback(async () => {
     try {
@@ -2173,7 +2175,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   </div>
                   <Button
                     size="lg"
-                    onClick={enviarARevision}
+                    onClick={() => setModalConfirmarEnvioOpen(true)}
                     disabled={enviando || !puedeEnviar || tesis.estado === 'SOLICITUD_DESISTIMIENTO'}
                     className={cn(
                       puedeEnviar && tesis.estado !== 'SOLICITUD_DESISTIMIENTO' && 'bg-green-600 hover:bg-green-700'
@@ -2613,6 +2615,15 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         tituloTesis={tesis.titulo}
         tieneCoautor={tesis.autores.some(a => a.user.id !== user?.id && a.estado === 'ACEPTADO')}
         onSuccess={() => loadTesis()}
+      />
+
+      <ModalConfirmarEnvio
+        open={modalConfirmarEnvioOpen}
+        onOpenChange={setModalConfirmarEnvioOpen}
+        thesisId={tesis.id}
+        tituloActual={tesis.titulo}
+        resumenActual={tesis.resumen ?? null}
+        onConfirmar={async () => { await enviarARevision() }}
       />
     </div>
   )
