@@ -14,10 +14,10 @@ datasource db {
 // ============================================
 
 enum TipoDocumento {
-  DNI                // Documento Nacional de Identidad (Perú)
+  DNI // Documento Nacional de Identidad (Perú)
   CARNET_EXTRANJERIA // Carnet de Extranjería
-  PASAPORTE          // Pasaporte
-  OTRO               // Otro tipo de documento
+  PASAPORTE // Pasaporte
+  OTRO // Otro tipo de documento
 
   @@map("tipo_documento")
 }
@@ -36,59 +36,63 @@ enum AuditStatus {
 
 /// Tabla principal de usuarios del sistema
 model User {
-  id               String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Documento de identidad
-  tipoDocumento    TipoDocumento @default(DNI) @map("tipo_documento")
-  numeroDocumento  String    @unique @map("numero_documento") @db.VarChar(20)
+  tipoDocumento   TipoDocumento @default(DNI) @map("tipo_documento")
+  numeroDocumento String        @unique @map("numero_documento") @db.VarChar(20)
 
-  username         String?   @unique @db.VarChar(50)
-  email            String    @unique
-  emailPersonal    String?   @map("email_personal")
-  passwordHash     String    @map("password_hash")
+  username      String? @unique @db.VarChar(50)
+  email         String  @unique
+  emailPersonal String? @map("email_personal")
+  passwordHash  String  @map("password_hash")
 
   // Datos personales
-  nombres          String    @db.VarChar(100)
-  apellidoPaterno  String    @map("apellido_paterno") @db.VarChar(100)
-  apellidoMaterno  String    @map("apellido_materno") @db.VarChar(100)
-  avatarUrl        String?   @map("avatar_url") @db.VarChar(255)
-  telefono         String?   @db.VarChar(20)
+  nombres         String  @db.VarChar(100)
+  apellidoPaterno String  @map("apellido_paterno") @db.VarChar(100)
+  apellidoMaterno String  @map("apellido_materno") @db.VarChar(100)
+  avatarUrl       String? @map("avatar_url") @db.VarChar(255)
+  telefono        String? @db.VarChar(20)
 
   // Verificacion y estado
-  isActive        Boolean   @default(true) @map("is_active")
-  isVerified      Boolean   @default(false) @map("is_verified")
-  emailVerifiedAt DateTime? @map("email_verified_at")
-  lastLoginAt     DateTime? @map("last_login_at")
-  lastLoginIp     String?   @map("last_login_ip") @db.VarChar(45)
-  failedLoginAttempts Int   @default(0) @map("failed_login_attempts")
-  lockedUntil     DateTime? @map("locked_until")
+  isActive            Boolean   @default(true) @map("is_active")
+  isVerified          Boolean   @default(false) @map("is_verified")
+  emailVerifiedAt     DateTime? @map("email_verified_at")
+  lastLoginAt         DateTime? @map("last_login_at")
+  lastLoginIp         String?   @map("last_login_ip") @db.VarChar(45)
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
 
   // Cache de datos de API externa
-  externalDataCache   Json?     @map("external_data_cache")
-  externalDataSyncAt  DateTime? @map("external_data_sync_at")
+  externalDataCache  Json?     @map("external_data_cache")
+  externalDataSyncAt DateTime? @map("external_data_sync_at")
 
   // Timestamps
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  deletedAt       DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   // Relaciones
-  roles           UserRole[]
-  sessions        Session[]
-  refreshTokens   RefreshToken[]
-  studentCareers  StudentCareer[]
-  teacherInfo     TeacherInfo?
+  roles              UserRole[]
+  sessions           Session[]
+  refreshTokens      RefreshToken[]
+  studentCareers     StudentCareer[]
+  teacherInfo        TeacherInfo?
   auditLogs          AuditLog[]
   passwordResets     PasswordReset[]
   emailVerifications EmailVerification[]
 
   // Relaciones con tesis
-  tesisComoAutor        ThesisAuthor[]
-  tesisComoAsesor       ThesisAdvisor[]
-  tesisComoJurado       ThesisJury[]
-  documentosSubidos     ThesisDocument[]
-  cambiosEstadoTesis    ThesisStatusHistory[]
-  notificaciones        Notification[]
+  tesisComoAutor               ThesisAuthor[]
+  tesisComoAsesor              ThesisAdvisor[]
+  tesisComoJurado              ThesisJury[]
+  documentosSubidos            ThesisDocument[]
+  cambiosEstadoTesis           ThesisStatusHistory[]
+  notificaciones               Notification[]
+  desistimientos               ThesisWithdrawal[]       @relation("DesistimientosUsuario")
+  desistimientosAprobados      ThesisWithdrawal[]       @relation("DesistimientosAprobados")
+  academicOverridesAutorizados AcademicWindowOverride[] @relation("OverridesAutorizados")
+  academicOverridesRecibidos   AcademicWindowOverride[] @relation("OverridesRecibidos")
 
   @@index([email])
   @@index([numeroDocumento])
@@ -99,8 +103,8 @@ model User {
 
 /// Carreras de estudiantes (un estudiante puede tener multiples carreras)
 model StudentCareer {
-  id                String   @id @default(cuid())
-  userId            String   @map("user_id")
+  id     String @id @default(cuid())
+  userId String @map("user_id")
 
   // Datos de la carrera
   codigoEstudiante  String   @map("codigo_estudiante") @db.VarChar(20)
@@ -109,16 +113,17 @@ model StudentCareer {
   creditosAprobados Decimal? @map("creditos_aprobados") @db.Decimal(10, 2)
 
   // Estado
-  isActive          Boolean  @default(true) @map("is_active")
+  isActive Boolean @default(true) @map("is_active")
 
   // Timestamps
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  facultad          Faculty  @relation(fields: [facultadId], references: [id])
-  tesisAutor        ThesisAuthor[]
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facultad       Faculty            @relation(fields: [facultadId], references: [id])
+  tesisAutor     ThesisAuthor[]
+  desistimientos ThesisWithdrawal[]
 
   @@unique([userId, codigoEstudiante])
   @@index([userId])
@@ -128,21 +133,21 @@ model StudentCareer {
 
 /// Información de docentes
 model TeacherInfo {
-  id                    String   @id @default(cuid())
-  userId                String   @unique @map("user_id")
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
 
   // Datos del docente
-  codigoDocente         String   @map("codigo_docente") @db.VarChar(20)
-  departamentoAcademico String   @map("departamento_academico") @db.VarChar(150)
-  facultadId            String   @map("facultad_id")
+  codigoDocente         String @map("codigo_docente") @db.VarChar(20)
+  departamentoAcademico String @map("departamento_academico") @db.VarChar(150)
+  facultadId            String @map("facultad_id")
 
   // Timestamps
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  facultad              Faculty  @relation(fields: [facultadId], references: [id])
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facultad Faculty @relation(fields: [facultadId], references: [id])
 
   @@index([facultadId])
   @@map("teacher_info")
@@ -154,9 +159,9 @@ model TeacherInfo {
 
 /// Facultades de la universidad
 model Faculty {
-  id        String   @id @default(cuid())
-  nombre    String   @unique @db.VarChar(150)
-  codigo    String   @unique @db.VarChar(20)
+  id     String @id @default(cuid())
+  nombre String @unique @db.VarChar(150)
+  codigo String @unique @db.VarChar(20)
 
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
@@ -166,23 +171,26 @@ model Faculty {
   schools         School[]
   studentCareers  StudentCareer[]
   teacherInfo     TeacherInfo[]
+  desistimientos  ThesisWithdrawal[] @relation("FacultadDesistimientos")
+  academicPeriods AcademicPeriod[]
+  academicWindows AcademicWindow[]
 
   @@map("faculties")
 }
 
 /// Escuelas profesionales
 model School {
-  id         String   @id @default(cuid())
-  facultadId String   @map("facultad_id")
-  nombre     String   @db.VarChar(150)
-  codigo     String   @unique @db.VarChar(20)
+  id         String @id @default(cuid())
+  facultadId String @map("facultad_id")
+  nombre     String @db.VarChar(150)
+  codigo     String @unique @db.VarChar(20)
 
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
-  facultad  Faculty  @relation(fields: [facultadId], references: [id])
+  facultad Faculty @relation(fields: [facultadId], references: [id])
 
   @@index([facultadId])
   @@map("schools")
@@ -194,22 +202,22 @@ model School {
 
 /// Módulos del sistema (para organizar permisos)
 model SystemModule {
-  id          String   @id @default(cuid())
-  nombre      String   @unique @db.VarChar(100)
-  codigo      String   @unique @db.VarChar(50)
+  id          String  @id @default(cuid())
+  nombre      String  @unique @db.VarChar(100)
+  codigo      String  @unique @db.VarChar(50)
   descripcion String?
-  icono       String?  @db.VarChar(50)
-  ruta        String?  @db.VarChar(200)
-  orden       Int      @default(0)
-  isActive    Boolean  @default(true) @map("is_active")
+  icono       String? @db.VarChar(50)
+  ruta        String? @db.VarChar(200)
+  orden       Int     @default(0)
+  isActive    Boolean @default(true) @map("is_active")
 
   // Módulo padre (para jerarquía)
-  parentId    String?  @map("parent_id")
-  parent      SystemModule?  @relation("ModuleHierarchy", fields: [parentId], references: [id])
-  children    SystemModule[] @relation("ModuleHierarchy")
+  parentId String?        @map("parent_id")
+  parent   SystemModule?  @relation("ModuleHierarchy", fields: [parentId], references: [id])
+  children SystemModule[] @relation("ModuleHierarchy")
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
   permissions RolePermission[]
@@ -220,16 +228,16 @@ model SystemModule {
 
 /// Roles del sistema
 model Role {
-  id          String   @id @default(cuid())
-  nombre      String   @unique @db.VarChar(100)
-  codigo      String   @unique @db.VarChar(50)
+  id          String  @id @default(cuid())
+  nombre      String  @unique @db.VarChar(100)
+  codigo      String  @unique @db.VarChar(50)
   descripcion String?
-  color       String?  @db.VarChar(20)
-  isSystem    Boolean  @default(false) @map("is_system")
-  isActive    Boolean  @default(true) @map("is_active")
+  color       String? @db.VarChar(20)
+  isSystem    Boolean @default(false) @map("is_system")
+  isActive    Boolean @default(true) @map("is_active")
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
   users       UserRole[]
@@ -240,25 +248,25 @@ model Role {
 
 /// Permisos por rol y módulo
 model RolePermission {
-  id          String   @id @default(cuid())
-  roleId      String   @map("role_id")
-  moduleId    String   @map("module_id")
+  id       String @id @default(cuid())
+  roleId   String @map("role_id")
+  moduleId String @map("module_id")
 
   // Permisos CRUD
-  canView     Boolean  @default(false) @map("can_view")
-  canCreate   Boolean  @default(false) @map("can_create")
-  canEdit     Boolean  @default(false) @map("can_edit")
-  canDelete   Boolean  @default(false) @map("can_delete")
+  canView   Boolean @default(false) @map("can_view")
+  canCreate Boolean @default(false) @map("can_create")
+  canEdit   Boolean @default(false) @map("can_edit")
+  canDelete Boolean @default(false) @map("can_delete")
 
   // Permisos personalizados adicionales
   customPermissions Json? @map("custom_permissions")
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
-  role        Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  module      SystemModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  role   Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  module SystemModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, moduleId])
   @@index([roleId])
@@ -268,23 +276,23 @@ model RolePermission {
 
 /// Asignación de roles a usuarios (con contexto opcional)
 model UserRole {
-  id          String    @id @default(cuid())
-  userId      String    @map("user_id")
-  roleId      String    @map("role_id")
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  roleId String @map("role_id")
 
   // Contexto del rol (ej: rol de asesor en una facultad específica)
-  contextType String?   @map("context_type") @db.VarChar(50)
-  contextId   String?   @map("context_id")
+  contextType String? @map("context_type") @db.VarChar(50)
+  contextId   String? @map("context_id")
 
   // Metadata
-  assignedAt  DateTime  @default(now()) @map("assigned_at")
-  expiresAt   DateTime? @map("expires_at")
-  assignedBy  String?   @map("assigned_by")
-  isActive    Boolean   @default(true) @map("is_active")
+  assignedAt DateTime  @default(now()) @map("assigned_at")
+  expiresAt  DateTime? @map("expires_at")
+  assignedBy String?   @map("assigned_by")
+  isActive   Boolean   @default(true) @map("is_active")
 
   // Relaciones
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role        Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roleId, contextType, contextId])
   @@index([userId])
@@ -299,18 +307,18 @@ model UserRole {
 
 /// Sesiones de usuario
 model Session {
-  id           String    @id @default(cuid())
-  userId       String    @map("user_id")
-  ipAddress    String?   @map("ip_address") @db.VarChar(45)
-  userAgent    String?   @map("user_agent")
-  deviceInfo   Json?     @map("device_info")
+  id         String  @id @default(cuid())
+  userId     String  @map("user_id")
+  ipAddress  String? @map("ip_address") @db.VarChar(45)
+  userAgent  String? @map("user_agent")
+  deviceInfo Json?   @map("device_info")
 
-  createdAt    DateTime  @default(now()) @map("created_at")
-  expiresAt    DateTime  @map("expires_at")
-  lastActiveAt DateTime  @default(now()) @map("last_active_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at")
+  lastActiveAt DateTime @default(now()) @map("last_active_at")
 
   // Relaciones
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -319,24 +327,24 @@ model Session {
 
 /// Refresh tokens para JWT
 model RefreshToken {
-  id            String    @id @default(cuid())
-  userId        String    @map("user_id")
-  token         String    @unique @db.VarChar(500)
-  tokenHash     String    @unique @map("token_hash") @db.VarChar(64)
-  deviceId      String?   @map("device_id") @db.VarChar(100)
-  ipAddress     String?   @map("ip_address") @db.VarChar(45)
-  userAgent     String?   @map("user_agent")
+  id        String  @id @default(cuid())
+  userId    String  @map("user_id")
+  token     String  @unique @db.VarChar(500)
+  tokenHash String  @unique @map("token_hash") @db.VarChar(64)
+  deviceId  String? @map("device_id") @db.VarChar(100)
+  ipAddress String? @map("ip_address") @db.VarChar(45)
+  userAgent String? @map("user_agent")
 
   isRevoked     Boolean   @default(false) @map("is_revoked")
   revokedAt     DateTime? @map("revoked_at")
   revokedReason String?   @map("revoked_reason") @db.VarChar(100)
 
-  createdAt     DateTime  @default(now()) @map("created_at")
-  expiresAt     DateTime  @map("expires_at")
-  lastUsedAt    DateTime? @map("last_used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime  @map("expires_at")
+  lastUsedAt DateTime? @map("last_used_at")
 
   // Relaciones
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([tokenHash])
@@ -346,17 +354,17 @@ model RefreshToken {
 
 /// Tokens de restablecimiento de contraseña
 model PasswordReset {
-  id         String    @id @default(cuid())
-  userId     String    @map("user_id")
-  token      String    @unique @db.VarChar(100)
-  tokenHash  String    @unique @map("token_hash") @db.VarChar(64)
-  isUsed     Boolean   @default(false) @map("is_used")
-  usedAt     DateTime? @map("used_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  expiresAt  DateTime  @map("expires_at")
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  token     String    @unique @db.VarChar(100)
+  tokenHash String    @unique @map("token_hash") @db.VarChar(64)
+  isUsed    Boolean   @default(false) @map("is_used")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiresAt DateTime  @map("expires_at")
 
   // Relaciones
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([tokenHash])
@@ -376,7 +384,7 @@ model EmailVerification {
   expiresAt DateTime  @map("expires_at")
 
   // Relaciones
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([tokenHash])
@@ -407,7 +415,7 @@ model AuditLog {
   createdAt     DateTime    @default(now()) @map("created_at")
 
   // Relaciones
-  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([action])
@@ -422,7 +430,7 @@ model SystemConfig {
   key         String   @unique @db.VarChar(100)
   value       String
   type        String   @default("string") @db.VarChar(20) // string, number, boolean, json
-  category    String   @db.VarChar(50)                     // plazos, seguridad, email, general
+  category    String   @db.VarChar(50) // plazos, seguridad, email, general
   label       String   @db.VarChar(200)
   description String?
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -434,13 +442,13 @@ model SystemConfig {
 
 /// Rate limiting
 model RateLimit {
-  id            String   @id @default(cuid())
-  identifier    String   @db.VarChar(255)
-  endpoint      String   @db.VarChar(255)
-  requestCount  Int      @default(1) @map("request_count")
-  windowStart   DateTime @map("window_start")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(cuid())
+  identifier   String   @db.VarChar(255)
+  endpoint     String   @db.VarChar(255)
+  requestCount Int      @default(1) @map("request_count")
+  windowStart  DateTime @map("window_start")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@unique([identifier, endpoint, windowStart])
   @@index([identifier, endpoint])
@@ -453,23 +461,24 @@ model RateLimit {
 // ============================================
 
 enum EstadoTesis {
-  BORRADOR                // Recién creada, sin enviar
-  EN_REVISION             // Enviada para revisión
-  OBSERVADA               // Tiene observaciones pendientes
-  ASIGNANDO_JURADOS       // Mesa de partes asigna jurados evaluadores
-  EN_EVALUACION_JURADO    // Jurados evaluando el proyecto (15 días)
-  OBSERVADA_JURADO        // Jurado observó, estudiante corrige (30 días)
-  PROYECTO_APROBADO       // Jurado aprobó el proyecto
-  INFORME_FINAL           // Estudiante sube informe final
-  EN_REVISION_INFORME     // Mesa de partes revisa informe final antes de jurados
-  EN_EVALUACION_INFORME   // Jurados evaluando el informe final
-  OBSERVADA_INFORME       // Jurado observó informe, estudiante corrige
-  APROBADA                // Aprobada por el comité
-  EN_SUSTENTACION         // En proceso de sustentación
-  SUSTENTADA              // Ya sustentada
-  ARCHIVADA               // Archivada (histórico)
-  RECHAZADA               // Rechazada definitivamente
-  DESISTIDA               // Tesista desistió voluntariamente
+  BORRADOR // Recién creada, sin enviar
+  EN_REVISION // Enviada para revisión
+  OBSERVADA // Tiene observaciones pendientes
+  ASIGNANDO_JURADOS // Mesa de partes asigna jurados evaluadores
+  EN_EVALUACION_JURADO // Jurados evaluando el proyecto (15 días)
+  OBSERVADA_JURADO // Jurado observó, estudiante corrige (30 días)
+  PROYECTO_APROBADO // Jurado aprobó el proyecto
+  INFORME_FINAL // Estudiante sube informe final
+  EN_REVISION_INFORME // Mesa de partes revisa informe final antes de jurados
+  EN_EVALUACION_INFORME // Jurados evaluando el informe final
+  OBSERVADA_INFORME // Jurado observó informe, estudiante corrige
+  APROBADA // Aprobada por el comité
+  EN_SUSTENTACION // En proceso de sustentación
+  SUSTENTADA // Ya sustentada
+  ARCHIVADA // Archivada (histórico)
+  RECHAZADA // Rechazada definitivamente
+  DESISTIDA // Tesista desistió voluntariamente
+  SOLICITUD_DESISTIMIENTO // Tesista solicitó desistir, esperando mesa de partes
 
   @@map("estado_tesis")
 }
@@ -513,45 +522,69 @@ enum TipoAsesor {
 }
 
 enum EstadoAsesor {
-  PENDIENTE           // Esperando respuesta
-  ACEPTADO            // Aceptó ser asesor
-  RECHAZADO           // Rechazó ser asesor
+  PENDIENTE // Esperando respuesta
+  ACEPTADO // Aceptó ser asesor
+  RECHAZADO // Rechazó ser asesor
 
   @@map("estado_asesor")
 }
 
 enum EstadoAutor {
-  PENDIENTE           // Esperando respuesta (para coautores)
-  ACEPTADO            // Aceptó participar
-  RECHAZADO           // Rechazó participar
-  DESISTIDO           // Desistió voluntariamente
+  PENDIENTE // Esperando respuesta (para coautores)
+  ACEPTADO // Aceptó participar
+  RECHAZADO // Rechazó participar
+  DESISTIDO // Desistió voluntariamente
 
   @@map("estado_autor")
 }
 
+enum MotivoDesistimiento {
+  PERSONAL_FAMILIAR
+  ECONOMICO
+  SALUD
+  LABORAL
+  CAMBIO_TEMA
+  PROBLEMA_ASESOR
+  PROBLEMA_COAUTOR
+  FALTA_TIEMPO
+  CAMBIO_CARRERA
+  OTRO
+
+  @@map("motivo_desistimiento")
+}
+
+enum EstadoSolicitudDesistimiento {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+
+  @@map("estado_solicitud_desistimiento")
+}
+
 enum TipoDocumentoTesis {
-  PROYECTO                    // Proyecto de tesis
-  BORRADOR                    // Borrador del documento
-  DOCUMENTO_FINAL             // Documento final
-  ACTA_SUSTENTACION           // Acta de sustentación
-  CERTIFICADO                 // Certificados varios
-  ANEXO                       // Documentos anexos
-  CARTA_ACEPTACION_ASESOR     // Carta de aceptación del asesor
-  CARTA_ACEPTACION_COASESOR   // Carta de aceptación del coasesor
-  VOUCHER_PAGO                // Voucher de pago (S/. 30 - código 277)
-  DOCUMENTO_SUSTENTATORIO     // Documento sustentatorio (matrícula, SUNEDU o egresado)
-  DICTAMEN_JURADO             // Dictamen firmado por el jurado
-  RESOLUCION_JURADO           // Resolución de conformación de jurado de revisión
-  RESOLUCION_JURADO_INFORME   // Resolución de conformación de jurado evaluador de informe final
-  RESOLUCION_APROBACION       // Resolución de aprobación subida por mesa de partes
-  REPORTE_TURNITIN            // Reporte de similitud Turnitin
-  INFORME_FINAL_DOC           // Documento de informe final
-  VOUCHER_PAGO_INFORME        // Voucher de pago informe final (S/. 20 - código 465)
-  ACTA_VERIFICACION_ASESOR    // Acta de verificación de similitud del asesor
-  VOUCHER_SALA_GRADOS         // Voucher alquiler sala de grados (Cod. 384, S/ 515)
-  VOUCHER_SUSTENTACION        // Voucher sustentación por tesista (Cod. 466, S/ 36)
-  CONSTANCIA_SUNEDU           // Constancia inscripción SUNEDU
-  RESOLUCION_SUSTENTACION     // Resolución aprobación informe final + sustentación
+  PROYECTO // Proyecto de tesis
+  BORRADOR // Borrador del documento
+  DOCUMENTO_FINAL // Documento final
+  ACTA_SUSTENTACION // Acta de sustentación
+  CERTIFICADO // Certificados varios
+  ANEXO // Documentos anexos
+  CARTA_ACEPTACION_ASESOR // Carta de aceptación del asesor
+  CARTA_ACEPTACION_COASESOR // Carta de aceptación del coasesor
+  VOUCHER_PAGO // Voucher de pago (S/. 30 - código 277)
+  DOCUMENTO_SUSTENTATORIO // Documento sustentatorio (matrícula, SUNEDU o egresado)
+  DICTAMEN_JURADO // Dictamen firmado por el jurado
+  RESOLUCION_JURADO // Resolución de conformación de jurado de revisión
+  RESOLUCION_JURADO_INFORME // Resolución de conformación de jurado evaluador de informe final
+  RESOLUCION_APROBACION // Resolución de aprobación subida por mesa de partes
+  REPORTE_TURNITIN // Reporte de similitud Turnitin
+  INFORME_FINAL_DOC // Documento de informe final
+  VOUCHER_PAGO_INFORME // Voucher de pago informe final (S/. 20 - código 465)
+  ACTA_VERIFICACION_ASESOR // Acta de verificación de similitud del asesor
+  VOUCHER_SALA_GRADOS // Voucher alquiler sala de grados (Cod. 384, S/ 515)
+  VOUCHER_SUSTENTACION // Voucher sustentación por tesista (Cod. 466, S/ 36)
+  CONSTANCIA_SUNEDU // Constancia inscripción SUNEDU
+  RESOLUCION_SUSTENTACION // Resolución aprobación informe final + sustentación
   OTRO
 
   @@map("tipo_documento_tesis")
@@ -559,57 +592,59 @@ enum TipoDocumentoTesis {
 
 /// Tesis
 model Thesis {
-  id              String      @id @default(cuid())
-  titulo          String      @db.VarChar(500)
-  resumen         String?     @db.Text
-  palabrasClave   String[]    @map("palabras_clave")
+  id            String   @id @default(cuid())
+  titulo        String   @db.VarChar(500)
+  resumen       String?  @db.Text
+  palabrasClave String[] @map("palabras_clave")
 
   // Estado actual
-  estado          EstadoTesis @default(BORRADOR)
+  estado EstadoTesis @default(BORRADOR)
 
   // Fechas importantes
-  fechaInicio     DateTime?   @map("fecha_inicio")
-  fechaAprobacion DateTime?   @map("fecha_aprobacion")
-  fechaSustentacion DateTime? @map("fecha_sustentacion")
-  lugarSustentacion     String?   @map("lugar_sustentacion") @db.VarChar(300)
+  fechaInicio           DateTime?              @map("fecha_inicio")
+  fechaAprobacion       DateTime?              @map("fecha_aprobacion")
+  fechaSustentacion     DateTime?              @map("fecha_sustentacion")
+  lugarSustentacion     String?                @map("lugar_sustentacion") @db.VarChar(300)
   modalidadSustentacion ModalidadSustentacion? @map("modalidad_sustentacion")
 
   // Metadata
-  lineaInvestigacion String?  @map("linea_investigacion") @db.VarChar(200)
-  areaConocimiento   String?  @map("area_conocimiento") @db.VarChar(200)
+  lineaInvestigacion String? @map("linea_investigacion") @db.VarChar(200)
+  areaConocimiento   String? @map("area_conocimiento") @db.VarChar(200)
 
   // Confirmación de voucher físico por mesa de partes
-  voucherFisicoEntregado    Boolean   @default(false) @map("voucher_fisico_entregado")
-  voucherFisicoFecha        DateTime? @map("voucher_fisico_fecha")
+  voucherFisicoEntregado Boolean   @default(false) @map("voucher_fisico_entregado")
+  voucherFisicoFecha     DateTime? @map("voucher_fisico_fecha")
 
   // Confirmación de voucher físico informe final por mesa de partes
   voucherInformeFisicoEntregado Boolean   @default(false) @map("voucher_informe_fisico_entregado")
   voucherInformeFisicoFecha     DateTime? @map("voucher_informe_fisico_fecha")
 
   // Confirmaciones para sustentación
-  voucherSustentacionFisicoEntregado  Boolean   @default(false) @map("voucher_sustentacion_fisico_entregado")
-  voucherSustentacionFisicoFecha      DateTime? @map("voucher_sustentacion_fisico_fecha")
-  ejemplaresEntregados                Boolean   @default(false) @map("ejemplares_entregados")
-  ejemplaresEntregadosFecha           DateTime? @map("ejemplares_entregados_fecha")
+  voucherSustentacionFisicoEntregado Boolean   @default(false) @map("voucher_sustentacion_fisico_entregado")
+  voucherSustentacionFisicoFecha     DateTime? @map("voucher_sustentacion_fisico_fecha")
+  ejemplaresEntregados               Boolean   @default(false) @map("ejemplares_entregados")
+  ejemplaresEntregadosFecha          DateTime? @map("ejemplares_entregados_fecha")
 
   // Evaluación por jurados
-  rondaActual              Int       @default(0) @map("ronda_actual")
-  faseActual               String?   @map("fase_actual") @db.VarChar(20)
-  fechaLimiteEvaluacion    DateTime? @map("fecha_limite_evaluacion")
-  fechaLimiteCorreccion    DateTime? @map("fecha_limite_correccion")
+  rondaActual           Int       @default(0) @map("ronda_actual")
+  faseActual            String?   @map("fase_actual") @db.VarChar(20)
+  fechaLimiteEvaluacion DateTime? @map("fecha_limite_evaluacion")
+  fechaLimiteCorreccion DateTime? @map("fecha_limite_correccion")
 
   // Timestamps
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-  deletedAt       DateTime?   @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   // Relaciones
-  autores              ThesisAuthor[]
-  asesores             ThesisAdvisor[]
-  documentos           ThesisDocument[]
-  historialEstados     ThesisStatusHistory[]
-  jurados              ThesisJury[]
-  evaluacionesJurado   JuryEvaluation[]
+  autores            ThesisAuthor[]
+  asesores           ThesisAdvisor[]
+  documentos         ThesisDocument[]
+  historialEstados   ThesisStatusHistory[]
+  jurados            ThesisJury[]
+  evaluacionesJurado JuryEvaluation[]
+  desistimientos     ThesisWithdrawal[]
+  academicOverrides  AcademicWindowOverride[]
 
   @@index([estado])
   @@index([createdAt])
@@ -618,26 +653,27 @@ model Thesis {
 
 /// Autores de tesis (estudiantes)
 model ThesisAuthor {
-  id              String      @id @default(cuid())
-  thesisId        String      @map("thesis_id")
-  userId          String      @map("user_id")
-  studentCareerId String      @map("student_career_id")
+  id              String @id @default(cuid())
+  thesisId        String @map("thesis_id")
+  userId          String @map("user_id")
+  studentCareerId String @map("student_career_id")
 
   // Orden de autoría
-  orden           Int         @default(1)
+  orden Int @default(1)
 
   // Estado de participación (para coautores)
-  estado          EstadoAutor @default(ACEPTADO)
-  fechaRespuesta  DateTime?   @map("fecha_respuesta")
-  motivoRechazo   String?     @map("motivo_rechazo")
+  estado         EstadoAutor @default(ACEPTADO)
+  fechaRespuesta DateTime?   @map("fecha_respuesta")
+  motivoRechazo  String?     @map("motivo_rechazo")
 
   // Timestamps
-  createdAt       DateTime    @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relaciones
-  thesis          Thesis      @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  user            User        @relation(fields: [userId], references: [id])
-  studentCareer   StudentCareer @relation(fields: [studentCareerId], references: [id])
+  thesis        Thesis            @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id])
+  studentCareer StudentCareer     @relation(fields: [studentCareerId], references: [id])
+  desistimiento ThesisWithdrawal?
 
   @@unique([thesisId, userId])
   @@index([thesisId])
@@ -647,21 +683,21 @@ model ThesisAuthor {
 
 /// Asesores de tesis
 model ThesisAdvisor {
-  id              String       @id @default(cuid())
-  thesisId        String       @map("thesis_id")
-  userId          String       @map("user_id")
-  tipo            TipoAsesor   @default(PRINCIPAL)
+  id       String     @id @default(cuid())
+  thesisId String     @map("thesis_id")
+  userId   String     @map("user_id")
+  tipo     TipoAsesor @default(PRINCIPAL)
 
   // Estado de aceptación
-  estado          EstadoAsesor @default(PENDIENTE)
-  fechaRespuesta  DateTime?    @map("fecha_respuesta")
+  estado         EstadoAsesor @default(PENDIENTE)
+  fechaRespuesta DateTime?    @map("fecha_respuesta")
 
   // Timestamps
-  createdAt       DateTime     @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relaciones
-  thesis          Thesis       @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  user            User         @relation(fields: [userId], references: [id])
+  thesis Thesis @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 
   @@unique([thesisId, userId])
   @@index([thesisId])
@@ -671,31 +707,38 @@ model ThesisAdvisor {
 
 /// Documentos de tesis
 model ThesisDocument {
-  id              String              @id @default(cuid())
-  thesisId        String              @map("thesis_id")
-  uploadedById    String              @map("uploaded_by_id")
+  id           String @id @default(cuid())
+  thesisId     String @map("thesis_id")
+  uploadedById String @map("uploaded_by_id")
 
   tipo            TipoDocumentoTesis
-  nombre          String              @db.VarChar(255)
+  nombre          String             @db.VarChar(255)
   descripcion     String?
-  rutaArchivo     String              @map("ruta_archivo") @db.VarChar(500)
-  mimeType        String?             @map("mime_type") @db.VarChar(100)
-  tamano          Int?                // en bytes
-  version         Int                 @default(1)
-  esVersionActual Boolean             @default(true) @map("es_version_actual")
+  rutaArchivo     String             @map("ruta_archivo") @db.VarChar(500)
+  mimeType        String?            @map("mime_type") @db.VarChar(100)
+  tamano          Int? // en bytes
+  version         Int                @default(1)
+  esVersionActual Boolean            @default(true) @map("es_version_actual")
 
   // Firma digital
-  firmadoDigitalmente Boolean         @default(false) @map("firmado_digitalmente")
-  fechaFirma      DateTime?           @map("fecha_firma")
-  hashDocumento   String?             @map("hash_documento") @db.VarChar(128)
+  firmadoDigitalmente Boolean   @default(false) @map("firmado_digitalmente")
+  fechaFirma          DateTime? @map("fecha_firma")
+  hashDocumento       String?   @map("hash_documento") @db.VarChar(128)
+
+  // Versionado de modificatorias
+  esModificatoria      Boolean @default(false) @map("es_modificatoria")
+  reemplazaDocumentoId String? @map("reemplaza_documento_id")
 
   // Timestamps
-  createdAt       DateTime            @default(now()) @map("created_at")
-  updatedAt       DateTime            @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relaciones
-  thesis          Thesis              @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  uploadedBy      User                @relation(fields: [uploadedById], references: [id])
+  thesis                  Thesis             @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  uploadedBy              User               @relation(fields: [uploadedById], references: [id])
+  reemplazaDocumento      ThesisDocument?    @relation("DocumentoModificatorias", fields: [reemplazaDocumentoId], references: [id], onDelete: SetNull)
+  modificatorias          ThesisDocument[]   @relation("DocumentoModificatorias")
+  desistimientosAsociados ThesisWithdrawal[] @relation("ResolucionDesistimiento")
 
   @@index([thesisId])
   @@index([tipo])
@@ -704,24 +747,70 @@ model ThesisDocument {
 
 /// Historial de estados de tesis
 model ThesisStatusHistory {
-  id              String      @id @default(cuid())
-  thesisId        String      @map("thesis_id")
-  changedById     String      @map("changed_by_id")
+  id          String @id @default(cuid())
+  thesisId    String @map("thesis_id")
+  changedById String @map("changed_by_id")
 
-  estadoAnterior  EstadoTesis? @map("estado_anterior")
-  estadoNuevo     EstadoTesis  @map("estado_nuevo")
-  comentario      String?
+  estadoAnterior EstadoTesis? @map("estado_anterior")
+  estadoNuevo    EstadoTesis  @map("estado_nuevo")
+  comentario     String?
 
   // Timestamps
-  createdAt       DateTime    @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relaciones
-  thesis          Thesis      @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  changedBy       User        @relation(fields: [changedById], references: [id])
+  thesis    Thesis @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  changedBy User   @relation(fields: [changedById], references: [id])
 
   @@index([thesisId])
   @@index([createdAt])
   @@map("thesis_status_history")
+}
+
+/// Historial estructurado de desistimientos (para reportes)
+model ThesisWithdrawal {
+  id              String @id @default(cuid())
+  thesisId        String @map("thesis_id")
+  thesisAuthorId  String @map("thesis_author_id")
+  userId          String @map("user_id")
+  studentCareerId String @map("student_career_id")
+
+  motivoCategoria   MotivoDesistimiento @map("motivo_categoria")
+  motivoDescripcion String              @map("motivo_descripcion") @db.Text
+
+  estadoSolicitud         EstadoSolicitudDesistimiento @default(PENDIENTE) @map("estado_solicitud")
+  solicitadoAt            DateTime                     @default(now()) @map("solicitado_at")
+  aprobadoPorId           String?                      @map("aprobado_por_id")
+  aprobadoAt              DateTime?                    @map("aprobado_at")
+  motivoRechazoMesaPartes String?                      @map("motivo_rechazo_mesa_partes") @db.Text
+  resolucionDocumentoId   String?                      @map("resolucion_documento_id")
+
+  estadoTesisAlSolicitar EstadoTesis @map("estado_tesis_al_solicitar")
+  faseActual             String?     @map("fase_actual") @db.VarChar(20)
+  teniaCoautor           Boolean     @map("tenia_coautor")
+  facultadIdSnapshot     String      @map("facultad_id_snapshot")
+  carreraNombreSnapshot  String      @map("carrera_nombre_snapshot") @db.VarChar(150)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  thesis              Thesis          @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  thesisAuthor        ThesisAuthor    @relation(fields: [thesisAuthorId], references: [id], onDelete: Restrict)
+  user                User            @relation("DesistimientosUsuario", fields: [userId], references: [id], onDelete: Restrict)
+  aprobadoPor         User?           @relation("DesistimientosAprobados", fields: [aprobadoPorId], references: [id], onDelete: SetNull)
+  resolucionDocumento ThesisDocument? @relation("ResolucionDesistimiento", fields: [resolucionDocumentoId], references: [id], onDelete: SetNull)
+  studentCareer       StudentCareer   @relation(fields: [studentCareerId], references: [id], onDelete: Restrict)
+  facultadSnapshot    Faculty         @relation("FacultadDesistimientos", fields: [facultadIdSnapshot], references: [id], onDelete: Restrict)
+
+  @@unique([thesisAuthorId])
+  @@index([userId])
+  @@index([thesisId])
+  @@index([estadoSolicitud])
+  @@index([motivoCategoria])
+  @@index([createdAt])
+  @@index([aprobadoAt])
+  @@index([facultadIdSnapshot])
+  @@map("thesis_withdrawals")
 }
 
 // ============================================
@@ -730,17 +819,17 @@ model ThesisStatusHistory {
 
 /// Jurados asignados a una tesis
 model ThesisJury {
-  id          String         @id @default(cuid())
-  thesisId    String         @map("thesis_id")
-  userId      String         @map("user_id")
-  tipo        TipoJurado
-  fase        FaseEvaluacion @default(PROYECTO)
-  isActive    Boolean        @default(true) @map("is_active")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
+  id        String         @id @default(cuid())
+  thesisId  String         @map("thesis_id")
+  userId    String         @map("user_id")
+  tipo      TipoJurado
+  fase      FaseEvaluacion @default(PROYECTO)
+  isActive  Boolean        @default(true) @map("is_active")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
 
-  thesis       Thesis          @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  user         User            @relation(fields: [userId], references: [id])
+  thesis       Thesis           @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id])
   evaluaciones JuryEvaluation[]
 
   @@unique([thesisId, userId, fase])
@@ -751,14 +840,14 @@ model ThesisJury {
 
 /// Evaluaciones individuales de jurados
 model JuryEvaluation {
-  id             String              @id @default(cuid())
-  thesisId       String              @map("thesis_id")
-  juryMemberId   String              @map("jury_member_id")
-  ronda          Int                 @default(1)
-  resultado      ResultadoEvaluacion
-  observaciones  String?             @db.Text
-  archivoUrl     String?             @map("archivo_url") @db.VarChar(500)
-  createdAt      DateTime            @default(now()) @map("created_at")
+  id            String              @id @default(cuid())
+  thesisId      String              @map("thesis_id")
+  juryMemberId  String              @map("jury_member_id")
+  ronda         Int                 @default(1)
+  resultado     ResultadoEvaluacion
+  observaciones String?             @db.Text
+  archivoUrl    String?             @map("archivo_url") @db.VarChar(500)
+  createdAt     DateTime            @default(now()) @map("created_at")
 
   thesis     Thesis     @relation(fields: [thesisId], references: [id], onDelete: Cascade)
   juryMember ThesisJury @relation(fields: [juryMemberId], references: [id], onDelete: Cascade)
@@ -775,18 +864,141 @@ model JuryEvaluation {
 
 /// Notificaciones del sistema para los usuarios
 model Notification {
-  id          String    @id @default(cuid())
-  userId      String    @map("user_id")
-  tipo        String    @db.VarChar(50)
-  titulo      String    @db.VarChar(200)
-  mensaje     String    @db.VarChar(500)
-  enlace      String?   @db.VarChar(300)
-  leida       Boolean   @default(false)
-  createdAt   DateTime  @default(now()) @map("created_at")
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tipo      String   @db.VarChar(50)
+  titulo    String   @db.VarChar(200)
+  mensaje   String   @db.VarChar(500)
+  enlace    String?  @db.VarChar(300)
+  leida     Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, leida])
   @@index([createdAt])
   @@map("notifications")
+}
+
+// ============================================
+// CALENDARIO ACADEMICO
+// ============================================
+
+enum SemestreAcademico {
+  I
+  II
+  VERANO
+
+  @@map("semestre_academico")
+}
+
+enum AcademicPeriodEstado {
+  PLANIFICADO
+  ACTIVO
+  CERRADO
+
+  @@map("academic_period_estado")
+}
+
+/// Tipos de ventana (tramite) dentro de un periodo academico.
+/// Cada valor corresponde a una accion que se puede permitir/bloquear por fechas.
+enum AcademicWindowType {
+  PRESENTACION_PROYECTO // tesistas envian proyecto a revision
+  REVISION_MESA_PARTES // mesa de partes aprueba/observa/rechaza proyecto
+  ASIGNACION_JURADOS // mesa de partes designa jurados
+  EVALUACION_JURADO // jurados evaluan proyecto/informe
+  INFORME_FINAL // tesistas suben informe final
+  SUSTENTACION // sustentaciones programadas
+  DESISTIMIENTO // solicitudes de desistimiento
+
+  @@map("academic_window_type")
+}
+
+/// Categoria tipificada para prorrogas excepcionales.
+enum OverrideCategoria {
+  CASO_FORTUITO // enfermedad, accidente, caso individual
+  FUERZA_MAYOR // paro, pandemia, desastre
+  ERROR_ADMINISTRATIVO // error de mesa de partes o del sistema
+  REPRESENTANTE_OFICIAL // comision oficial, representacion de la universidad
+  OTRO
+
+  @@map("override_categoria")
+}
+
+/// Periodo academico (2026-I, 2026-II, etc.). Puede ser global o por facultad.
+model AcademicPeriod {
+  id            String               @id @default(cuid())
+  anio          Int
+  semestre      SemestreAcademico
+  nombre        String               @db.VarChar(50) // "2026-I", "2026-VERANO"
+  fechaInicio   DateTime             @map("fecha_inicio")
+  fechaFin      DateTime             @map("fecha_fin")
+  estado        AcademicPeriodEstado @default(PLANIFICADO)
+  esActual      Boolean              @default(false) @map("es_actual")
+  facultadId    String?              @map("facultad_id") // null = global (toda la universidad)
+  observaciones String?              @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  facultad Faculty?         @relation(fields: [facultadId], references: [id], onDelete: Restrict)
+  ventanas AcademicWindow[]
+
+  @@unique([anio, semestre, facultadId])
+  @@index([estado])
+  @@index([esActual])
+  @@index([facultadId])
+  @@map("academic_periods")
+}
+
+/// Ventana de tramite dentro de un periodo academico.
+model AcademicWindow {
+  id            String             @id @default(cuid())
+  periodoId     String             @map("periodo_id")
+  tipo          AcademicWindowType
+  facultadId    String?            @map("facultad_id") // null = hereda del periodo (global/facultad)
+  fechaInicio   DateTime           @map("fecha_inicio")
+  fechaFin      DateTime           @map("fecha_fin")
+  habilitada    Boolean            @default(true) // permite desactivar sin borrar
+  observaciones String?            @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  periodo   AcademicPeriod           @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  facultad  Faculty?                 @relation(fields: [facultadId], references: [id], onDelete: Restrict)
+  overrides AcademicWindowOverride[]
+
+  @@unique([periodoId, tipo, facultadId])
+  @@index([tipo])
+  @@index([fechaInicio, fechaFin])
+  @@index([facultadId])
+  @@map("academic_windows")
+}
+
+/// Override/prorroga individual para una ventana (caso especial por decanato).
+/// Si thesisId o userId estan seteados, el override solo aplica a ese caso.
+/// Si ambos son null, es una prorroga general de la ventana hasta vigenciaHasta.
+model AcademicWindowOverride {
+  id              String            @id @default(cuid())
+  windowId        String            @map("window_id")
+  thesisId        String?           @map("thesis_id")
+  userId          String?           @map("user_id")
+  categoria       OverrideCategoria @default(OTRO)
+  motivo          String            @db.Text
+  vigenciaHasta   DateTime          @map("vigencia_hasta")
+  autorizadoPorId String            @map("autorizado_por_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  window        AcademicWindow @relation(fields: [windowId], references: [id], onDelete: Cascade)
+  thesis        Thesis?        @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  user          User?          @relation("OverridesRecibidos", fields: [userId], references: [id], onDelete: Cascade)
+  autorizadoPor User           @relation("OverridesAutorizados", fields: [autorizadoPorId], references: [id], onDelete: Restrict)
+
+  @@index([windowId])
+  @@index([thesisId])
+  @@index([userId])
+  @@index([vigenciaHasta])
+  @@map("academic_window_overrides")
 }

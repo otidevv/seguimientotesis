@@ -32,7 +32,6 @@ import {
   Info,
   Loader2,
   Plus,
-  Search,
   Sparkles,
   User,
   UserPlus,
@@ -44,6 +43,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
+import { PersonSearchField } from '@/components/tesis/person-search-field'
 
 interface Carrera {
   id: string
@@ -73,6 +73,9 @@ interface Persona {
   carrera?: string
   departamento?: string
   facultad?: string
+  /** Solo para estudiantes: indica si ya participa en otra tesis activa. */
+  tieneTesisActiva?: boolean
+  tesisActivaTitulo?: string | null
 }
 
 // Configuración de pasos
@@ -141,9 +144,20 @@ export default function NuevoProyectoPage() {
   // Estados generales
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
+  // Fase "proyecto creado, navegando al detalle" — mantiene el overlay visible
+  // hasta que la nueva página monte, evitando el flash del formulario viejo.
+  const [redirigiendo, setRedirigiendo] = useState(false)
 
   // Selección con validación cruzada de roles
   const seleccionarCoautor = (p: Persona) => {
+    if (p.tieneTesisActiva) {
+      toast.error(
+        p.tesisActivaTitulo
+          ? `${p.nombreCompleto} ya participa en la tesis "${p.tesisActivaTitulo}"`
+          : `${p.nombreCompleto} ya tiene un proyecto de tesis activo`
+      )
+      return
+    }
     if (p.id === asesorSeleccionado?.id || p.id === coasesorSeleccionado?.id) {
       toast.error('Esta persona ya fue seleccionada como asesor o coasesor')
       return
@@ -332,24 +346,43 @@ export default function NuevoProyectoPage() {
     }
   }, [carreraSeleccionada, carreras, asesorSeleccionado, coasesorSeleccionado, coautorSeleccionado])
 
-  // Debounce para búsquedas
+  // Debounce + estado de "cargando" desde el primer keystroke para que el
+  // skeleton aparezca de inmediato (sin el flash del "sin resultados").
   useEffect(() => {
+    if (busquedaCoautor.trim().length < 2) {
+      setResultadosCoautor([])
+      setBuscandoCoautor(false)
+      return
+    }
+    setBuscandoCoautor(true)
     const timer = setTimeout(() => {
-      if (busquedaCoautor) buscarCoautor(busquedaCoautor)
+      buscarCoautor(busquedaCoautor)
     }, 300)
     return () => clearTimeout(timer)
   }, [busquedaCoautor, buscarCoautor])
 
   useEffect(() => {
+    if (busquedaAsesor.trim().length < 2) {
+      setResultadosAsesor([])
+      setBuscandoAsesor(false)
+      return
+    }
+    setBuscandoAsesor(true)
     const timer = setTimeout(() => {
-      if (busquedaAsesor) buscarDocente(busquedaAsesor, 'asesor')
+      buscarDocente(busquedaAsesor, 'asesor')
     }, 300)
     return () => clearTimeout(timer)
   }, [busquedaAsesor, buscarDocente])
 
   useEffect(() => {
+    if (busquedaCoasesor.trim().length < 2) {
+      setResultadosCoasesor([])
+      setBuscandoCoasesor(false)
+      return
+    }
+    setBuscandoCoasesor(true)
     const timer = setTimeout(() => {
-      if (busquedaCoasesor) buscarDocente(busquedaCoasesor, 'coasesor')
+      buscarDocente(busquedaCoasesor, 'coasesor')
     }, 300)
     return () => clearTimeout(timer)
   }, [busquedaCoasesor, buscarDocente])
@@ -408,10 +441,17 @@ export default function NuevoProyectoPage() {
         coasesorId: coasesorSeleccionado?.id || null,
       })
       toast.success('Proyecto creado exitosamente')
+      // Cambiamos la fase del overlay y mantenemos visible el loader
+      // hasta que la navegación termine (el componente se desmonta al montar
+      // la nueva página). NO reseteamos `guardando` aquí para evitar el
+      // flash del formulario vacío.
+      setRedirigiendo(true)
+      // Prefetch + push: el prefetch arranca la hidratación de la página
+      // destino en paralelo para que el push sea casi inmediato.
+      router.prefetch(`/mis-tesis/${result.data.id}`)
       router.push(`/mis-tesis/${result.data.id}`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al crear proyecto')
-    } finally {
       setGuardando(false)
     }
   }
@@ -493,8 +533,12 @@ export default function NuevoProyectoPage() {
     <div className="space-y-6">
       <FullscreenLoader
         visible={guardando}
-        title="Creando tu proyecto"
-        description="Registrando la información y notificando al asesor..."
+        title={redirigiendo ? '¡Proyecto creado!' : 'Creando tu proyecto'}
+        description={
+          redirigiendo
+            ? 'Abriendo tu proyecto…'
+            : 'Registrando la información y notificando al asesor…'
+        }
       />
       {/* Header */}
       <div>
@@ -949,52 +993,43 @@ export default function NuevoProyectoPage() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Buscar por nombre o documento..."
-                              className="pl-10"
-                              value={busquedaCoautor}
-                              onChange={(e) => setBusquedaCoautor(e.target.value)}
-                            />
-                            {buscandoCoautor && (
-                              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin" />
-                            )}
-                          </div>
-                          {resultadosCoautor.length > 0 && (
-                            <div className="border rounded-xl divide-y overflow-hidden max-h-48 overflow-y-auto">
-                              {resultadosCoautor.map((p) => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
-                                  onClick={() => seleccionarCoautor(p)}
-                                >
-                                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                    <User className="w-4 h-4" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium truncate">{p.nombreCompleto}</p>
-                                    <p className="text-sm text-muted-foreground truncate">
-                                      {p.codigoEstudiante} • {p.email}
-                                    </p>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
+                        <PersonSearchField<Persona>
+                          value={busquedaCoautor}
+                          onChange={setBusquedaCoautor}
+                          loading={buscandoCoautor}
+                          results={resultadosCoautor}
+                          onSelect={seleccionarCoautor}
+                          itemKey={(p) => p.id}
+                          placeholder="Buscar por nombre o documento..."
+                          emptyHint="Verifica el nombre o documento"
+                          isItemDisabled={(p) => p.tieneTesisActiva === true}
+                          itemDisabledHint={(p) =>
+                            p.tesisActivaTitulo
+                              ? `Ya participa en: ${p.tesisActivaTitulo}`
+                              : 'Ya está en otro proyecto de tesis'
+                          }
+                          renderResult={(p) => (
+                            <>
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                <User className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="font-medium truncate">{p.nombreCompleto}</p>
+                                  {p.tieneTesisActiva && (
+                                    <Badge variant="outline" className="text-[10px] font-medium border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900">
+                                      En otro proyecto
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {p.codigoEstudiante} • {p.email}
+                                </p>
+                              </div>
+                            </>
                           )}
-                        </div>
+                        />
                       )}
-                          {busquedaCoautor.length >= 2 && !buscandoCoautor && resultadosCoautor.length === 0 && (
-                            <div className="flex flex-col items-center gap-2 py-6 text-center">
-                              <Search className="w-8 h-8 text-muted-foreground/40" />
-                              <p className="text-sm text-muted-foreground">
-                                No se encontraron estudiantes para &ldquo;{busquedaCoautor}&rdquo;
-                              </p>
-                              <p className="text-xs text-muted-foreground/70">Verifica el nombre o documento</p>
-                            </div>
-                          )}
                     </CardContent>
                   </Card>
 
@@ -1039,52 +1074,30 @@ export default function NuevoProyectoPage() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Buscar docente por nombre..."
-                              className="pl-10"
-                              value={busquedaAsesor}
-                              onChange={(e) => setBusquedaAsesor(e.target.value)}
-                            />
-                            {buscandoAsesor && (
-                              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin" />
-                            )}
-                          </div>
-                          {resultadosAsesor.length > 0 && (
-                            <div className="border rounded-xl divide-y overflow-hidden max-h-48 overflow-y-auto">
-                              {resultadosAsesor.map((p) => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
-                                  onClick={() => seleccionarAsesor(p)}
-                                >
-                                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                    <GraduationCap className="w-4 h-4" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium truncate">{p.nombreCompleto}</p>
-                                    <p className="text-sm text-muted-foreground truncate">
-                                      {p.departamento || p.facultad || p.email}
-                                    </p>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
+                        <PersonSearchField<Persona>
+                          value={busquedaAsesor}
+                          onChange={setBusquedaAsesor}
+                          loading={buscandoAsesor}
+                          results={resultadosAsesor}
+                          onSelect={seleccionarAsesor}
+                          itemKey={(p) => p.id}
+                          placeholder="Buscar docente por nombre..."
+                          emptyHint="Verifica el nombre del docente"
+                          renderResult={(p) => (
+                            <>
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                <GraduationCap className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{p.nombreCompleto}</p>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {p.departamento || p.facultad || p.email}
+                                </p>
+                              </div>
+                            </>
                           )}
-                        </div>
+                        />
                       )}
-                          {busquedaAsesor.length >= 2 && !buscandoAsesor && resultadosAsesor.length === 0 && (
-                            <div className="flex flex-col items-center gap-2 py-6 text-center">
-                              <Search className="w-8 h-8 text-muted-foreground/40" />
-                              <p className="text-sm text-muted-foreground">
-                                No se encontraron docentes para &ldquo;{busquedaAsesor}&rdquo;
-                              </p>
-                              <p className="text-xs text-muted-foreground/70">Verifica el nombre del docente</p>
-                            </div>
-                          )}
                     </CardContent>
                   </Card>
 
@@ -1129,52 +1142,30 @@ export default function NuevoProyectoPage() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Buscar docente por nombre..."
-                              className="pl-10"
-                              value={busquedaCoasesor}
-                              onChange={(e) => setBusquedaCoasesor(e.target.value)}
-                            />
-                            {buscandoCoasesor && (
-                              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin" />
-                            )}
-                          </div>
-                          {resultadosCoasesor.length > 0 && (
-                            <div className="border rounded-xl divide-y overflow-hidden max-h-48 overflow-y-auto">
-                              {resultadosCoasesor.map((p) => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3 cursor-pointer"
-                                  onClick={() => seleccionarCoasesor(p)}
-                                >
-                                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                    <Users className="w-4 h-4" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium truncate">{p.nombreCompleto}</p>
-                                    <p className="text-sm text-muted-foreground truncate">
-                                      {p.departamento || p.facultad || p.email}
-                                    </p>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
+                        <PersonSearchField<Persona>
+                          value={busquedaCoasesor}
+                          onChange={setBusquedaCoasesor}
+                          loading={buscandoCoasesor}
+                          results={resultadosCoasesor}
+                          onSelect={seleccionarCoasesor}
+                          itemKey={(p) => p.id}
+                          placeholder="Buscar docente por nombre..."
+                          emptyHint="Verifica el nombre del docente"
+                          renderResult={(p) => (
+                            <>
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                <Users className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{p.nombreCompleto}</p>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {p.departamento || p.facultad || p.email}
+                                </p>
+                              </div>
+                            </>
                           )}
-                        </div>
+                        />
                       )}
-                          {busquedaCoasesor.length >= 2 && !buscandoCoasesor && resultadosCoasesor.length === 0 && (
-                            <div className="flex flex-col items-center gap-2 py-6 text-center">
-                              <Search className="w-8 h-8 text-muted-foreground/40" />
-                              <p className="text-sm text-muted-foreground">
-                                No se encontraron docentes para &ldquo;{busquedaCoasesor}&rdquo;
-                              </p>
-                              <p className="text-xs text-muted-foreground/70">Verifica el nombre del docente</p>
-                            </div>
-                          )}
                     </CardContent>
                   </Card>
                 </div>

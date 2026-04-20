@@ -10,6 +10,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
+import { assertDentroDeVentana, FueraDeVentanaError } from '@/lib/academic-calendar'
 
 interface RouteParams {
   params: Promise<{
@@ -81,15 +82,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    // Verificar que el usuario es autor de la tesis
-    const esAutor = tesis.autores.some((a) => a.userId === user.id)
+    // Verificar que el usuario es autor ACTIVO (no desistido ni rechazado) de la tesis
+    const esAutor = tesis.autores.some(
+      (a) => a.userId === user.id && a.estado !== 'DESISTIDO' && a.estado !== 'RECHAZADO'
+    )
     if (!esAutor) {
       return NextResponse.json(
-        { error: 'Solo los autores pueden enviar la tesis a revisión' },
+        { error: 'Solo los autores activos pueden enviar la tesis a revisión' },
         { status: 403 }
       )
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Cancélala o espera la resolución antes de enviar.' },
+        { status: 409 }
+      )
+    }
     // Verificar que la tesis está en estado BORRADOR u OBSERVADA (reenvío tras correcciones)
     if (tesis.estado !== 'BORRADOR' && tesis.estado !== 'OBSERVADA') {
       return NextResponse.json(
@@ -118,7 +127,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       detalle: asesor
         ? asesorAcepto
           ? `${asesor.user.nombres} ${asesor.user.apellidoPaterno} aceptó`
-          : 'Esperando aceptación del asesor'
+          : asesor.estado === 'RECHAZADO'
+            ? `${asesor.user.nombres} ${asesor.user.apellidoPaterno} rechazó la asesoría. Debes reemplazarlo antes de enviar.`
+            : 'Esperando aceptación del asesor'
         : 'No hay asesor asignado',
     })
 
@@ -159,8 +170,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
     }
 
-    // 6. Coautor (si existe) aceptó
-    const coautor = tesis.autores.find((a) => a.orden > 1)
+    // 6. Coautor activo (si existe) aceptó. Los DESISTIDOs son históricos
+    // y no deben bloquear el envío del nuevo autor principal.
+    const coautor = tesis.autores.find((a) => a.orden > 1 && a.estado !== 'DESISTIDO')
     if (coautor) {
       const coautorAcepto = coautor.estado === 'ACEPTADO'
       requisitos.push({
@@ -169,7 +181,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         detalle: coautorAcepto
           ? `${coautor.user.nombres} ${coautor.user.apellidoPaterno} aceptó`
           : coautor.estado === 'RECHAZADO'
-            ? 'El coautor rechazó participar'
+            ? `${coautor.user.nombres} ${coautor.user.apellidoPaterno} rechazó participar. Debes reemplazarlo o eliminarlo antes de enviar.`
             : 'Esperando aceptación del coautor',
       })
     }
@@ -184,21 +196,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         : 'Falta subir el voucher de pago de S/. 30.00 (código 277)',
     })
 
-    // 8. Documento sustentatorio (cada tesista debe subir el suyo)
+    // 8. Documento sustentatorio (cada tesista ACEPTADO debe subir el suyo).
+    // PENDIENTE no puede subir docs hasta aceptar; RECHAZADO debe reemplazarse;
+    // DESISTIDO es histórico. Solo pedimos sustentatorio de quienes participan.
     const docsSustentatorios = tesis.documentos.filter((d) => d.tipo === 'DOCUMENTO_SUSTENTATORIO')
-    for (const autor of tesis.autores) {
+    const autoresActivos = tesis.autores.filter(a => a.estado === 'ACEPTADO')
+    for (const autor of autoresActivos) {
       const tieneDoc = docsSustentatorios.some((d) => d.uploadedById === autor.userId)
       const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno}`
       requisitos.push({
-        nombre: tesis.autores.length > 1
+        nombre: autoresActivos.length > 1
           ? `Documento Sustentatorio - ${nombreAutor}`
           : 'Documento Sustentatorio',
         cumplido: tieneDoc,
         detalle: tieneDoc
-          ? tesis.autores.length > 1
+          ? autoresActivos.length > 1
             ? `Documento sustentatorio de ${nombreAutor} subido`
             : 'Documento sustentatorio subido'
-          : tesis.autores.length > 1
+          : autoresActivos.length > 1
             ? `Falta documento sustentatorio de ${nombreAutor} (ficha de matrícula, inscripción SUNEDU o constancia de egresado)`
             : 'Falta subir documento sustentatorio (ficha de matrícula, inscripción SUNEDU o constancia de egresado)',
       })
@@ -219,12 +234,60 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    // Validar ventana de calendario academico.
+    //
+    // Diferenciamos entre primera presentacion y reenvio tras observacion:
+    //  - BORRADOR -> EN_REVISION (primera entrega): se exige la ventana
+    //    PRESENTACION_PROYECTO estricta. Es el "intake" de nuevos proyectos.
+    //  - OBSERVADA -> EN_REVISION (reenvio de correcciones): NO se exige la
+    //    ventana. El alumno corrige observaciones de mesa de partes y se rige
+    //    por `fechaLimiteCorreccion` si esta seteada. Bloquearlo por ventana
+    //    cerrada seria injusto: mesa de partes observo dentro de plazo y el
+    //    alumno merece terminar su correccion aunque se haya cerrado el intake.
+    const esReenvioCorrecciones = tesis.estado === 'OBSERVADA'
+    const autorActivoEnviar = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+    const facultadIdTesis = autorActivoEnviar?.studentCareer?.facultad?.id ?? null
+
+    if (esReenvioCorrecciones) {
+      // Enforcing fechaLimiteCorreccion si esta seteada.
+      if (tesis.fechaLimiteCorreccion && new Date() > tesis.fechaLimiteCorreccion) {
+        return NextResponse.json({
+          success: false,
+          error: `Se vencio el plazo para enviar correcciones (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}). Contacta a mesa de partes para una prorroga.`,
+          code: 'PLAZO_CORRECCION_VENCIDO',
+        }, { status: 403 })
+      }
+    } else {
+      try {
+        await assertDentroDeVentana('PRESENTACION_PROYECTO', facultadIdTesis, {
+          thesisId: tesisId,
+          userId: user.id,
+        })
+      } catch (err) {
+        if (err instanceof FueraDeVentanaError) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: err.message,
+              code: err.code,
+              ventana: err.ventanaVigente,
+            },
+            { status: 403 }
+          )
+        }
+        throw err
+      }
+    }
+
     // Actualizar estado de la tesis
     await prisma.$transaction([
       prisma.thesis.update({
         where: { id: tesisId },
         data: {
           estado: 'EN_REVISION',
+          // Al reenviar tras correccion, limpiamos el plazo; la proxima
+          // observacion seteara uno nuevo.
+          fechaLimiteCorreccion: null,
         },
       }),
       prisma.thesisStatusHistory.create({
@@ -273,7 +336,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const facultadNombre = facultad?.nombre || 'Facultad'
 
     // Email a cada autor (tesistas)
-    for (const autor of tesis.autores) {
+    for (const autor of tesis.autores.filter(a => a.estado === 'ACEPTADO')) {
       if (autor.user?.email) {
         try {
           const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -298,7 +361,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Email a cada asesor
-    for (const asesor of tesis.asesores) {
+    for (const asesor of tesis.asesores.filter(a => a.estado === 'ACEPTADO')) {
       if (asesor.user?.email) {
         try {
           const nombreAsesor = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()

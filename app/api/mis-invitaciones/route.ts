@@ -22,11 +22,17 @@ export async function GET(request: NextRequest) {
 
     const invitaciones: any[] = []
 
-    // Filtros base para coautor
+    // Filtros base para coautor.
+    // Excluir tesis en estados "muertos" (desistida, rechazada, cerrada) y
+    // congeladas (SOLICITUD_DESISTIMIENTO) — no tiene sentido aceptar una
+    // invitación de una tesis que ya no continúa o que está en trámite de cierre.
     const coautorWhere: any = {
       userId: user.id,
       orden: { gt: 1 },
-      thesis: { deletedAt: null },
+      thesis: {
+        deletedAt: null,
+        estado: { notIn: ['DESISTIDA', 'RECHAZADA', 'SOLICITUD_DESISTIMIENTO'] },
+      },
     }
     if (estado) coautorWhere.estado = estado
     if (busqueda) coautorWhere.thesis.titulo = { contains: busqueda, mode: 'insensitive' }
@@ -149,10 +155,13 @@ export async function GET(request: NextRequest) {
     // ==========================================
     // 2. Buscar invitaciones como ASESOR/COASESOR
     // ==========================================
-    // Filtros base para asesor
+    // Filtros base para asesor (mismo criterio que coautor)
     const asesorWhere: any = {
       userId: user.id,
-      thesis: { deletedAt: null },
+      thesis: {
+        deletedAt: null,
+        estado: { notIn: ['DESISTIDA', 'RECHAZADA', 'SOLICITUD_DESISTIMIENTO'] },
+      },
     }
     if (estado) asesorWhere.estado = estado
     if (busqueda) asesorWhere.thesis.titulo = { contains: busqueda, mode: 'insensitive' }

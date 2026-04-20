@@ -7,9 +7,14 @@ import {
   REFRESH_TOKEN_EXPIRES,
   REFRESH_TOKEN_REMEMBER_EXPIRES,
 } from '../constants'
+import { AuthError } from '../types'
 import type { JwtPayload, RefreshTokenPayload } from '../types'
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production')
+const JWT_SECRET_VALUE = process.env.JWT_SECRET
+if (process.env.NODE_ENV === 'production' && (!JWT_SECRET_VALUE || JWT_SECRET_VALUE === 'default-secret-key-change-in-production')) {
+  throw new Error('[token.service] JWT_SECRET no está configurado en producción. Setéalo en .env antes de arrancar.')
+}
+const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_VALUE || 'default-secret-key-change-in-production')
 
 /**
  * Parsear duracion de tiempo a milisegundos
@@ -95,35 +100,65 @@ export async function generateRefreshToken(
 
 /**
  * Verificar y validar Refresh Token
+ *
+ * Devuelve además un flag `rememberMe` inferido por la duración original
+ * del refresh token en BD, para poder preservarlo al rotarlo.
  */
-export async function verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
+export async function verifyRefreshToken(
+  token: string
+): Promise<RefreshTokenPayload & { rememberMe: boolean }> {
+  let payload: RefreshTokenPayload
+  let userId: string
+  let tokenId: string
+
+  try {
+    const verified = await jwtVerify(token, JWT_SECRET)
+    payload = verified.payload as unknown as RefreshTokenPayload
+    userId = (verified.payload as { userId: string }).userId
+    tokenId = (verified.payload as { tokenId: string }).tokenId
+  } catch {
+    throw new AuthError('TOKEN_INVALID', 'Refresh token inválido o expirado', 401)
+  }
+
+  // Verificar en base de datos
+  const storedToken = await prisma.refreshToken.findFirst({
+    where: {
+      userId,
+      token: tokenId,
+      isRevoked: false,
+      expiresAt: { gt: new Date() },
+    },
+  })
+
+  if (!storedToken) {
+    throw new AuthError('TOKEN_INVALID', 'Refresh token inválido o revocado', 401)
+  }
+
+  // Actualizar último uso
+  await prisma.refreshToken.update({
+    where: { id: storedToken.id },
+    data: { lastUsedAt: new Date() },
+  })
+
+  // Inferir rememberMe: si la duración original (expiresAt - createdAt)
+  // supera la duración estándar del refresh token, fue emitido con "Recuérdame".
+  const originalDurationMs = storedToken.expiresAt.getTime() - storedToken.createdAt.getTime()
+  const normalDurationMs = parseExpiration(REFRESH_TOKEN_EXPIRES)
+  const rememberMe = originalDurationMs > normalDurationMs + 60 * 1000 // tolerancia 1 min
+
+  return { ...payload, rememberMe }
+}
+
+/**
+ * Extrae el tokenId de un refresh JWT verificando solo la firma (sin tocar BD).
+ * Útil cuando se necesita identificar la sesión actual para excluirla al revocar.
+ */
+export async function extractRefreshTokenId(token: string): Promise<string | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
-    const { userId, tokenId } = payload as { userId: string; tokenId: string }
-
-    // Verificar en base de datos
-    const storedToken = await prisma.refreshToken.findFirst({
-      where: {
-        userId,
-        token: tokenId,
-        isRevoked: false,
-        expiresAt: { gt: new Date() },
-      },
-    })
-
-    if (!storedToken) {
-      throw new Error('Refresh token inválido o revocado')
-    }
-
-    // Actualizar último uso
-    await prisma.refreshToken.update({
-      where: { id: storedToken.id },
-      data: { lastUsedAt: new Date() },
-    })
-
-    return payload as unknown as RefreshTokenPayload
+    return (payload as { tokenId?: string }).tokenId ?? null
   } catch {
-    throw new Error('Refresh token inválido o expirado')
+    return null
   }
 }
 
@@ -174,6 +209,8 @@ export async function generateTokens(
   accessToken: string
   refreshToken: string
   expiresIn: number
+  refreshExpiresIn: number
+  rememberMe: boolean
 }> {
   const accessToken = await generateAccessToken({
     userId: user.id,
@@ -184,11 +221,16 @@ export async function generateTokens(
   const { token: refreshToken } = await generateRefreshToken(user.id, rememberMe, metadata)
 
   const expiresIn = parseExpiration(ACCESS_TOKEN_EXPIRES)
+  const refreshExpiresIn = parseExpiration(
+    rememberMe ? REFRESH_TOKEN_REMEMBER_EXPIRES : REFRESH_TOKEN_EXPIRES
+  )
 
   return {
     accessToken,
     refreshToken,
     expiresIn,
+    refreshExpiresIn,
+    rememberMe,
   }
 }
 

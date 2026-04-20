@@ -64,6 +64,7 @@ import {
 import type { Documento, Proyecto, BusquedaJurado, Jurado } from '@/components/mesa-partes'
 import { useResolutionUploadInstance } from '@/hooks/use-resolution-upload'
 import { useJuradoManager } from '@/hooks/use-jurado-manager'
+import { CalendarStatusWidget } from '@/components/academic-calendar/calendar-status-widget'
 
 export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -141,18 +142,23 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
 
     if (docsObservados.size === 0) return
 
-    // Auto-marcar como OK los docs que NO fueron observados
+    // Auto-marcar como OK los docs que NO fueron observados.
+    // Solo autores ACTIVOS tienen sust_i (consistente con allLabels y checksSustentatorios).
+    const autoresActivosKeys = proyecto.autores.filter((a: any) => a.estado !== 'DESISTIDO')
     const allKeys = ['proyecto', 'carta_asesor', 'carta_coasesor', 'voucher',
-      ...proyecto.autores.map((_: any, i: number) => `sust_${i}`)]
+      ...autoresActivosKeys.map((_: any, i: number) => `sust_${i}`)]
     const allLabels: Record<string, string> = {
       proyecto: 'proyecto de tesis',
       carta_asesor: 'carta de aceptación del asesor',
       carta_coasesor: 'carta de aceptación del coasesor',
       voucher: 'voucher de pago',
     }
-    proyecto.autores.forEach((a: any, i: number) => {
-      allLabels[`sust_${i}`] = `sustentatorio — ${a.nombre}`.toLowerCase()
-    })
+    // Solo indexar sustentatorios de autores ACTIVOS (no DESISTIDOs)
+    proyecto.autores
+      .filter((a: any) => a.estado !== 'DESISTIDO')
+      .forEach((a: any, i: number) => {
+        allLabels[`sust_${i}`] = `sustentatorio — ${a.nombre}`.toLowerCase()
+      })
 
     const preVerificacion: Record<string, 'ok'> = {}
     allKeys.forEach(key => {
@@ -315,14 +321,28 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
   const tieneAccesitarioInforme = tiposJuradoInforme.includes('ACCESITARIO')
   const juradosInformeCompletos = tienePresidenteInforme && tieneVocalInforme && tieneSecretarioInforme && tieneAccesitarioInforme
 
-  // Detectar si hubo desistimiento(s) en el historial
-  const desistimientos = proyecto.historial.filter(
-    h => h.comentario?.toLowerCase().includes('desistimiento')
-  )
-  const huboDesistimiento = desistimientos.length > 0
-  // La resolución actual podría necesitar actualización si hubo desistimiento después de subirla
-  const ultimoDesistimiento = desistimientos[0] // El más reciente (historial viene ordenado desc)
-  const resolucionRequiereActualizacion = huboDesistimiento && (docResolucionJurado || docResolucionAprobacion)
+  // Detectar desistimientos usando datos estructurados de ThesisWithdrawal
+  const desistimientosEstructurados = proyecto.desistimientos ?? []
+  const desistimientoPendiente = desistimientosEstructurados.find((d) => d.estadoSolicitud === 'PENDIENTE')
+  const desistimientosAprobados = desistimientosEstructurados.filter((d) => d.estadoSolicitud === 'APROBADO')
+  const ultimoAprobado = desistimientosAprobados[0]
+  const huboDesistimiento = desistimientosAprobados.length > 0
+
+  // Una resolución requiere modificatoria solo si fue EMITIDA ANTES del desistimiento
+  // aprobado (con datos de autores que ya no corresponden). Si la resolución se
+  // emitió DESPUÉS del desistimiento, ya lleva los autores actuales y no requiere
+  // actualización.
+  const fechaUltimoDesistimiento = ultimoAprobado?.aprobadoAt
+    ? new Date(ultimoAprobado.aprobadoAt)
+    : null
+  const fueEmitidaAntesDelDesistimiento = (doc: { fechaSubida?: string } | undefined | null) =>
+    !!doc && !!fechaUltimoDesistimiento && new Date(doc.fechaSubida ?? 0) < fechaUltimoDesistimiento
+
+  const resolJuradoRequiereModif = fueEmitidaAntesDelDesistimiento(docResolucionJurado)
+  const resolAprobRequiereModif = fueEmitidaAntesDelDesistimiento(docResolucionAprobacion)
+  const resolucionRequiereActualizacion = huboDesistimiento
+    && (resolJuradoRequiereModif || resolAprobRequiereModif)
+    && !ultimoAprobado?.resolucionDocumentoId
 
   const loaderMessages: Record<string, { title: string; description: string }> = {
     APROBAR: { title: 'Aprobando proyecto', description: 'Registrando la aprobación y notificando al tesista...' },
@@ -378,6 +398,38 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
           </div>
         </div>
 
+        {/* Estado del calendario academico para esta tesis especifica */}
+        <CalendarStatusWidget
+          thesisId={id}
+          tipos={[
+            'REVISION_MESA_PARTES',
+            'ASIGNACION_JURADOS',
+            'EVALUACION_JURADO',
+            'SUSTENTACION',
+            'INFORME_FINAL',
+            'DESISTIMIENTO',
+          ]}
+          titulo="Ventanas aplicables a esta tesis"
+        />
+
+        {/* Banner: solicitud de desistimiento pendiente de revisión */}
+        {desistimientoPendiente && (
+          <Card className="border-2 border-amber-400 bg-amber-50/80 dark:bg-amber-950/30">
+            <CardContent className="py-4 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold">Solicitud de desistimiento pendiente</p>
+                <p className="text-sm mt-1">
+                  {desistimientoPendiente.user.nombres} {desistimientoPendiente.user.apellidoPaterno} solicitó desistir.
+                </p>
+                <Button asChild size="sm" variant="outline" className="mt-3">
+                  <Link href={`/mesa-partes/desistimientos/${desistimientoPendiente.id}`}>Revisar solicitud</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Alerta de desistimiento - resolución requiere actualización */}
         {resolucionRequiereActualizacion && (
           <Card className="border-2 border-amber-400 dark:border-amber-700 bg-amber-50/80 dark:bg-amber-950/30">
@@ -389,53 +441,61 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-amber-800 dark:text-amber-200">Desistimiento registrado — Resoluciones requieren actualización</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                    {ultimoDesistimiento?.comentario}
+                    {ultimoAprobado && `${ultimoAprobado.user.apellidoPaterno}, ${ultimoAprobado.user.nombres} desistió. Motivo: ${ultimoAprobado.motivoDescripcion}`}
                   </p>
                   <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                    {ultimoDesistimiento?.fecha && `Registrado el ${new Date(ultimoDesistimiento.fecha).toLocaleString('es-PE')}`}
-                    {ultimoDesistimiento?.realizadoPor && ` — Por: ${ultimoDesistimiento.realizadoPor}`}
+                    {(ultimoAprobado?.aprobadoAt ?? ultimoAprobado?.solicitadoAt) && `Registrado el ${new Date(ultimoAprobado.aprobadoAt ?? ultimoAprobado.solicitadoAt).toLocaleString('es-PE')}`}
+                    {ultimoAprobado?.aprobadoPor && ` — Por: ${ultimoAprobado.aprobadoPor.nombres} ${ultimoAprobado.aprobadoPor.apellidoPaterno}`}
                   </p>
                 </div>
               </div>
 
-              {/* Checklist de pendientes post-desistimiento */}
+              {/* Checklist de pendientes post-desistimiento.
+                  Solo listamos resoluciones que REALMENTE fueron emitidas
+                  antes del desistimiento — si nunca se subió la resolución,
+                  no hay nada que modificar en ese ítem. */}
               <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-background p-4 space-y-3">
                 <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">Pendientes por resolver:</p>
                 <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    {docResolucionJurado
-                      ? <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                      : <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                    }
-                    <span className={docResolucionJurado ? 'text-amber-800 dark:text-amber-200' : 'text-green-700 dark:text-green-300'}>
-                      {docResolucionJurado ? 'Subir resolución modificatoria de conformación de jurado' : 'Resolución de jurado (sin subir aún)'}
-                    </span>
-                  </li>
-                  {docResolucionAprobacion && (
+                  {resolJuradoRequiereModif && (
+                    <li className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span className="text-amber-800 dark:text-amber-200">
+                        Subir resolución modificatoria de conformación de jurado
+                      </span>
+                    </li>
+                  )}
+                  {resolAprobRequiereModif && (
                     <li className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
                       <span className="text-amber-800 dark:text-amber-200">Subir resolución modificatoria de aprobación de proyecto</span>
                     </li>
                   )}
-                  <li className="flex items-center gap-2">
-                    {proyecto.autores.every((a) => docsSustentatorios.some((d) => d.subidoPor && a.nombre.startsWith(d.subidoPor)))
-                      ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                      : <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                    }
-                    <span className="text-amber-800 dark:text-amber-200">
-                      Verificar documentos sustentatorios de los autores actuales ({proyecto.autores.length} autor{proyecto.autores.length > 1 ? 'es' : ''})
-                    </span>
-                  </li>
+                  {(() => {
+                    const autoresActivos = proyecto.autores.filter((a) => a.estado !== 'DESISTIDO')
+                    const todosTienenDoc = autoresActivos.every((a) => docsSustentatorios.some((d) => d.subidoPor && a.nombre.startsWith(d.subidoPor)))
+                    return (
+                      <li className="flex items-center gap-2">
+                        {todosTienenDoc
+                          ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                          : <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                        }
+                        <span className="text-amber-800 dark:text-amber-200">
+                          Verificar documentos sustentatorios de los autores actuales ({autoresActivos.length} autor{autoresActivos.length === 1 ? '' : 'es'})
+                        </span>
+                      </li>
+                    )
+                  })()}
                 </ul>
 
-                {/* Autores actuales */}
+                {/* Autores actuales (excluye desistidos históricos) */}
                 <div className="pt-2 border-t border-amber-200 dark:border-amber-800">
                   <p className="text-xs font-medium text-muted-foreground mb-2">Autores actuales de la tesis:</p>
                   <div className="space-y-1.5">
-                    {proyecto.autores.map((autor) => {
+                    {proyecto.autores.filter((autor) => autor.estado !== 'DESISTIDO').map((autor) => {
                       const tieneDocSust = docsSustentatorios.some((d) => d.subidoPor && autor.nombre.startsWith(d.subidoPor))
                       return (
-                        <div key={autor.nombre} className="flex items-center gap-2 text-sm">
+                        <div key={autor.id} className="flex items-center gap-2 text-sm">
                           <div className={cn(
                             'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
                             tieneDocSust ? 'bg-green-100 dark:bg-green-900/50' : 'bg-amber-100 dark:bg-amber-900/50'
@@ -548,20 +608,23 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                 { key: 'voucher', label: 'Voucher de Pago (S/. 30.00 - Cód. 277)', presentado: !!docVoucher, doc: docVoucher, subidoPor: docVoucher?.subidoPor },
               ].filter(c => !c.opcional)
 
-              const checksSustentatorios = proyecto.autores.map((autor: any, idx: number) => {
-                const docSust = docsSustentatorios.find((d: any) =>
-                  d.subidoPor && autor.nombre && (
-                    autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+              // Solo pedir sustentatorio de autores ACTIVOS (excluye DESISTIDOs históricos).
+              const checksSustentatorios = proyecto.autores
+                .filter((autor: any) => autor.estado !== 'DESISTIDO')
+                .map((autor: any, idx: number) => {
+                  const docSust = docsSustentatorios.find((d: any) =>
+                    d.subidoPor && autor.nombre && (
+                      autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                    )
                   )
-                )
-                return {
-                  key: `sust_${idx}`,
-                  label: `Sustentatorio — ${autor.nombre}`,
-                  presentado: !!docSust,
-                  doc: docSust,
-                  subidoPor: autor.nombre,
-                }
-              })
+                  return {
+                    key: `sust_${idx}`,
+                    label: `Sustentatorio — ${autor.nombre}`,
+                    presentado: !!docSust,
+                    doc: docSust,
+                    subidoPor: autor.nombre,
+                  }
+                })
 
               const checks = [...checksBase, ...checksSustentatorios]
               const docsConArchivo = checks.filter(c => c.presentado)
@@ -753,14 +816,17 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                   ? [{ label: 'Carta de Aceptación del Coasesor', doc: docCartaCoasesor }]
                   : []),
                 { label: 'Voucher de Pago', doc: docVoucher },
-                ...proyecto.autores.map((autor: any, idx: number) => {
-                  const docSust = docsSustentatorios.find((d: any) =>
-                    d.subidoPor && autor.nombre && (
-                      autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                // Solo autores ACTIVOS (DESISTIDOs son históricos, no se revisan).
+                ...proyecto.autores
+                  .filter((autor: any) => autor.estado !== 'DESISTIDO')
+                  .map((autor: any) => {
+                    const docSust = docsSustentatorios.find((d: any) =>
+                      d.subidoPor && autor.nombre && (
+                        autor.nombre.startsWith(d.subidoPor) || d.subidoPor.startsWith(autor.nombre.split(' ').slice(0, 2).join(' '))
+                      )
                     )
-                  )
-                  return { label: `Sustentatorio — ${autor.nombre}`, doc: docSust }
-                }),
+                    return { label: `Sustentatorio — ${autor.nombre}`, doc: docSust }
+                  }),
               ]
               // Obtener la última observación del historial
               const ultimaObs = proyecto.historial.find(

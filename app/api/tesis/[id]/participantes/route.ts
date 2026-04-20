@@ -44,8 +44,15 @@ export async function PUT(
       )
     }
 
-    // Solo permitir cambios en estado BORRADOR, OBSERVADA o ASIGNANDO_JURADOS (por desistimiento)
-    if (!['BORRADOR', 'PROYECTO_OBSERVADO', 'ASIGNANDO_JURADOS'].includes(tesis.estado)) {
+    // Bloquear explícitamente si hay solicitud de desistimiento pendiente
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de modificar participantes.' },
+        { status: 409 }
+      )
+    }
+    // Solo permitir cambios en estado BORRADOR, OBSERVADA, OBSERVADA_JURADO o ASIGNANDO_JURADOS
+    if (!['BORRADOR', 'OBSERVADA', 'OBSERVADA_JURADO', 'ASIGNANDO_JURADOS'].includes(tesis.estado)) {
       return NextResponse.json(
         { error: 'No se puede modificar participantes en el estado actual de la tesis' },
         { status: 400 }
@@ -76,9 +83,9 @@ export async function PUT(
 
     // Manejar según el tipo de participante
     if (tipo === 'COAUTOR') {
-      // Buscar el coautor actual
+      // Buscar el coautor actual (excluye desistidos — son históricos)
       const coautorActual = tesis.autores.find(
-        (a) => a.orden > 1 && (participanteId ? a.id === participanteId : true)
+        (a) => a.orden > 1 && a.estado !== 'DESISTIDO' && (participanteId ? a.id === participanteId : true)
       )
 
       if (!coautorActual) {
@@ -97,7 +104,14 @@ export async function PUT(
       }
 
       if (accion === 'ELIMINAR') {
-        // Eliminar el coautor
+        // Limpiar solicitudes de desistimiento fantasma (rechazadas/canceladas)
+        // que bloquearían la eliminación por FK Restrict
+        await prisma.thesisWithdrawal.deleteMany({
+          where: {
+            thesisAuthorId: coautorActual.id,
+            estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
+          },
+        })
         await prisma.thesisAuthor.delete({
           where: { id: coautorActual.id },
         })
@@ -178,21 +192,46 @@ export async function PUT(
           )
         }
 
+        // Limpiar solicitudes de desistimiento fantasma antes de eliminar al coautor anterior
+        await prisma.thesisWithdrawal.deleteMany({
+          where: {
+            thesisAuthorId: coautorActual.id,
+            estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
+          },
+        })
         // Eliminar el coautor anterior
         await prisma.thesisAuthor.delete({
           where: { id: coautorActual.id },
         })
 
-        // Crear el nuevo coautor con estado PENDIENTE
-        await prisma.thesisAuthor.create({
-          data: {
-            thesisId: tesis.id,
-            userId: nuevoParticipanteId,
-            studentCareerId: nuevoCoautorCareer.id,
-            orden: 2,
-            estado: 'PENDIENTE',
-          },
+        // Si el NUEVO participante ya tuvo un registro en esta tesis (desistido
+        // o rechazado antes), actualizar ese registro en vez de crear uno nuevo
+        // (unique[thesisId, userId]).
+        const taPrevio = await prisma.thesisAuthor.findUnique({
+          where: { thesisId_userId: { thesisId: tesis.id, userId: nuevoParticipanteId } },
         })
+        if (taPrevio) {
+          await prisma.thesisAuthor.update({
+            where: { id: taPrevio.id },
+            data: {
+              estado: 'PENDIENTE',
+              orden: 2,
+              studentCareerId: nuevoCoautorCareer.id,
+              fechaRespuesta: null,
+              motivoRechazo: null,
+            },
+          })
+        } else {
+          await prisma.thesisAuthor.create({
+            data: {
+              thesisId: tesis.id,
+              userId: nuevoParticipanteId,
+              studentCareerId: nuevoCoautorCareer.id,
+              orden: 2,
+              estado: 'PENDIENTE',
+            },
+          })
+        }
 
         // Registrar en historial
         await prisma.thesisStatusHistory.create({
@@ -356,6 +395,14 @@ export async function PUT(
     )
   } catch (error) {
     console.error('[PUT /api/tesis/[id]/participantes] Error:', error)
+    // FK Restrict: el participante tiene un desistimiento aprobado asociado (histórico)
+    const msg = error instanceof Error ? error.message : ''
+    if (msg.includes('Foreign key') || msg.includes('thesis_withdrawals')) {
+      return NextResponse.json(
+        { error: 'No se puede modificar este participante porque tiene un desistimiento registrado en el historial.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(
       { error: 'Error al actualizar participante' },
       { status: 500 }
@@ -404,7 +451,7 @@ export async function POST(
       )
     }
 
-    if (!['BORRADOR', 'PROYECTO_OBSERVADO', 'ASIGNANDO_JURADOS'].includes(tesis.estado)) {
+    if (!['BORRADOR', 'OBSERVADA', 'OBSERVADA_JURADO', 'ASIGNANDO_JURADOS'].includes(tesis.estado)) {
       return NextResponse.json(
         { error: 'No se puede agregar participantes en el estado actual de la tesis' },
         { status: 400 }
@@ -425,8 +472,8 @@ export async function POST(
     }
 
     if (tipo === 'COAUTOR') {
-      // Verificar que no existe ya un coautor
-      const coautorExistente = tesis.autores.find((a) => a.orden > 1)
+      // Verificar que no existe ya un coautor activo (los desistidos son históricos)
+      const coautorExistente = tesis.autores.find((a) => a.orden > 1 && a.estado !== 'DESISTIDO')
       if (coautorExistente) {
         return NextResponse.json(
           { error: 'Ya existe un coautor. Use la opción de reemplazar.' },
@@ -483,21 +530,50 @@ export async function POST(
         )
       }
 
-      await prisma.thesisAuthor.create({
-        data: {
-          thesisId: tesis.id,
-          userId: participanteId,
-          studentCareerId: studentCareer.id,
-          orden: 2,
-          estado: 'PENDIENTE',
-        },
+      // Si el usuario YA tuvo un registro en esta tesis (p.ej. DESISTIDO histórico
+      // o RECHAZADO), no podemos crear otro (unique[thesisId, userId]).
+      // Reactivamos el existente como PENDIENTE preservando el ThesisWithdrawal
+      // histórico que esté vinculado.
+      const taPrevio = await prisma.thesisAuthor.findUnique({
+        where: { thesisId_userId: { thesisId: tesis.id, userId: participanteId } },
       })
+
+      let comentarioHist = 'Coautor agregado - invitación enviada'
+      if (taPrevio) {
+        // Si la withdrawal está APROBADA, cancelarla no es válido (es historia),
+        // pero sí reactivamos el autor. El previo desistimiento queda como registro.
+        // Si había solicitud PENDIENTE/RECHAZADO/CANCELADO, la dejamos donde está
+        // (la próxima desistimiento del mismo user la "upsertará" vía solicitar/route.ts).
+        await prisma.thesisAuthor.update({
+          where: { id: taPrevio.id },
+          data: {
+            estado: 'PENDIENTE',
+            orden: 2,
+            studentCareerId: studentCareer.id,
+            fechaRespuesta: null,
+            motivoRechazo: null,
+          },
+        })
+        comentarioHist = taPrevio.estado === 'DESISTIDO'
+          ? 'Coautor reincorporado (había desistido antes) - invitación enviada'
+          : 'Coautor reinvitado - invitación enviada'
+      } else {
+        await prisma.thesisAuthor.create({
+          data: {
+            thesisId: tesis.id,
+            userId: participanteId,
+            studentCareerId: studentCareer.id,
+            orden: 2,
+            estado: 'PENDIENTE',
+          },
+        })
+      }
 
       await prisma.thesisStatusHistory.create({
         data: {
           thesisId: tesis.id,
           estadoNuevo: tesis.estado,
-          comentario: 'Coautor agregado - invitación enviada',
+          comentario: comentarioHist,
           changedById: user.id,
         },
       })

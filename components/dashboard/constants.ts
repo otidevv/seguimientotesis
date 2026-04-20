@@ -72,7 +72,13 @@ export function getTipoActividad(estadoNuevo: string, estadoAnterior: string | n
   return 'cambio'
 }
 
+export type DashboardScopeType = 'global' | 'facultad' | 'personal' | 'mixed' | 'empty'
+
 export interface DashboardData {
+  scope?: {
+    type: DashboardScopeType
+    facultadIds: string[]
+  }
   stats: {
     totalTesis: number
     aprobadas: number

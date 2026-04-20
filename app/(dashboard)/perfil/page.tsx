@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { api } from '@/lib/api'
+import { MOTIVO_LABEL } from '@/lib/constants/motivos-desistimiento'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,7 +32,8 @@ import {
   Calendar,
   RefreshCw,
   Camera,
-  Trash2
+  Trash2,
+  FileX
 } from 'lucide-react'
 
 interface StudentCareer {
@@ -51,6 +53,17 @@ interface TeacherInfo {
   codigoDocente: string
   departamentoAcademico: string
   facultadNombre: string
+}
+
+interface DesistimientoItem {
+  id: string
+  thesisId: string
+  tituloTesis: string
+  estadoSolicitud: string
+  motivoCategoria: string
+  motivoRechazoMesaPartes: string | null
+  solicitadoAt: string
+  aprobadoAt: string | null
 }
 
 interface ProfileData {
@@ -86,6 +99,9 @@ export default function PerfilPage() {
   // Sync state
   const [isSyncing, setIsSyncing] = useState(false)
 
+  // Desistimientos state
+  const [misDesistimientos, setMisDesistimientos] = useState<DesistimientoItem[]>([])
+
   // Load profile data
   const loadProfileData = async () => {
     if (!user) return
@@ -105,6 +121,9 @@ export default function PerfilPage() {
       loadProfileData()
       setEmailPersonal(user.emailPersonal || '')
       setAvatarUrl(user.avatarUrl || null)
+      api.get<{ data: DesistimientoItem[] }>('/api/mis-desistimientos')
+        .then(res => setMisDesistimientos(res.data ?? []))
+        .catch(() => { /* silenciar — sección simplemente no aparece */ })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
@@ -813,6 +832,53 @@ export default function PerfilPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Mis solicitudes de desistimiento */}
+      {misDesistimientos.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileX className="h-5 w-5" />
+              Mis solicitudes de desistimiento
+            </CardTitle>
+            <CardDescription>
+              Historial de solicitudes de desistimiento de tesis
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {misDesistimientos.map(d => (
+              <div key={d.id} className="py-3 border-b last:border-0 space-y-2">
+                <div className="flex items-start gap-3">
+                  <Badge variant="outline">{d.estadoSolicitud}</Badge>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium">{d.tituloTesis}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Motivo: {MOTIVO_LABEL[d.motivoCategoria as keyof typeof MOTIVO_LABEL] ?? d.motivoCategoria} · Solicitado: {new Date(d.solicitadoAt).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
+                    </div>
+                  </div>
+                  {d.estadoSolicitud === 'APROBADO' && (
+                    <a
+                      href={`/api/mesa-partes/desistimientos/${d.id}/acta`}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md border hover:bg-accent transition-colors"
+                      title="Descargar acta de desistimiento"
+                    >
+                      <FileX className="w-3 h-3" />
+                      Acta
+                    </a>
+                  )}
+                </div>
+                {d.estadoSolicitud === 'RECHAZADO' && d.motivoRechazoMesaPartes && (
+                  <div className="ml-16 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-2 text-xs text-red-800 dark:text-red-200">
+                    <span className="font-semibold">Motivo de rechazo:</span> {d.motivoRechazoMesaPartes}
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

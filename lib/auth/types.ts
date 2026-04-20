@@ -34,6 +34,8 @@ export interface AuthResponse {
   accessToken?: string
   refreshToken?: string
   expiresIn?: number
+  refreshExpiresIn?: number
+  rememberMe?: boolean
   message?: string
   requiresVerification?: boolean
 }

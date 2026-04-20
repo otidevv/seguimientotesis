@@ -117,6 +117,12 @@ export const ESTADO_CONFIG: Record<string, { label: string; color: string; bgCol
     bgColor: 'bg-slate-100 dark:bg-slate-800',
     icon: <Ban className="w-4 h-4" />
   },
+  SOLICITUD_DESISTIMIENTO: {
+    label: 'Solicitud de Desistimiento',
+    color: 'text-amber-700',
+    bgColor: 'bg-amber-100 dark:bg-amber-900/30',
+    icon: <Clock className="w-4 h-4" />
+  },
   ARCHIVADA: {
     label: 'Archivada',
     color: 'text-gray-500',

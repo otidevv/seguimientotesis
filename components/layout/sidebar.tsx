@@ -25,6 +25,7 @@ import {
   Inbox,
   ClipboardCheck,
   FileSpreadsheet,
+  CalendarDays,
 } from 'lucide-react'
 import {
   Tooltip,
@@ -168,7 +169,7 @@ const docenteNavItems: NavItem[] = [
 
 const mesaPartesNavItems: NavItem[] = [
   { title: 'Mesa de Partes', href: '/mesa-partes', icon: Inbox, moduleCode: 'mesa-partes' },
-  { title: 'Reportes MP', href: '/mesa-partes/reportes', icon: FileSpreadsheet, moduleCode: 'mesa-partes' },
+  { title: 'Reportes MP', href: '/reportes-mp', icon: FileSpreadsheet, moduleCode: 'reportes-mp' },
 ]
 
 const adminNavItems: NavItem[] = [
@@ -177,6 +178,7 @@ const adminNavItems: NavItem[] = [
   { title: 'Módulos', href: '/admin/modulos', icon: Boxes, moduleCode: 'modulos' },
   { title: 'Permisos', href: '/admin/permisos', icon: Key, moduleCode: 'permisos' },
   { title: 'Auditoría', href: '/admin/auditoria', icon: FileSearch, moduleCode: 'auditoria' },
+  { title: 'Calendario Académico', href: '/admin/calendario-academico', icon: CalendarDays, moduleCode: 'calendario-academico' },
   { title: 'Configuración', href: '/admin/configuracion', icon: Settings, moduleCode: 'configuracion' },
 ]
 

@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authService, AuthError, COOKIE_OPTIONS, ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from '@/lib/auth'
+import type { AuthResponse } from '@/lib/auth'
+
+// Deduplicación in-memory de refreshes concurrentes con el MISMO refresh token
+// (p.ej. una página que dispara varios fetch en paralelo). Sin esto cada request
+// rotaría el token y crearía una fila en refresh_tokens.
+const inFlightRefreshes = new Map<string, Promise<AuthResponse>>()
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,8 +24,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Refrescar tokens
-    const authResponse = await authService.refresh(refreshToken)
+    // Refrescar tokens (dedupe por refreshToken)
+    let pending = inFlightRefreshes.get(refreshToken)
+    if (!pending) {
+      pending = authService.refresh(refreshToken)
+      inFlightRefreshes.set(refreshToken, pending)
+      pending.finally(() => {
+        // Mantener la entrada unos segundos para cubrir requests que lleguen
+        // justo después de resolver, y evitar rotaciones redundantes.
+        setTimeout(() => inFlightRefreshes.delete(refreshToken!), 3000)
+      })
+    }
+    const authResponse = await pending
 
     // Crear respuesta con nuevas cookies
     const response = NextResponse.json({
@@ -37,9 +53,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (authResponse.refreshToken) {
+      // Usar la duración real (rememberMe preserva hasta 30d; normal 7d)
+      const refreshMaxAge = authResponse.refreshExpiresIn
+        ? Math.floor(authResponse.refreshExpiresIn / 1000)
+        : 7 * 24 * 60 * 60
       response.cookies.set(REFRESH_TOKEN_COOKIE, authResponse.refreshToken, {
         ...COOKIE_OPTIONS,
-        maxAge: 7 * 24 * 60 * 60, // 7 días
+        maxAge: refreshMaxAge,
       })
     }
 

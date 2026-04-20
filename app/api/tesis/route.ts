@@ -31,15 +31,17 @@ export async function GET(request: NextRequest) {
       whereClause.estado = estado
     }
 
-    // Filtrar por rol del usuario
+    // Filtrar por rol del usuario.
+    // Autores DESISTIDOs ya no ven la tesis en su lista activa — su participación
+    // es histórica (queda visible en /perfil > "Mis solicitudes de desistimiento").
     if (rol === 'autor') {
-      whereClause.autores = { some: { userId: user.id } }
+      whereClause.autores = { some: { userId: user.id, estado: { not: 'DESISTIDO' } } }
     } else if (rol === 'asesor') {
       whereClause.asesores = { some: { userId: user.id } }
     } else {
-      // Por defecto, mostrar tesis donde es autor o asesor
+      // Por defecto, mostrar tesis donde es autor no desistido, o asesor
       whereClause.OR = [
-        { autores: { some: { userId: user.id } } },
+        { autores: { some: { userId: user.id, estado: { notIn: ['DESISTIDO', 'RECHAZADO'] } } } },
         { asesores: { some: { userId: user.id } } },
       ]
     }
@@ -312,6 +314,43 @@ export async function POST(request: NextRequest) {
         { error: 'Una misma persona no puede tener más de un rol en la tesis (tesista, asesor, coasesor)' },
         { status: 400 }
       )
+    }
+
+    // Validar que el coautor NO esté ya vinculado a otro proyecto activo
+    // (como autor principal o coautor, PENDIENTE o ACEPTADO). Esto impide
+    // inscribir a alguien que ya está en otra tesis en curso.
+    if (coautorId) {
+      const coautorEnOtraTesis = await prisma.thesisAuthor.findFirst({
+        where: {
+          userId: coautorId,
+          estado: { in: ['PENDIENTE', 'ACEPTADO'] },
+          thesis: {
+            deletedAt: null,
+            estado: { notIn: ['RECHAZADA', 'ARCHIVADA'] },
+          },
+        },
+        include: {
+          thesis: { select: { id: true, titulo: true, estado: true } },
+        },
+      })
+
+      if (coautorEnOtraTesis) {
+        const estadoPart = coautorEnOtraTesis.estado === 'PENDIENTE'
+          ? 'una invitación pendiente'
+          : 'un proyecto activo'
+        return NextResponse.json(
+          {
+            error: `El coautor seleccionado ya tiene ${estadoPart} en otra tesis ("${coautorEnOtraTesis.thesis.titulo}"). No puede participar en dos proyectos simultáneamente.`,
+            detalles: {
+              coautorId,
+              tesisId: coautorEnOtraTesis.thesis.id,
+              titulo: coautorEnOtraTesis.thesis.titulo,
+              estadoAutor: coautorEnOtraTesis.estado,
+            },
+          },
+          { status: 400 }
+        )
+      }
     }
 
     // Crear la tesis

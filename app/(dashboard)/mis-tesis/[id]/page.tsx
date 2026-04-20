@@ -73,6 +73,8 @@ import {
   formatFileSize,
 } from '@/components/tesis'
 import type { Documento, Tesis, Participante } from '@/components/tesis'
+import { ModalSolicitarDesistimiento } from '@/components/desistimiento/modal-solicitar-desistimiento'
+import { ModalConfirmarEnvio } from '@/components/tesis/modal-confirmar-envio'
 
 export default function DetalleTesisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -89,6 +91,17 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [rechazoDialogOpen, setRechazoDialogOpen] = useState(false)
   const [motivoRechazo, setMotivoRechazo] = useState('')
   const [invitacionARechazar, setInvitacionARechazar] = useState<string | null>(null)
+  const [modalDesistirOpen, setModalDesistirOpen] = useState(false)
+  const [modalConfirmarEnvioOpen, setModalConfirmarEnvioOpen] = useState(false)
+  type VentanaInfo = {
+    dentroDeVentana: boolean
+    fechaInicio: string
+    fechaFin: string
+    motivo: string
+    periodoNombre: string
+  }
+  const [ventanaPresentacion, setVentanaPresentacion] = useState<VentanaInfo | null>(null)
+  const [ventanaInforme, setVentanaInforme] = useState<VentanaInfo | null>(null)
 
   const loadTesis = useCallback(async () => {
     try {
@@ -110,6 +123,40 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       loadTesis()
     }
   }, [authLoading, user, loadTesis])
+
+  // Consultar ventana de calendario academico segun fase actual:
+  //  - BORRADOR → ventana PRESENTACION_PROYECTO
+  //  - INFORME_FINAL → ventana INFORME_FINAL
+  //  - OBSERVADA / OBSERVADA_INFORME → sin ventana (rige fechaLimiteCorreccion en backend)
+  useEffect(() => {
+    if (!tesis) return
+    const ac = new AbortController()
+    const tipo = tesis.estado === 'BORRADOR'
+      ? 'PRESENTACION_PROYECTO'
+      : tesis.estado === 'INFORME_FINAL'
+        ? 'INFORME_FINAL'
+        : null
+
+    if (!tipo) {
+      setVentanaPresentacion(null); setVentanaInforme(null)
+      return
+    }
+
+    fetch(`/api/academic-calendar/ventana?tipo=${tipo}&thesisId=${tesis.id}`, { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : { ventana: null }))
+      .then((d: { ventana: VentanaInfo | null }) => {
+        if (ac.signal.aborted) return
+        if (tipo === 'PRESENTACION_PROYECTO') {
+          setVentanaPresentacion(d.ventana); setVentanaInforme(null)
+        } else {
+          setVentanaInforme(d.ventana); setVentanaPresentacion(null)
+        }
+      })
+      .catch((e: unknown) => {
+        if (e instanceof DOMException && e.name === 'AbortError') return
+      })
+    return () => ac.abort()
+  }, [tesis])
 
   const handleFileUpload = async (tipoDocumento: string, file: File) => {
     if (!tesis) return
@@ -212,15 +259,16 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const estadoConfig = ESTADO_CONFIG[tesis.estado] || ESTADO_CONFIG.BORRADOR
   const miRegistroAutor = tesis.autores.find(a => a.user.id === user?.id)
   const yoDesisti = miRegistroAutor?.estado === 'DESISTIDO'
-  const puedeEditar = !yoDesisti && ['BORRADOR', 'OBSERVADA', 'PROYECTO_OBSERVADO'].includes(tesis.estado)
+  const puedeEditar = !yoDesisti && ['BORRADOR', 'OBSERVADA'].includes(tesis.estado)
+  const desistimientoPendiente = tesis.desistimientos?.[0] ?? null
   const tieneCoasesor = tesis.asesores.some((a) => a.tipoAsesor === 'COASESOR')
 
   // Parsear observaciones por documento del historial (para marcar documentos observados)
   const obsMap: Record<string, string> = {}
   let fechaObservacion: Date | null = null
-  if (tesis.estado === 'OBSERVADA' || tesis.estado === 'PROYECTO_OBSERVADO') {
+  if (tesis.estado === 'OBSERVADA') {
     const obsEntry = ((tesis as any).historial || []).find(
-      (h: any) => h.estadoNuevo === 'OBSERVADA' || h.estadoNuevo === 'PROYECTO_OBSERVADO'
+      (h: any) => h.estadoNuevo === 'OBSERVADA'
     )
     if (obsEntry?.fecha) fechaObservacion = new Date(obsEntry.fecha)
     const obsComentario: string = obsEntry?.comentario || ''
@@ -315,7 +363,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   // Esto ocurre cuando un nuevo coautor se agrega o un tesista es promovido post-desistimiento
   const esAutor = tesis.autores.some(a => a.user.id === user?.id && a.estado === 'ACEPTADO')
   const faltaMiSustentatorio = !miDocSustentatorio && !puedeEditar && esAutor
-  const necesitaSubirDocumentos = faltaMiSustentatorio && tesis.estado !== 'DESISTIDA' && tesis.estado !== 'RECHAZADA'
+  const necesitaSubirDocumentos = faltaMiSustentatorio && tesis.estado !== 'DESISTIDA' && tesis.estado !== 'RECHAZADA' && tesis.estado !== 'SOLICITUD_DESISTIMIENTO'
 
   // Obtener estado de asesores
   const asesor = tesis.asesores.find((a) => a.tipoAsesor === 'ASESOR')
@@ -417,6 +465,36 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   )}
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Banner de solicitud de desistimiento en trámite */}
+      {tesis.estado === 'SOLICITUD_DESISTIMIENTO' && desistimientoPendiente && (
+        <Card className="border-2 border-amber-400 bg-amber-50/80 dark:bg-amber-950/30">
+          <CardContent className="py-4 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-amber-800 dark:text-amber-200">
+                Solicitud de desistimiento en trámite
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                Mesa de partes está revisando tu solicitud. No puedes realizar acciones de flujo normal hasta que se resuelva.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={async () => {
+                  if (!confirm('¿Cancelar tu solicitud de desistimiento?')) return
+                  const res = await fetch(`/api/tesis/${tesis.id}/desistir/cancelar`, { method: 'POST' })
+                  if (res.ok) { toast.success('Solicitud cancelada'); loadTesis() }
+                  else { const d = await res.json(); toast.error(d.error ?? 'Error') }
+                }}
+              >
+                Cancelar solicitud
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -1087,6 +1165,20 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
             {/* Botón Enviar - siempre visible al final */}
             <CardContent className="pt-4 pb-5 border-t">
+              {ventanaInforme && !ventanaInforme.dentroDeVentana && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-100 mb-3">
+                  <p className="font-medium flex items-center gap-2">
+                    <Clock className="w-4 h-4" aria-hidden="true" />
+                    Ventana de informe final cerrada
+                  </p>
+                  <p className="mt-1 text-xs">
+                    El periodo <b>{ventanaInforme.periodoNombre}</b> tiene la ventana INFORME_FINAL
+                    cerrada ({new Date(ventanaInforme.fechaInicio).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })} —
+                    {' '}{new Date(ventanaInforme.fechaFin).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).
+                    Solicita prorroga excepcional a mesa de partes si necesitas enviar fuera de plazo.
+                  </p>
+                </div>
+              )}
               <Button
                 onClick={async () => {
                   setEnviando(true)
@@ -1101,7 +1193,15 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   }
                 }}
                 className="w-full bg-cyan-600 hover:bg-cyan-700 h-11"
-                disabled={!todosCompletos || subiendo !== null || enviando}
+                disabled={
+                  !todosCompletos || subiendo !== null || enviando ||
+                  (ventanaInforme !== null && !ventanaInforme.dentroDeVentana)
+                }
+                title={
+                  ventanaInforme && !ventanaInforme.dentroDeVentana
+                    ? 'Ventana INFORME_FINAL cerrada'
+                    : undefined
+                }
                 size="lg"
               >
                 {enviando ? (
@@ -2109,6 +2209,21 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 {/* Botón enviar */}
                 <Separator className="my-6" />
 
+                {ventanaPresentacion && !ventanaPresentacion.dentroDeVentana && (
+                  <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-100 mb-4">
+                    <p className="font-medium flex items-center gap-2">
+                      <Clock className="w-4 h-4" aria-hidden="true" />
+                      Fuera del plazo del calendario academico
+                    </p>
+                    <p className="mt-1">
+                      La ventana de presentacion de proyecto para el periodo <b>{ventanaPresentacion.periodoNombre}</b> esta cerrada
+                      ({new Date(ventanaPresentacion.fechaInicio).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })} —
+                      {' '}{new Date(ventanaPresentacion.fechaFin).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).
+                      Podras enviar cuando se abra nuevamente o mediante prorroga excepcional autorizada por mesa de partes.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-lg bg-muted/30">
                   <div className="text-center sm:text-left">
                     <p className="font-medium">¿Listo para enviar?</p>
@@ -2140,10 +2255,22 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   </div>
                   <Button
                     size="lg"
-                    onClick={enviarARevision}
-                    disabled={enviando || !puedeEnviar}
+                    onClick={() => setModalConfirmarEnvioOpen(true)}
+                    disabled={
+                      enviando ||
+                      !puedeEnviar ||
+                      tesis.estado === 'SOLICITUD_DESISTIMIENTO' ||
+                      (ventanaPresentacion !== null && !ventanaPresentacion.dentroDeVentana)
+                    }
+                    title={
+                      ventanaPresentacion && !ventanaPresentacion.dentroDeVentana
+                        ? 'Fuera del plazo del calendario academico'
+                        : undefined
+                    }
                     className={cn(
-                      puedeEnviar && 'bg-green-600 hover:bg-green-700'
+                      puedeEnviar && tesis.estado !== 'SOLICITUD_DESISTIMIENTO' &&
+                        (!ventanaPresentacion || ventanaPresentacion.dentroDeVentana) &&
+                        'bg-green-600 hover:bg-green-700'
                     )}
                   >
                     {enviando ? (
@@ -2441,7 +2568,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         <ThesisSidebar
           tesis={tesis}
           puedeEditar={puedeEditar}
-          puedeGestionarParticipantes={puedeEditar || tesis.estado === 'ASIGNANDO_JURADOS'}
+          puedeGestionarParticipantes={tesis.estado !== 'SOLICITUD_DESISTIMIENTO' && (puedeEditar || tesis.estado === 'ASIGNANDO_JURADOS')}
           esAutorPrincipal={esAutorPrincipal}
           coautor={coautor}
           coasesor={coasesor}
@@ -2556,6 +2683,39 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         onSeleccionar={participants.setParticipanteSeleccionado}
         reemplazando={participants.reemplazando}
         onConfirmar={participants.ejecutar}
+      />
+
+      {/* Botón para solicitar desistimiento (solo para el autor principal, en estados activos) */}
+      {esAutorPrincipal && !yoDesisti && !['DESISTIDA', 'RECHAZADA', 'SUSTENTADA', 'SOLICITUD_DESISTIMIENTO'].includes(tesis.estado) && (
+        <div className="pt-4 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+            onClick={() => setModalDesistirOpen(true)}
+          >
+            <Ban className="w-4 h-4 mr-2" />
+            Solicitar desistimiento
+          </Button>
+        </div>
+      )}
+
+      <ModalSolicitarDesistimiento
+        open={modalDesistirOpen}
+        onOpenChange={setModalDesistirOpen}
+        thesisId={tesis.id}
+        tituloTesis={tesis.titulo}
+        tieneCoautor={tesis.autores.some(a => a.user.id !== user?.id && a.estado === 'ACEPTADO')}
+        onSuccess={() => loadTesis()}
+      />
+
+      <ModalConfirmarEnvio
+        open={modalConfirmarEnvioOpen}
+        onOpenChange={setModalConfirmarEnvioOpen}
+        thesisId={tesis.id}
+        tituloActual={tesis.titulo}
+        resumenActual={tesis.resumen ?? null}
+        onConfirmar={async () => { await enviarARevision() }}
       />
     </div>
   )

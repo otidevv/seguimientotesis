@@ -87,7 +87,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const tesis = await prisma.thesis.findUnique({
       where: { id, deletedAt: null },
       include: {
-        autores: { select: { userId: true } },
+        autores: {
+          select: {
+            userId: true,
+            studentCareer: { select: { facultadId: true } },
+          },
+        },
         asesores: { select: { userId: true } },
       },
     })
@@ -96,6 +101,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
+    // Enforce facultad scope
+    const esAdminJ = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopeJ = !esAdminJ ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopeJ) {
+      const fId = tesis.autores[0]?.studentCareer?.facultadId
+      if (fId && fId !== rolScopeJ.contextId) {
+        return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
+      }
+    }
+
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de asignar jurados.' },
+        { status: 409 }
+      )
+    }
     const estadosPermitidos = ['ASIGNANDO_JURADOS', 'INFORME_FINAL']
     if (!estadosPermitidos.includes(tesis.estado)) {
       return NextResponse.json(
@@ -162,14 +187,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Verificar que el usuario existe
+    // Verificar que el usuario existe y tiene rol DOCENTE o EXTERNO
     const userJurado = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true },
+      select: {
+        id: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true,
+        roles: {
+          where: { isActive: true, role: { codigo: { in: ['DOCENTE', 'EXTERNO'] } } },
+          select: { id: true },
+        },
+      },
     })
 
     if (!userJurado) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+    }
+    if (userJurado.roles.length === 0) {
+      return NextResponse.json(
+        { error: 'Solo usuarios con rol DOCENTE o EXTERNO pueden ser asignados como jurado.' },
+        { status: 400 }
+      )
     }
 
     const jurado = await prisma.thesisJury.upsert({
@@ -238,12 +275,39 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const tesis = await prisma.thesis.findUnique({
       where: { id, deletedAt: null },
+      include: {
+        autores: {
+          select: { studentCareer: { select: { facultadId: true } } },
+          orderBy: { orden: 'asc' },
+          take: 1,
+        },
+      },
     })
 
     if (!tesis) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
+    // Enforce facultad scope
+    const esAdminD = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopeD = !esAdminD ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopeD) {
+      const fId = tesis.autores[0]?.studentCareer?.facultadId
+      if (fId && fId !== rolScopeD.contextId) {
+        return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
+      }
+    }
+
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de remover jurados.' },
+        { status: 409 }
+      )
+    }
     const estadosPermitidosRemover = ['ASIGNANDO_JURADOS', 'INFORME_FINAL']
     if (!estadosPermitidosRemover.includes(tesis.estado)) {
       return NextResponse.json(

@@ -64,6 +64,11 @@ export interface Tesis {
     nombre: string
   }
   documentos: Documento[]
+  desistimientos?: {
+    id: string
+    estadoSolicitud: string
+    createdAt: string
+  }[]
 }
 
 export interface Participante {

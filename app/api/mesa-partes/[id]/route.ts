@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
-import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
+import { DIAS_HABILES_EVALUACION, DIAS_HABILES_CORRECCION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
+import { assertDentroDeVentana, FueraDeVentanaError, agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
 
 // GET /api/mesa-partes/[id] - Obtener detalle de un proyecto
 export async function GET(
@@ -133,6 +134,14 @@ export async function GET(
           },
           orderBy: { createdAt: 'desc' },
         },
+        desistimientos: {
+          where: { estadoSolicitud: { in: ['PENDIENTE', 'APROBADO'] } },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: { select: { nombres: true, apellidoPaterno: true } },
+            aprobadoPor: { select: { nombres: true, apellidoPaterno: true } },
+          },
+        },
       },
     })
 
@@ -141,6 +150,20 @@ export async function GET(
         { error: 'Proyecto no encontrado' },
         { status: 404 }
       )
+    }
+
+    // Enforce facultad scope: mesa-partes con contextId solo ve tesis de su facultad
+    const esAdminGet = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopeGet = !esAdminGet ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopeGet) {
+      const facultadTesisId = tesis.autores[0]?.studentCareer?.facultad?.id
+      if (facultadTesisId && facultadTesisId !== rolScopeGet.contextId) {
+        return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
+      }
     }
 
     // Deduplicar dictamenes: el query OR puede traer versiones viejas,
@@ -255,6 +278,21 @@ export async function GET(
           ? `${h.changedBy.nombres} ${h.changedBy.apellidoPaterno} ${h.changedBy.apellidoMaterno}`
           : 'Sistema',
       })),
+      // Desistimientos estructurados
+      desistimientos: tesis.desistimientos.map((d) => ({
+        id: d.id,
+        estadoSolicitud: d.estadoSolicitud,
+        solicitadoAt: d.solicitadoAt,
+        aprobadoAt: d.aprobadoAt,
+        motivoCategoria: d.motivoCategoria,
+        motivoDescripcion: d.motivoDescripcion,
+        motivoRechazoMesaPartes: d.motivoRechazoMesaPartes,
+        resolucionDocumentoId: d.resolucionDocumentoId,
+        user: { nombres: d.user.nombres, apellidoPaterno: d.user.apellidoPaterno },
+        aprobadoPor: d.aprobadoPor
+          ? { nombres: d.aprobadoPor.nombres, apellidoPaterno: d.aprobadoPor.apellidoPaterno }
+          : null,
+      })),
     }
 
     return NextResponse.json({
@@ -338,13 +376,52 @@ export async function PUT(
       )
     }
 
+    // Enforce facultad scope para acciones de mesa-partes
+    const esAdminPut = user.roles?.some(
+      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
+    )
+    const rolScopePut = !esAdminPut ? user.roles?.find(
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
+    ) : null
+    if (rolScopePut) {
+      const facultadTesisId = tesis.autores[0]?.studentCareer?.facultadId
+      if (facultadTesisId && facultadTesisId !== rolScopePut.contextId) {
+        return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
+      }
+    }
+
     // Acción: CONFIRMAR_JURADOS (solo en ASIGNANDO_JURADOS)
     if (accion === 'CONFIRMAR_JURADOS') {
+      if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+        return NextResponse.json(
+          { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de confirmar jurados.' },
+          { status: 409 }
+        )
+      }
       if (tesis.estado !== 'ASIGNANDO_JURADOS') {
         return NextResponse.json(
           { error: 'Solo se pueden confirmar jurados en estado ASIGNANDO_JURADOS' },
           { status: 400 }
         )
+      }
+
+      const autorActivoAsig = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+      if (!esAdminPut) {
+        const facultadIdTesis = autorActivoAsig?.studentCareer?.facultadId ?? null
+        try {
+          await assertDentroDeVentana('ASIGNACION_JURADOS', facultadIdTesis, {
+            thesisId: id,
+            userId: user.id,
+          })
+        } catch (err) {
+          if (err instanceof FueraDeVentanaError) {
+            return NextResponse.json(
+              { error: err.message, code: err.code, ventana: err.ventanaVigente },
+              { status: 403 }
+            )
+          }
+          throw err
+        }
       }
 
       // Verificar que hay presidente, vocal, secretario y accesitario
@@ -371,7 +448,13 @@ export async function PUT(
         )
       }
 
-      const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
+      // fechaLimite respeta vacaciones academicas: si el plazo cae en un gap
+      // entre periodos, los dias se pausan hasta que inicie el siguiente periodo.
+      const fechaLimite = await agregarDiasHabilesAcademicos(
+        new Date(),
+        DIAS_HABILES_EVALUACION,
+        autorActivoAsig?.studentCareer?.facultadId ?? null,
+      )
 
       await prisma.$transaction([
         prisma.thesis.update({
@@ -420,9 +503,10 @@ export async function PUT(
           const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
           const fechaLimiteStr = fechaLimite.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
-          const nombresAutores = tesisCompleta.autores.map(a =>
-            `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno || ''}`.trim()
-          ).join(', ')
+          const nombresAutores = tesisCompleta.autores
+            .filter(a => a.estado === 'ACEPTADO')
+            .map(a => `${a.user.nombres} ${a.user.apellidoPaterno} ${a.user.apellidoMaterno || ''}`.trim())
+            .join(', ')
 
           const TIPO_JURADO_NOMBRE: Record<string, string> = {
             PRESIDENTE: 'Presidente',
@@ -442,7 +526,7 @@ export async function PUT(
 
           // Notificación en sistema a tesistas
           await crearNotificacion({
-            userId: tesisCompleta.autores.map(a => a.user.id),
+            userId: tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id),
             tipo: 'JURADOS_CONFIRMADOS',
             titulo: 'Jurados asignados - Evaluacion iniciada',
             mensaje: `Los jurados de tu proyecto "${tesisCompleta.titulo}" han sido confirmados. Fecha limite de evaluacion: ${fechaLimiteStr}`,
@@ -477,7 +561,7 @@ export async function PUT(
           }
 
           // Email a cada tesista
-          for (const autor of tesisCompleta.autores) {
+          for (const autor of tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO')) {
             if (!autor.user.email) continue
             try {
               const nombreTesista = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -513,6 +597,12 @@ export async function PUT(
 
     // Acción: SUBIR_RESOLUCION (solo en PROYECTO_APROBADO)
     if (accion === 'SUBIR_RESOLUCION') {
+      if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+        return NextResponse.json(
+          { error: 'Hay una solicitud de desistimiento pendiente. Resuélvela antes de subir la resolución.' },
+          { status: 409 }
+        )
+      }
       if (tesis.estado !== 'PROYECTO_APROBADO') {
         return NextResponse.json(
           { error: 'Solo se puede subir resolución cuando el proyecto está aprobado por jurados' },
@@ -698,9 +788,32 @@ export async function PUT(
         )
       }
 
+      // Guard calendario: mesa de partes revisando informe respeta REVISION_MESA_PARTES.
+      if (!esAdminPut) {
+        const autorActivoInfRev = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+        try {
+          await assertDentroDeVentana('REVISION_MESA_PARTES', autorActivoInfRev?.studentCareer?.facultadId ?? null, {
+            thesisId: id, userId: user.id,
+          })
+        } catch (err) {
+          if (err instanceof FueraDeVentanaError) {
+            return NextResponse.json(
+              { error: err.message, code: err.code, ventana: err.ventanaVigente },
+              { status: 403 }
+            )
+          }
+          throw err
+        }
+      }
+
       if (accion === 'APROBAR') {
         // APROBAR informe → EN_EVALUACION_INFORME (notificar jurados y tesistas)
-        const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
+        const autorActivoAprInf = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+        const fechaLimite = await agregarDiasHabilesAcademicos(
+          new Date(),
+          DIAS_HABILES_EVALUACION,
+          autorActivoAprInf?.studentCareer?.facultadId ?? null,
+        )
 
         await prisma.$transaction([
           prisma.thesis.update({
@@ -778,7 +891,7 @@ export async function PUT(
             }
 
             // Notificación en sistema a tesistas
-            const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+            const idsAutores = tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id)
             if (idsAutores.length > 0) {
               await crearNotificacion({
                 userId: idsAutores,
@@ -817,7 +930,7 @@ export async function PUT(
             }
 
             // Email a cada tesista
-            for (const autor of tesisCompleta.autores) {
+            for (const autor of tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO')) {
               if (!autor.user.email) continue
               try {
                 const nombreTesista = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -850,11 +963,20 @@ export async function PUT(
         })
       } else {
         // OBSERVAR informe → INFORME_FINAL (tesista corrige)
+        // Seteamos fechaLimiteCorreccion para dar un plazo estructurado y
+        // permitir distinguir reenvio de primera presentacion en enviar-informe.
+        const autorActivoObsInf = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+        const fechaLimiteObsInf = await agregarDiasHabilesAcademicos(
+          new Date(),
+          DIAS_HABILES_CORRECCION,
+          autorActivoObsInf?.studentCareer?.facultadId ?? null,
+        )
         await prisma.$transaction([
           prisma.thesis.update({
             where: { id },
             data: {
               estado: 'INFORME_FINAL',
+              fechaLimiteCorreccion: fechaLimiteObsInf,
             },
           }),
           prisma.thesisStatusHistory.create({
@@ -862,7 +984,7 @@ export async function PUT(
               thesisId: id,
               estadoAnterior: 'EN_REVISION_INFORME',
               estadoNuevo: 'INFORME_FINAL',
-              comentario: comentario?.trim() || 'Informe final observado por Mesa de Partes.',
+              comentario: comentario?.trim() || `Informe final observado por Mesa de Partes. Plazo para correccion: ${DIAS_HABILES_CORRECCION} dias habiles academicos.`,
               changedById: user.id,
             },
           }),
@@ -888,7 +1010,7 @@ export async function PUT(
           })
 
           if (tesisCompleta) {
-            const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+            const idsAutores = tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id)
             if (idsAutores.length > 0) {
               await crearNotificacion({
                 userId: idsAutores,
@@ -905,7 +1027,7 @@ export async function PUT(
             const facultadCodigo = primerAutor?.studentCareer?.facultad?.codigo || 'FI'
             const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
 
-            for (const autor of tesisCompleta.autores) {
+            for (const autor of tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO')) {
               if (!autor.user.email) continue
               try {
                 const nombreCompleto = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -941,12 +1063,38 @@ export async function PUT(
     }
 
     // Acciones estándar: APROBAR, OBSERVAR, RECHAZAR (solo en EN_REVISION u OBSERVADA)
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. Resuélvela antes de continuar.' },
+        { status: 409 }
+      )
+    }
     const estadosPermitidos: EstadoTesis[] = ['EN_REVISION', 'OBSERVADA']
     if (!estadosPermitidos.includes(tesis.estado)) {
       return NextResponse.json(
         { error: `No se puede ${accion.toLowerCase()} un proyecto en estado ${tesis.estado}` },
         { status: 400 }
       )
+    }
+
+    // Guard de calendario: mesa de partes tambien respeta ventanas. Admins pueden saltarselo.
+    if (!esAdminPut) {
+      const autorActivoRev = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+      const facultadIdTesis = autorActivoRev?.studentCareer?.facultadId ?? null
+      try {
+        await assertDentroDeVentana('REVISION_MESA_PARTES', facultadIdTesis, {
+          thesisId: id,
+          userId: user.id,
+        })
+      } catch (err) {
+        if (err instanceof FueraDeVentanaError) {
+          return NextResponse.json(
+            { error: err.message, code: err.code, ventana: err.ventanaVigente },
+            { status: 403 }
+          )
+        }
+        throw err
+      }
     }
 
     // Determinar nuevo estado
@@ -970,11 +1118,26 @@ export async function PUT(
         return NextResponse.json({ error: 'Acción no válida' }, { status: 400 })
     }
 
+    // Si OBSERVAR: calcular fechaLimiteCorreccion (30 dias habiles academicos).
+    // Permite distinguir reenvio de primera presentacion y da plazo claro al tesista.
+    let fechaLimiteCorrObs: Date | null = null
+    if (accion === 'OBSERVAR') {
+      const autorActivoObsProy = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+      fechaLimiteCorrObs = await agregarDiasHabilesAcademicos(
+        new Date(),
+        DIAS_HABILES_CORRECCION,
+        autorActivoObsProy?.studentCareer?.facultadId ?? null,
+      )
+    }
+
     // Actualizar estado
     const tesisActualizada = await prisma.thesis.update({
       where: { id },
       data: {
         estado: nuevoEstado,
+        ...(accion === 'OBSERVAR' ? { fechaLimiteCorreccion: fechaLimiteCorrObs } : {}),
+        // APROBAR y RECHAZAR limpian residuo; observacion previa ya no aplica.
+        ...(accion === 'APROBAR' || accion === 'RECHAZAR' ? { fechaLimiteCorreccion: null } : {}),
       },
     })
 
@@ -1016,8 +1179,8 @@ export async function PUT(
       })
       if (tesisCompleta) {
         const destinatarios = [
-          ...tesisCompleta.autores.map(a => a.user.id),
-          ...tesisCompleta.asesores.map(a => a.user.id),
+          ...tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id),
+          ...tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id),
         ]
         const tipoNotifMap: Record<string, string> = {
           APROBAR: 'TESIS_APROBADA',
@@ -1036,7 +1199,7 @@ export async function PUT(
         }
 
         // Notificación en sistema a autores (enlace a /mis-tesis/)
-        const idsAutores = tesisCompleta.autores.map(a => a.user.id)
+        const idsAutores = tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id)
         if (idsAutores.length > 0) {
           await crearNotificacion({
             userId: idsAutores,
@@ -1048,7 +1211,7 @@ export async function PUT(
         }
 
         // Notificación en sistema a asesores (enlace a /mis-asesorias/)
-        const idsAsesores = tesisCompleta.asesores.map(a => a.user.id)
+        const idsAsesores = tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id)
         if (idsAsesores.length > 0) {
           await crearNotificacion({
             userId: idsAsesores,
@@ -1062,7 +1225,7 @@ export async function PUT(
         // Si es OBSERVAR, notificar específicamente al asesor/coasesor si su carta fue observada
         if (accion === 'OBSERVAR' && comentario) {
           const comentarioLower = comentario.toLowerCase()
-          for (const asesor of tesisCompleta.asesores) {
+          for (const asesor of tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO')) {
             const esPrincipal = asesor.tipo === 'PRINCIPAL'
             const tipoLabel = esPrincipal ? 'Asesor' : 'Coasesor'
             const cartaLabel = esPrincipal ? 'carta de aceptación del asesor' : 'carta de aceptación del coasesor'
@@ -1085,7 +1248,7 @@ export async function PUT(
         const facultadNombre = primerAutor?.studentCareer?.facultad?.nombre || 'Facultad'
 
         // Emails a autores (con URL /mis-tesis/)
-        for (const autor of tesisCompleta.autores) {
+        for (const autor of tesisCompleta.autores.filter(a => a.estado === 'ACEPTADO')) {
           if (!autor.user.email) continue
           try {
             const nombreCompleto = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -1111,7 +1274,7 @@ export async function PUT(
         }
 
         // Emails a asesores (con URL /mis-asesorias/)
-        for (const asesor of tesisCompleta.asesores) {
+        for (const asesor of tesisCompleta.asesores.filter(a => a.estado === 'ACEPTADO')) {
           if (!asesor.user.email) continue
           try {
             const nombreCompleto = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()

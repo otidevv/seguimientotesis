@@ -4,9 +4,10 @@ import { getCurrentUser } from '@/lib/auth'
 import path from 'path'
 import fs from 'fs'
 import { EstadoTesis } from '@prisma/client'
-import { agregarDiasHabiles, DIAS_HABILES_CORRECCION } from '@/lib/business-days'
+import { DIAS_HABILES_CORRECCION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
+import { assertDentroDeVentana, FueraDeVentanaError, agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -30,6 +31,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. No puedes emitir dictamen hasta que se resuelva.' },
+        { status: 409 }
+      )
+    }
     const estadosEvaluacion = ['EN_EVALUACION_JURADO', 'EN_EVALUACION_INFORME']
     if (!estadosEvaluacion.includes(tesis.estado)) {
       return NextResponse.json(
@@ -51,6 +58,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { error: 'Solo el presidente del jurado puede subir el dictamen' },
         { status: 403 }
       )
+    }
+
+    // Guard de calendario: ventana EVALUACION_JURADO tambien cubre el dictamen
+    const primerAutorDict = await prisma.thesisAuthor.findFirst({
+      where: { thesisId, estado: 'ACEPTADO' },
+      orderBy: { orden: 'asc' },
+      include: { studentCareer: { select: { facultadId: true } } },
+    })
+    try {
+      await assertDentroDeVentana('EVALUACION_JURADO', primerAutorDict?.studentCareer.facultadId ?? null, {
+        thesisId, userId: user.id,
+      })
+    } catch (err) {
+      if (err instanceof FueraDeVentanaError) {
+        return NextResponse.json(
+          { error: err.message, code: err.code, ventana: err.ventanaVigente },
+          { status: 403 }
+        )
+      }
+      throw err
     }
 
     // Verificar que TODOS los jurados requeridos ya evaluaron
@@ -109,6 +136,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           { error: 'Modalidad de sustentación inválida' },
           { status: 400 }
         )
+      }
+
+      // Guard de calendario: la fecha propuesta de sustentacion debe caer en ventana SUSTENTACION.
+      // Usamos `now` inyectado = fecha de sustentacion para que getVentanaVigente la trate como "hoy".
+      const fechaPropuesta = new Date(`${fechaSustentacion}T${horaSustentacion}:00`)
+      try {
+        await assertDentroDeVentana('SUSTENTACION', primerAutorDict?.studentCareer.facultadId ?? null, {
+          thesisId, userId: user.id, now: fechaPropuesta,
+        })
+      } catch (err) {
+        if (err instanceof FueraDeVentanaError) {
+          return NextResponse.json(
+            { error: `Fecha de sustentacion fuera de la ventana del calendario. ${err.message}`, code: err.code, ventana: err.ventanaVigente },
+            { status: 403 }
+          )
+        }
+        throw err
       }
 
       // Verificar conflictos de horario antes de programar
@@ -258,6 +302,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     let nuevoEstado: EstadoTesis
     let mensajeHistorial: string
 
+    // fechaLimiteCorreccion se setea solo cuando el resultado es observado.
+    let fechaLimiteCorreccion: Date | null = null
     if (resultado === 'APROBADO') {
       if (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') {
         nuevoEstado = 'EN_SUSTENTACION'
@@ -267,7 +313,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         mensajeHistorial = 'Proyecto de tesis aprobado por el jurado.'
       }
     } else {
-      const fechaLimiteCorreccion = agregarDiasHabiles(new Date(), DIAS_HABILES_CORRECCION)
+      fechaLimiteCorreccion = await agregarDiasHabilesAcademicos(
+        new Date(),
+        DIAS_HABILES_CORRECCION,
+        primerAutorDict?.studentCareer.facultadId ?? null,
+      )
 
       if (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') {
         nuevoEstado = 'OBSERVADA_INFORME'
@@ -276,18 +326,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         nuevoEstado = 'OBSERVADA_JURADO'
         mensajeHistorial = `Proyecto observado por el jurado. El estudiante tiene ${DIAS_HABILES_CORRECCION} días hábiles para corregir.`
       }
-
-      await prisma.thesis.update({
-        where: { id: thesisId },
-        data: { fechaLimiteCorreccion },
-      })
     }
 
+    // Atomicidad: actualizar estado + fechaLimite + history en la misma transacción.
+    // Antes `fechaLimiteCorreccion` se escribía fuera de la transacción, y si la
+    // transacción fallaba quedaba un registro inconsistente (fecha seteada, estado no).
     await prisma.$transaction([
       prisma.thesis.update({
         where: { id: thesisId },
         data: {
           estado: nuevoEstado,
+          // Setear plazo nuevo si jurado observo; limpiar si aprobo
+          // (previene residuo de rondas anteriores).
+          fechaLimiteCorreccion: fechaLimiteCorreccion ?? null,
           ...(resultado === 'APROBADO' && nuevoEstado === 'EN_SUSTENTACION' && {
             fechaAprobacion: new Date(),
             fechaSustentacion: new Date(`${fechaSustentacion}T${horaSustentacion}:00`),
@@ -348,7 +399,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Notificación en sistema a tesistas
         await crearNotificacion({
-          userId: tesisNotifDictamen.autores.map(a => a.user.id),
+          userId: tesisNotifDictamen.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id),
           tipo: tipoNotif,
           titulo: tituloNotif,
           mensaje: mensajeNotif,
@@ -357,7 +408,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Notificación en sistema a asesores
         await crearNotificacion({
-          userId: tesisNotifDictamen.asesores.map(a => a.user.id),
+          userId: tesisNotifDictamen.asesores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id),
           tipo: tipoNotif,
           titulo: tituloNotif,
           mensaje: mensajeNotif,
@@ -365,7 +416,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         })
 
         // Email a tesistas
-        for (const autor of tesisNotifDictamen.autores) {
+        for (const autor of tesisNotifDictamen.autores.filter(a => a.estado === 'ACEPTADO')) {
           if (!autor.user.email) continue
           try {
             const nombre = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()
@@ -391,7 +442,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }
 
         // Email a asesores
-        for (const asesor of tesisNotifDictamen.asesores) {
+        for (const asesor of tesisNotifDictamen.asesores.filter(a => a.estado === 'ACEPTADO')) {
           if (!asesor.user.email) continue
           try {
             const nombre = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno || ''}`.trim()

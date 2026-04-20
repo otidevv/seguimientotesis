@@ -28,15 +28,21 @@ export async function GET(request: NextRequest) {
       (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
     )
 
-    // Obtener el contexto de facultad del rol MESA_PARTES (si existe y no es admin)
+    // Obtener el contexto de facultad del rol MESA_PARTES (si existe y no es admin).
+    // Solo consideramos contextType='FACULTAD' con contextId — una mesa-partes sin
+    // contexto es global (puede ver todas).
     const rolMesaPartes = !esAdmin ? user.roles?.find(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive
+      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive &&
+             r.contextType === 'FACULTAD' && r.contextId
     ) : null
 
     // Obtener parámetros de búsqueda
     const { searchParams } = new URL(request.url)
     const estado = searchParams.get('estado')
-    const facultadId = searchParams.get('facultadId') || rolMesaPartes?.contextId
+    // Si el rol tiene scope de facultad, se enforza (ignora el query param).
+    // Esto previene escalada horizontal: operador scoped a FAC_A no puede
+    // ver FAC_B manipulando ?facultadId=.
+    const facultadId = rolMesaPartes?.contextId ?? searchParams.get('facultadId')
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
 
@@ -202,12 +208,21 @@ export async function GET(request: NextRequest) {
       APROBADA: 0,
       EN_SUSTENTACION: 0,
       RECHAZADA: 0,
+      SOLICITUD_DESISTIMIENTO: 0,
     }
 
     contadores.forEach((c) => {
       if (c.estado in contadoresFormateados) {
         contadoresFormateados[c.estado] = c._count
       }
+    })
+
+    // Contador de solicitudes de desistimiento pendientes (para quick-access card)
+    const desistimientosPendientes = await prisma.thesisWithdrawal.count({
+      where: {
+        estadoSolicitud: 'PENDIENTE',
+        ...(facultadId && { facultadIdSnapshot: facultadId }),
+      },
     })
 
     console.log('[MESA-PARTES] Tesis encontradas:', tesis.length)
@@ -227,6 +242,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: resultado,
       contadores: contadoresFormateados,
+      desistimientosPendientes,
       facultadAsignada: facultadNombre,
       pagination: {
         page,

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
-import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
+import { DIAS_HABILES_EVALUACION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
+import { agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       where: {
         id: tesisId,
         deletedAt: null,
-        autores: { some: { userId: user.id } },
+        autores: { some: { userId: user.id, estado: { notIn: ['DESISTIDO', 'RECHAZADO'] } } },
       },
       include: {
         autores: {
@@ -72,6 +73,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'Hay una solicitud de desistimiento pendiente. Cancela la solicitud o espera la resolución antes de reenviar.' },
+        { status: 409 }
+      )
+    }
     // Solo permitir reenvio desde estados observados por jurado
     const estadosPermitidos = ['OBSERVADA_JURADO', 'OBSERVADA_INFORME']
     if (!estadosPermitidos.includes(tesis.estado)) {
@@ -79,6 +86,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { error: 'Solo se puede reenviar en estado de observacion del jurado' },
         { status: 400 }
       )
+    }
+
+    // Validar plazo de correccion. El jurado seteo fechaLimiteCorreccion al
+    // emitir dictamen de observacion. Si ya vencio, el estudiante debe solicitar
+    // prorroga antes de reenviar.
+    if (tesis.fechaLimiteCorreccion && new Date() > tesis.fechaLimiteCorreccion) {
+      return NextResponse.json({
+        error: `Se vencio el plazo para enviar correcciones (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}). Contacta a mesa de partes para una prorroga.`,
+        code: 'PLAZO_CORRECCION_VENCIDO',
+      }, { status: 403 })
     }
 
     // Verificar que hay un documento de proyecto actualizado
@@ -116,7 +133,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const nuevaRonda = tesis.rondaActual + 1
-    const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
+    const autorActivoReenv = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+    const fechaLimite = await agregarDiasHabilesAcademicos(
+      new Date(),
+      DIAS_HABILES_EVALUACION,
+      autorActivoReenv?.studentCareer?.facultad?.id ?? null,
+    )
 
     const nuevoEstado = tesis.estado === 'OBSERVADA_INFORME'
       ? 'EN_EVALUACION_INFORME'

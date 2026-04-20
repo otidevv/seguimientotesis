@@ -89,6 +89,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. No puedes registrar la carta mientras esté en trámite.' },
+        { status: 409 }
+      )
+    }
+
+    const estadosCartaPermitidos = ['BORRADOR', 'EN_REVISION', 'OBSERVADA']
+    if (!estadosCartaPermitidos.includes(tesis.estado)) {
+      return NextResponse.json(
+        { error: `No se puede registrar la carta en el estado actual de la tesis (${tesis.estado}).` },
+        { status: 400 }
+      )
+    }
+
     // Verificar que el archivo temporal existe
     const tempPath = path.join(
       process.cwd(),
@@ -176,7 +191,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const facultadNombre = facultad?.nombre || 'Facultad'
 
     // Notificación in-app a cada autor
-    const autorIds = tesis.autores.map(a => a.user.id)
+    const autorIds = tesis.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id)
     if (autorIds.length > 0) {
       try {
         await crearNotificacion({
@@ -191,8 +206,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Email a cada autor
-    for (const autor of tesis.autores) {
+    // Email a cada autor activo (excluye desistidos)
+    for (const autor of tesis.autores.filter(a => a.estado === 'ACEPTADO')) {
       if (autor.user?.email) {
         try {
           const nombreAutor = `${autor.user.nombres} ${autor.user.apellidoPaterno} ${autor.user.apellidoMaterno || ''}`.trim()

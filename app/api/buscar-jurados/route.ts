@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Buscar usuarios activos por nombre, apellido o DNI
+    // Solo docentes/externos — un jurado debe tener rol DOCENTE o EXTERNO
     const usuarios = await prisma.user.findMany({
       where: {
         isActive: true,
@@ -35,6 +36,12 @@ export async function GET(request: NextRequest) {
           { numeroDocumento: { contains: q, mode: 'insensitive' } },
           { email: { contains: q, mode: 'insensitive' } },
         ],
+        roles: {
+          some: {
+            isActive: true,
+            role: { codigo: { in: ['DOCENTE', 'EXTERNO'] } },
+          },
+        },
       },
       select: {
         id: true,

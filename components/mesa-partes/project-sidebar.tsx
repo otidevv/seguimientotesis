@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Gavel, GraduationCap, User, Users } from 'lucide-react'
+import { Ban, Gavel, GraduationCap, User, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TIPO_JURADO_LABELS, TIPO_JURADO_COLORS } from './constants'
 import type { Proyecto, Jurado } from './types'
@@ -32,31 +32,52 @@ export function ProjectSidebar({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {proyecto.autores.map((autor) => (
-            <div key={autor.id} className="flex items-start gap-3">
-              <div className={cn(
-                'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                autor.tipoParticipante === 'AUTOR_PRINCIPAL'
-                  ? 'bg-primary/10'
-                  : 'bg-blue-100 dark:bg-blue-900/50'
-              )}>
-                <User className={cn(
-                  'w-4 h-4',
-                  autor.tipoParticipante === 'AUTOR_PRINCIPAL'
-                    ? 'text-primary'
-                    : 'text-blue-600'
-                )} />
+          {proyecto.autores.map((autor) => {
+            const esDesistido = autor.estado === 'DESISTIDO'
+            return (
+              <div key={autor.id} className={cn('flex items-start gap-3', esDesistido && 'opacity-70')}>
+                <div className={cn(
+                  'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
+                  esDesistido
+                    ? 'bg-slate-100 dark:bg-slate-800'
+                    : autor.tipoParticipante === 'AUTOR_PRINCIPAL'
+                      ? 'bg-primary/10'
+                      : 'bg-blue-100 dark:bg-blue-900/50'
+                )}>
+                  {esDesistido ? (
+                    <Ban className="w-4 h-4 text-slate-400" />
+                  ) : (
+                    <User className={cn(
+                      'w-4 h-4',
+                      autor.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'text-primary' : 'text-blue-600',
+                    )} />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={cn(
+                    'font-medium text-sm truncate',
+                    esDesistido && 'line-through text-muted-foreground',
+                  )}>
+                    {autor.nombre}
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs text-muted-foreground">
+                      {esDesistido
+                        ? 'Desistió del proyecto'
+                        : autor.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'}
+                    </p>
+                    {esDesistido && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-slate-400 text-slate-500">
+                        Histórico
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{autor.codigo}</p>
+                  <p className="text-xs text-muted-foreground truncate">{autor.email}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{autor.nombre}</p>
-                <p className="text-xs text-muted-foreground">
-                  {autor.tipoParticipante === 'AUTOR_PRINCIPAL' ? 'Tesista 1' : 'Tesista 2'}
-                </p>
-                <p className="text-xs text-muted-foreground">{autor.codigo}</p>
-                <p className="text-xs text-muted-foreground truncate">{autor.email}</p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </CardContent>
       </Card>
 
@@ -69,38 +90,46 @@ export function ProjectSidebar({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {proyecto.asesores.map((asesor) => (
-            <div key={asesor.id} className="flex items-start gap-3">
-              <div className={cn(
-                'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-                asesor.estado === 'ACEPTADO'
-                  ? 'bg-green-100 dark:bg-green-900/50'
-                  : 'bg-yellow-100 dark:bg-yellow-900/50'
-              )}>
-                <GraduationCap className={cn(
-                  'w-4 h-4',
-                  asesor.estado === 'ACEPTADO' ? 'text-green-600' : 'text-yellow-600'
-                )} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{asesor.nombre}</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-muted-foreground">{asesor.tipo}</p>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'text-[10px] px-1.5 py-0',
-                      asesor.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
-                      asesor.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600'
-                    )}
-                  >
-                    {asesor.estado === 'ACEPTADO' ? 'Aceptado' : 'Pendiente'}
-                  </Badge>
+          {proyecto.asesores.map((asesor) => {
+            const esRechazado = asesor.estado === 'RECHAZADO'
+            return (
+              <div key={asesor.id} className={cn('flex items-start gap-3', esRechazado && 'opacity-70')}>
+                <div className={cn(
+                  'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
+                  asesor.estado === 'ACEPTADO' && 'bg-green-100 dark:bg-green-900/50',
+                  asesor.estado === 'PENDIENTE' && 'bg-yellow-100 dark:bg-yellow-900/50',
+                  esRechazado && 'bg-red-100 dark:bg-red-900/50',
+                )}>
+                  <GraduationCap className={cn(
+                    'w-4 h-4',
+                    asesor.estado === 'ACEPTADO' && 'text-green-600',
+                    asesor.estado === 'PENDIENTE' && 'text-yellow-600',
+                    esRechazado && 'text-red-600',
+                  )} />
                 </div>
-                <p className="text-xs text-muted-foreground truncate">{asesor.email}</p>
+                <div className="flex-1 min-w-0">
+                  <p className={cn('font-medium text-sm truncate', esRechazado && 'line-through text-muted-foreground')}>
+                    {asesor.nombre}
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs text-muted-foreground">{asesor.tipo}</p>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'text-[10px] px-1.5 py-0',
+                        asesor.estado === 'ACEPTADO' && 'border-green-500 text-green-600',
+                        asesor.estado === 'PENDIENTE' && 'border-yellow-500 text-yellow-600',
+                        esRechazado && 'border-red-500 text-red-600',
+                      )}
+                    >
+                      {asesor.estado === 'ACEPTADO' ? 'Aceptado' : esRechazado ? 'Rechazó' : 'Pendiente'}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{asesor.email}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </CardContent>
       </Card>
 

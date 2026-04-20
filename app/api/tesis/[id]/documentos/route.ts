@@ -103,6 +103,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const esAsesor = tesis.asesores.length > 0
     const esAdminOMesaPartes = await checkPermission(user.id, 'mesa-partes', 'edit')
 
+    // Bloquear subida mientras haya una solicitud de desistimiento pendiente
+    // (mesa-partes conserva privilegios administrativos para casos excepcionales)
+    if (tesis.estado === 'SOLICITUD_DESISTIMIENTO' && !esAdminOMesaPartes) {
+      return NextResponse.json(
+        { error: 'La tesis tiene una solicitud de desistimiento pendiente. No puedes subir documentos mientras esté en trámite.' },
+        { status: 409 }
+      )
+    }
+    if (['DESISTIDA', 'RECHAZADA'].includes(tesis.estado) && !esAdminOMesaPartes) {
+      return NextResponse.json(
+        { error: `La tesis está ${tesis.estado === 'DESISTIDA' ? 'desistida' : 'rechazada'}. No se pueden subir documentos.` },
+        { status: 409 }
+      )
+    }
+
     if (!esAutor && !esAsesor && !esAdminOMesaPartes) {
       return NextResponse.json(
         { error: 'No tienes permiso para subir documentos a esta tesis' },

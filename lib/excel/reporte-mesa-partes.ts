@@ -21,6 +21,8 @@ export interface TesisReporteData {
   nroExpedienteInforme: string
   resolucionJuradoInforme: string
   resolucionSustentacion: string
+  /** Estado actual de la tesis (sólo usado para la vista previa JSON). */
+  estado?: string
 }
 
 function formatDate(date: Date | null): string {
