@@ -64,6 +64,7 @@ import {
 import type { Documento, Proyecto, BusquedaJurado, Jurado } from '@/components/mesa-partes'
 import { useResolutionUploadInstance } from '@/hooks/use-resolution-upload'
 import { useJuradoManager } from '@/hooks/use-jurado-manager'
+import { CalendarStatusWidget } from '@/components/academic-calendar/calendar-status-widget'
 
 export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -396,6 +397,20 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             <p className="text-muted-foreground mt-1">{proyecto.carrera}</p>
           </div>
         </div>
+
+        {/* Estado del calendario academico para esta tesis especifica */}
+        <CalendarStatusWidget
+          thesisId={id}
+          tipos={[
+            'REVISION_MESA_PARTES',
+            'ASIGNACION_JURADOS',
+            'EVALUACION_JURADO',
+            'SUSTENTACION',
+            'INFORME_FINAL',
+            'DESISTIMIENTO',
+          ]}
+          titulo="Ventanas aplicables a esta tesis"
+        />
 
         {/* Banner: solicitud de desistimiento pendiente de revisión */}
         {desistimientoPendiente && (

@@ -22,6 +22,7 @@ import Link from 'next/link'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
+import { CalendarStatusWidget } from '@/components/academic-calendar/calendar-status-widget'
 
 interface Proyecto {
   id: string; codigo: string; titulo: string; estado: string; fechaEnvio: string
@@ -202,6 +203,20 @@ export default function MesaPartesPage() {
           <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
         </Link>
       </div>
+
+      {/* Estado de ventanas del calendario academico */}
+      <CalendarStatusWidget
+        tipos={[
+          'PRESENTACION_PROYECTO',
+          'REVISION_MESA_PARTES',
+          'ASIGNACION_JURADOS',
+          'EVALUACION_JURADO',
+          'INFORME_FINAL',
+          'SUSTENTACION',
+          'DESISTIMIENTO',
+        ]}
+        titulo="Estado del calendario academico"
+      />
 
       {/* Estado filter chips */}
       <div className="space-y-2">

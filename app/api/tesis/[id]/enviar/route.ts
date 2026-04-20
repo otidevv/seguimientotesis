@@ -10,6 +10,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
+import { assertDentroDeVentana, FueraDeVentanaError } from '@/lib/academic-calendar'
 
 interface RouteParams {
   params: Promise<{
@@ -233,12 +234,60 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    // Validar ventana de calendario academico.
+    //
+    // Diferenciamos entre primera presentacion y reenvio tras observacion:
+    //  - BORRADOR -> EN_REVISION (primera entrega): se exige la ventana
+    //    PRESENTACION_PROYECTO estricta. Es el "intake" de nuevos proyectos.
+    //  - OBSERVADA -> EN_REVISION (reenvio de correcciones): NO se exige la
+    //    ventana. El alumno corrige observaciones de mesa de partes y se rige
+    //    por `fechaLimiteCorreccion` si esta seteada. Bloquearlo por ventana
+    //    cerrada seria injusto: mesa de partes observo dentro de plazo y el
+    //    alumno merece terminar su correccion aunque se haya cerrado el intake.
+    const esReenvioCorrecciones = tesis.estado === 'OBSERVADA'
+    const autorActivoEnviar = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+    const facultadIdTesis = autorActivoEnviar?.studentCareer?.facultad?.id ?? null
+
+    if (esReenvioCorrecciones) {
+      // Enforcing fechaLimiteCorreccion si esta seteada.
+      if (tesis.fechaLimiteCorreccion && new Date() > tesis.fechaLimiteCorreccion) {
+        return NextResponse.json({
+          success: false,
+          error: `Se vencio el plazo para enviar correcciones (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}). Contacta a mesa de partes para una prorroga.`,
+          code: 'PLAZO_CORRECCION_VENCIDO',
+        }, { status: 403 })
+      }
+    } else {
+      try {
+        await assertDentroDeVentana('PRESENTACION_PROYECTO', facultadIdTesis, {
+          thesisId: tesisId,
+          userId: user.id,
+        })
+      } catch (err) {
+        if (err instanceof FueraDeVentanaError) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: err.message,
+              code: err.code,
+              ventana: err.ventanaVigente,
+            },
+            { status: 403 }
+          )
+        }
+        throw err
+      }
+    }
+
     // Actualizar estado de la tesis
     await prisma.$transaction([
       prisma.thesis.update({
         where: { id: tesisId },
         data: {
           estado: 'EN_REVISION',
+          // Al reenviar tras correccion, limpiamos el plazo; la proxima
+          // observacion seteara uno nuevo.
+          fechaLimiteCorreccion: null,
         },
       }),
       prisma.thesisStatusHistory.create({

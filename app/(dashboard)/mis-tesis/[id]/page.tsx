@@ -93,6 +93,15 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [invitacionARechazar, setInvitacionARechazar] = useState<string | null>(null)
   const [modalDesistirOpen, setModalDesistirOpen] = useState(false)
   const [modalConfirmarEnvioOpen, setModalConfirmarEnvioOpen] = useState(false)
+  type VentanaInfo = {
+    dentroDeVentana: boolean
+    fechaInicio: string
+    fechaFin: string
+    motivo: string
+    periodoNombre: string
+  }
+  const [ventanaPresentacion, setVentanaPresentacion] = useState<VentanaInfo | null>(null)
+  const [ventanaInforme, setVentanaInforme] = useState<VentanaInfo | null>(null)
 
   const loadTesis = useCallback(async () => {
     try {
@@ -114,6 +123,40 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       loadTesis()
     }
   }, [authLoading, user, loadTesis])
+
+  // Consultar ventana de calendario academico segun fase actual:
+  //  - BORRADOR → ventana PRESENTACION_PROYECTO
+  //  - INFORME_FINAL → ventana INFORME_FINAL
+  //  - OBSERVADA / OBSERVADA_INFORME → sin ventana (rige fechaLimiteCorreccion en backend)
+  useEffect(() => {
+    if (!tesis) return
+    const ac = new AbortController()
+    const tipo = tesis.estado === 'BORRADOR'
+      ? 'PRESENTACION_PROYECTO'
+      : tesis.estado === 'INFORME_FINAL'
+        ? 'INFORME_FINAL'
+        : null
+
+    if (!tipo) {
+      setVentanaPresentacion(null); setVentanaInforme(null)
+      return
+    }
+
+    fetch(`/api/academic-calendar/ventana?tipo=${tipo}&thesisId=${tesis.id}`, { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : { ventana: null }))
+      .then((d: { ventana: VentanaInfo | null }) => {
+        if (ac.signal.aborted) return
+        if (tipo === 'PRESENTACION_PROYECTO') {
+          setVentanaPresentacion(d.ventana); setVentanaInforme(null)
+        } else {
+          setVentanaInforme(d.ventana); setVentanaPresentacion(null)
+        }
+      })
+      .catch((e: unknown) => {
+        if (e instanceof DOMException && e.name === 'AbortError') return
+      })
+    return () => ac.abort()
+  }, [tesis])
 
   const handleFileUpload = async (tipoDocumento: string, file: File) => {
     if (!tesis) return
@@ -1122,6 +1165,20 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
 
             {/* Botón Enviar - siempre visible al final */}
             <CardContent className="pt-4 pb-5 border-t">
+              {ventanaInforme && !ventanaInforme.dentroDeVentana && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-100 mb-3">
+                  <p className="font-medium flex items-center gap-2">
+                    <Clock className="w-4 h-4" aria-hidden="true" />
+                    Ventana de informe final cerrada
+                  </p>
+                  <p className="mt-1 text-xs">
+                    El periodo <b>{ventanaInforme.periodoNombre}</b> tiene la ventana INFORME_FINAL
+                    cerrada ({new Date(ventanaInforme.fechaInicio).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })} —
+                    {' '}{new Date(ventanaInforme.fechaFin).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).
+                    Solicita prorroga excepcional a mesa de partes si necesitas enviar fuera de plazo.
+                  </p>
+                </div>
+              )}
               <Button
                 onClick={async () => {
                   setEnviando(true)
@@ -1136,7 +1193,15 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   }
                 }}
                 className="w-full bg-cyan-600 hover:bg-cyan-700 h-11"
-                disabled={!todosCompletos || subiendo !== null || enviando}
+                disabled={
+                  !todosCompletos || subiendo !== null || enviando ||
+                  (ventanaInforme !== null && !ventanaInforme.dentroDeVentana)
+                }
+                title={
+                  ventanaInforme && !ventanaInforme.dentroDeVentana
+                    ? 'Ventana INFORME_FINAL cerrada'
+                    : undefined
+                }
                 size="lg"
               >
                 {enviando ? (
@@ -2144,6 +2209,21 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 {/* Botón enviar */}
                 <Separator className="my-6" />
 
+                {ventanaPresentacion && !ventanaPresentacion.dentroDeVentana && (
+                  <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-100 mb-4">
+                    <p className="font-medium flex items-center gap-2">
+                      <Clock className="w-4 h-4" aria-hidden="true" />
+                      Fuera del plazo del calendario academico
+                    </p>
+                    <p className="mt-1">
+                      La ventana de presentacion de proyecto para el periodo <b>{ventanaPresentacion.periodoNombre}</b> esta cerrada
+                      ({new Date(ventanaPresentacion.fechaInicio).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })} —
+                      {' '}{new Date(ventanaPresentacion.fechaFin).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).
+                      Podras enviar cuando se abra nuevamente o mediante prorroga excepcional autorizada por mesa de partes.
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-lg bg-muted/30">
                   <div className="text-center sm:text-left">
                     <p className="font-medium">¿Listo para enviar?</p>
@@ -2176,9 +2256,21 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   <Button
                     size="lg"
                     onClick={() => setModalConfirmarEnvioOpen(true)}
-                    disabled={enviando || !puedeEnviar || tesis.estado === 'SOLICITUD_DESISTIMIENTO'}
+                    disabled={
+                      enviando ||
+                      !puedeEnviar ||
+                      tesis.estado === 'SOLICITUD_DESISTIMIENTO' ||
+                      (ventanaPresentacion !== null && !ventanaPresentacion.dentroDeVentana)
+                    }
+                    title={
+                      ventanaPresentacion && !ventanaPresentacion.dentroDeVentana
+                        ? 'Fuera del plazo del calendario academico'
+                        : undefined
+                    }
                     className={cn(
-                      puedeEnviar && tesis.estado !== 'SOLICITUD_DESISTIMIENTO' && 'bg-green-600 hover:bg-green-700'
+                      puedeEnviar && tesis.estado !== 'SOLICITUD_DESISTIMIENTO' &&
+                        (!ventanaPresentacion || ventanaPresentacion.dentroDeVentana) &&
+                        'bg-green-600 hover:bg-green-700'
                     )}
                   >
                     {enviando ? (

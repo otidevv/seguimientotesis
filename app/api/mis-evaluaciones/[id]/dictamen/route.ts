@@ -4,9 +4,10 @@ import { getCurrentUser } from '@/lib/auth'
 import path from 'path'
 import fs from 'fs'
 import { EstadoTesis } from '@prisma/client'
-import { agregarDiasHabiles, DIAS_HABILES_CORRECCION } from '@/lib/business-days'
+import { DIAS_HABILES_CORRECCION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
+import { assertDentroDeVentana, FueraDeVentanaError, agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -57,6 +58,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { error: 'Solo el presidente del jurado puede subir el dictamen' },
         { status: 403 }
       )
+    }
+
+    // Guard de calendario: ventana EVALUACION_JURADO tambien cubre el dictamen
+    const primerAutorDict = await prisma.thesisAuthor.findFirst({
+      where: { thesisId, estado: 'ACEPTADO' },
+      orderBy: { orden: 'asc' },
+      include: { studentCareer: { select: { facultadId: true } } },
+    })
+    try {
+      await assertDentroDeVentana('EVALUACION_JURADO', primerAutorDict?.studentCareer.facultadId ?? null, {
+        thesisId, userId: user.id,
+      })
+    } catch (err) {
+      if (err instanceof FueraDeVentanaError) {
+        return NextResponse.json(
+          { error: err.message, code: err.code, ventana: err.ventanaVigente },
+          { status: 403 }
+        )
+      }
+      throw err
     }
 
     // Verificar que TODOS los jurados requeridos ya evaluaron
@@ -115,6 +136,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           { error: 'Modalidad de sustentación inválida' },
           { status: 400 }
         )
+      }
+
+      // Guard de calendario: la fecha propuesta de sustentacion debe caer en ventana SUSTENTACION.
+      // Usamos `now` inyectado = fecha de sustentacion para que getVentanaVigente la trate como "hoy".
+      const fechaPropuesta = new Date(`${fechaSustentacion}T${horaSustentacion}:00`)
+      try {
+        await assertDentroDeVentana('SUSTENTACION', primerAutorDict?.studentCareer.facultadId ?? null, {
+          thesisId, userId: user.id, now: fechaPropuesta,
+        })
+      } catch (err) {
+        if (err instanceof FueraDeVentanaError) {
+          return NextResponse.json(
+            { error: `Fecha de sustentacion fuera de la ventana del calendario. ${err.message}`, code: err.code, ventana: err.ventanaVigente },
+            { status: 403 }
+          )
+        }
+        throw err
       }
 
       // Verificar conflictos de horario antes de programar
@@ -275,7 +313,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         mensajeHistorial = 'Proyecto de tesis aprobado por el jurado.'
       }
     } else {
-      fechaLimiteCorreccion = agregarDiasHabiles(new Date(), DIAS_HABILES_CORRECCION)
+      fechaLimiteCorreccion = await agregarDiasHabilesAcademicos(
+        new Date(),
+        DIAS_HABILES_CORRECCION,
+        primerAutorDict?.studentCareer.facultadId ?? null,
+      )
 
       if (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') {
         nuevoEstado = 'OBSERVADA_INFORME'
@@ -294,7 +336,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         where: { id: thesisId },
         data: {
           estado: nuevoEstado,
-          ...(fechaLimiteCorreccion && { fechaLimiteCorreccion }),
+          // Setear plazo nuevo si jurado observo; limpiar si aprobo
+          // (previene residuo de rondas anteriores).
+          fechaLimiteCorreccion: fechaLimiteCorreccion ?? null,
           ...(resultado === 'APROBADO' && nuevoEstado === 'EN_SUSTENTACION' && {
             fechaAprobacion: new Date(),
             fechaSustentacion: new Date(`${fechaSustentacion}T${horaSustentacion}:00`),

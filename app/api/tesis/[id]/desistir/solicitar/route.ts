@@ -5,6 +5,7 @@ import { EstadoTesis } from '@prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { ESTADOS_PERMITIDOS_DESISTIMIENTO } from '@/lib/desistimiento/transiciones'
+import { assertDentroDeVentana, FueraDeVentanaError } from '@/lib/academic-calendar'
 
 const Body = z.object({
   motivoCategoria: z.enum([
@@ -71,6 +72,22 @@ export async function POST(
     const teniaCoautor = tesis.autores.some(a => a.user.id !== user.id && a.estado === 'ACEPTADO')
     const facultadId = miAutor.studentCareer.facultadId
     const carreraNombre = miAutor.studentCareer.carreraNombre
+
+    // Guard de calendario para solicitudes de desistimiento
+    try {
+      await assertDentroDeVentana('DESISTIMIENTO', facultadId, {
+        thesisId: id,
+        userId: user.id,
+      })
+    } catch (err) {
+      if (err instanceof FueraDeVentanaError) {
+        return NextResponse.json(
+          { error: err.message, code: err.code, ventana: err.ventanaVigente },
+          { status: 403 }
+        )
+      }
+      throw err
+    }
 
     const mesaPartesUsers = await prisma.userRole.findMany({
       where: {

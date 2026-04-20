@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { crearNotificacion } from '@/lib/notificaciones'
+import { assertDentroDeVentana, FueraDeVentanaError } from '@/lib/academic-calendar'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -116,6 +117,50 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         error: 'No se cumplen todos los requisitos para enviar el informe final',
         requisitos,
       }, { status: 400 })
+    }
+
+    // Guard de calendario:
+    //  - Primera presentacion del informe (fechaLimiteCorreccion == null):
+    //    ventana INFORME_FINAL estricta.
+    //  - Reenvio tras observacion de mesa-partes (fechaLimiteCorreccion != null):
+    //    se rige por ese plazo, no por ventana. El estudiante esta respondiendo
+    //    a observaciones dentro del plazo otorgado.
+    const autorActivoInforme = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+    const facultadIdInforme = autorActivoInforme?.studentCareer?.facultad?.id ?? null
+    const esReenvioInforme = tesis.fechaLimiteCorreccion !== null
+
+    if (esReenvioInforme) {
+      if (tesis.fechaLimiteCorreccion && new Date() > tesis.fechaLimiteCorreccion) {
+        return NextResponse.json({
+          success: false,
+          error: `Se vencio el plazo para enviar correcciones del informe (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}). Contacta a mesa de partes para una prorroga.`,
+          code: 'PLAZO_CORRECCION_VENCIDO',
+        }, { status: 403 })
+      }
+    } else {
+      try {
+        await assertDentroDeVentana('INFORME_FINAL', facultadIdInforme, {
+          thesisId: tesisId,
+          userId: user.id,
+        })
+      } catch (err) {
+        if (err instanceof FueraDeVentanaError) {
+          return NextResponse.json(
+            { success: false, error: err.message, code: err.code, ventana: err.ventanaVigente },
+            { status: 403 }
+          )
+        }
+        throw err
+      }
+    }
+
+    // Limpiar fechaLimiteCorreccion — el reenvio ya se realizo dentro del plazo
+    // y la proxima observacion (por mesa-partes o jurado) setea uno nuevo.
+    if (esReenvioInforme) {
+      await prisma.thesis.update({
+        where: { id: tesisId },
+        data: { fechaLimiteCorreccion: null },
+      })
     }
 
     // Desactivar dictámenes de la fase anterior (PROYECTO) para no confundir con INFORME_FINAL

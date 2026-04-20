@@ -24,6 +24,7 @@ import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { ModalSolicitarDesistimiento } from '@/components/desistimiento/modal-solicitar-desistimiento'
 import { MOTIVO_LABEL } from '@/lib/constants/motivos-desistimiento'
+import { CalendarStatusWidget } from '@/components/academic-calendar/calendar-status-widget'
 
 interface Autor {
   id: string; tipoParticipante: string; estado: string
@@ -242,6 +243,12 @@ export default function MisTesisPage() {
           </Link>
         </Button>
       </div>
+
+      {/* Estado del calendario academico — ver de un vistazo que puedo hacer */}
+      <CalendarStatusWidget
+        tipos={['PRESENTACION_PROYECTO', 'INFORME_FINAL', 'DESISTIMIENTO']}
+        titulo="Plazos abiertos"
+      />
 
       {/* Stats */}
       {tesis.length > 0 && (

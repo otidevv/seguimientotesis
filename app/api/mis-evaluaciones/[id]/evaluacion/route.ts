@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import path from 'path'
 import fs from 'fs'
+import { assertDentroDeVentana, FueraDeVentanaError } from '@/lib/academic-calendar'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -54,6 +55,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { error: 'No eres jurado de esta tesis en la fase actual' },
         { status: 403 }
       )
+    }
+
+    // Guard de calendario: ventana EVALUACION_JURADO (resolver facultad desde primer autor)
+    const primerAutor = await prisma.thesisAuthor.findFirst({
+      where: { thesisId, estado: 'ACEPTADO' },
+      orderBy: { orden: 'asc' },
+      include: { studentCareer: { select: { facultadId: true } } },
+    })
+    try {
+      await assertDentroDeVentana('EVALUACION_JURADO', primerAutor?.studentCareer.facultadId ?? null, {
+        thesisId, userId: user.id,
+      })
+    } catch (err) {
+      if (err instanceof FueraDeVentanaError) {
+        return NextResponse.json(
+          { error: err.message, code: err.code, ventana: err.ventanaVigente },
+          { status: 403 }
+        )
+      }
+      throw err
     }
 
     // Verificar que no haya evaluacion previa para esta ronda

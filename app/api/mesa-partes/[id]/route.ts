@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
-import { agregarDiasHabiles, DIAS_HABILES_EVALUACION } from '@/lib/business-days'
+import { DIAS_HABILES_EVALUACION, DIAS_HABILES_CORRECCION } from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
+import { assertDentroDeVentana, FueraDeVentanaError, agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
 
 // GET /api/mesa-partes/[id] - Obtener detalle de un proyecto
 export async function GET(
@@ -404,6 +405,25 @@ export async function PUT(
         )
       }
 
+      const autorActivoAsig = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+      if (!esAdminPut) {
+        const facultadIdTesis = autorActivoAsig?.studentCareer?.facultadId ?? null
+        try {
+          await assertDentroDeVentana('ASIGNACION_JURADOS', facultadIdTesis, {
+            thesisId: id,
+            userId: user.id,
+          })
+        } catch (err) {
+          if (err instanceof FueraDeVentanaError) {
+            return NextResponse.json(
+              { error: err.message, code: err.code, ventana: err.ventanaVigente },
+              { status: 403 }
+            )
+          }
+          throw err
+        }
+      }
+
       // Verificar que hay presidente, vocal, secretario y accesitario
       const jurados = await prisma.thesisJury.findMany({
         where: { thesisId: id, isActive: true, fase: 'PROYECTO' },
@@ -428,7 +448,13 @@ export async function PUT(
         )
       }
 
-      const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
+      // fechaLimite respeta vacaciones academicas: si el plazo cae en un gap
+      // entre periodos, los dias se pausan hasta que inicie el siguiente periodo.
+      const fechaLimite = await agregarDiasHabilesAcademicos(
+        new Date(),
+        DIAS_HABILES_EVALUACION,
+        autorActivoAsig?.studentCareer?.facultadId ?? null,
+      )
 
       await prisma.$transaction([
         prisma.thesis.update({
@@ -762,9 +788,32 @@ export async function PUT(
         )
       }
 
+      // Guard calendario: mesa de partes revisando informe respeta REVISION_MESA_PARTES.
+      if (!esAdminPut) {
+        const autorActivoInfRev = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+        try {
+          await assertDentroDeVentana('REVISION_MESA_PARTES', autorActivoInfRev?.studentCareer?.facultadId ?? null, {
+            thesisId: id, userId: user.id,
+          })
+        } catch (err) {
+          if (err instanceof FueraDeVentanaError) {
+            return NextResponse.json(
+              { error: err.message, code: err.code, ventana: err.ventanaVigente },
+              { status: 403 }
+            )
+          }
+          throw err
+        }
+      }
+
       if (accion === 'APROBAR') {
         // APROBAR informe → EN_EVALUACION_INFORME (notificar jurados y tesistas)
-        const fechaLimite = agregarDiasHabiles(new Date(), DIAS_HABILES_EVALUACION)
+        const autorActivoAprInf = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+        const fechaLimite = await agregarDiasHabilesAcademicos(
+          new Date(),
+          DIAS_HABILES_EVALUACION,
+          autorActivoAprInf?.studentCareer?.facultadId ?? null,
+        )
 
         await prisma.$transaction([
           prisma.thesis.update({
@@ -914,11 +963,20 @@ export async function PUT(
         })
       } else {
         // OBSERVAR informe → INFORME_FINAL (tesista corrige)
+        // Seteamos fechaLimiteCorreccion para dar un plazo estructurado y
+        // permitir distinguir reenvio de primera presentacion en enviar-informe.
+        const autorActivoObsInf = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+        const fechaLimiteObsInf = await agregarDiasHabilesAcademicos(
+          new Date(),
+          DIAS_HABILES_CORRECCION,
+          autorActivoObsInf?.studentCareer?.facultadId ?? null,
+        )
         await prisma.$transaction([
           prisma.thesis.update({
             where: { id },
             data: {
               estado: 'INFORME_FINAL',
+              fechaLimiteCorreccion: fechaLimiteObsInf,
             },
           }),
           prisma.thesisStatusHistory.create({
@@ -926,7 +984,7 @@ export async function PUT(
               thesisId: id,
               estadoAnterior: 'EN_REVISION_INFORME',
               estadoNuevo: 'INFORME_FINAL',
-              comentario: comentario?.trim() || 'Informe final observado por Mesa de Partes.',
+              comentario: comentario?.trim() || `Informe final observado por Mesa de Partes. Plazo para correccion: ${DIAS_HABILES_CORRECCION} dias habiles academicos.`,
               changedById: user.id,
             },
           }),
@@ -1019,6 +1077,26 @@ export async function PUT(
       )
     }
 
+    // Guard de calendario: mesa de partes tambien respeta ventanas. Admins pueden saltarselo.
+    if (!esAdminPut) {
+      const autorActivoRev = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+      const facultadIdTesis = autorActivoRev?.studentCareer?.facultadId ?? null
+      try {
+        await assertDentroDeVentana('REVISION_MESA_PARTES', facultadIdTesis, {
+          thesisId: id,
+          userId: user.id,
+        })
+      } catch (err) {
+        if (err instanceof FueraDeVentanaError) {
+          return NextResponse.json(
+            { error: err.message, code: err.code, ventana: err.ventanaVigente },
+            { status: 403 }
+          )
+        }
+        throw err
+      }
+    }
+
     // Determinar nuevo estado
     let nuevoEstado: EstadoTesis
     let mensajeExito: string
@@ -1040,11 +1118,26 @@ export async function PUT(
         return NextResponse.json({ error: 'Acción no válida' }, { status: 400 })
     }
 
+    // Si OBSERVAR: calcular fechaLimiteCorreccion (30 dias habiles academicos).
+    // Permite distinguir reenvio de primera presentacion y da plazo claro al tesista.
+    let fechaLimiteCorrObs: Date | null = null
+    if (accion === 'OBSERVAR') {
+      const autorActivoObsProy = tesis.autores.find((a) => a.estado === 'ACEPTADO')
+      fechaLimiteCorrObs = await agregarDiasHabilesAcademicos(
+        new Date(),
+        DIAS_HABILES_CORRECCION,
+        autorActivoObsProy?.studentCareer?.facultadId ?? null,
+      )
+    }
+
     // Actualizar estado
     const tesisActualizada = await prisma.thesis.update({
       where: { id },
       data: {
         estado: nuevoEstado,
+        ...(accion === 'OBSERVAR' ? { fechaLimiteCorreccion: fechaLimiteCorrObs } : {}),
+        // APROBAR y RECHAZAR limpian residuo; observacion previa ya no aplica.
+        ...(accion === 'APROBAR' || accion === 'RECHAZAR' ? { fechaLimiteCorreccion: null } : {}),
       },
     })
 
