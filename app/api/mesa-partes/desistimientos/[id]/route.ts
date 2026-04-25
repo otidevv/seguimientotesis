@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
-import { requiereModificatoria } from '@/lib/desistimiento/transiciones'
+import { requiereResolucionDesistimiento } from '@/lib/desistimiento/transiciones'
 
 export async function GET(
   request: NextRequest,
@@ -40,7 +40,7 @@ export async function GET(
               include: { user: { select: { id: true, nombres: true, apellidoPaterno: true } } },
             },
             documentos: {
-              where: { tipo: { in: ['RESOLUCION_JURADO', 'RESOLUCION_APROBACION'] } },
+              where: { tipo: { in: ['RESOLUCION_JURADO', 'RESOLUCION_APROBACION', 'RESOLUCION_DESISTIMIENTO'] } },
               orderBy: [{ tipo: 'asc' }, { version: 'asc' }],
             },
           },
@@ -59,6 +59,7 @@ export async function GET(
 
     const coautoresActivos = w.thesis.autores.filter(a => a.user.id !== w.userId && a.estado === 'ACEPTADO')
     const hayCoautorQueContinua = coautoresActivos.length > 0
+    const tieneResolucionJurado = w.thesis.documentos.some(d => d.tipo === 'RESOLUCION_JURADO')
 
     return NextResponse.json({
       id: w.id,
@@ -73,11 +74,11 @@ export async function GET(
       faseActual: w.faseActual,
       teniaCoautor: w.teniaCoautor,
       hayCoautorQueContinua,
-      // Solo requiere modificatoria si:
-      // 1) el estado previo tenía resolución emitida, Y
-      // 2) hay un coautor que continúa (si no hay, la tesis pasa a DESISTIDA
-      //    y no tiene sentido modificar una resolución de un proyecto cerrado).
-      requiereModificatoria: requiereModificatoria(w.estadoTesisAlSolicitar) && hayCoautorQueContinua,
+      tieneResolucionJurado,
+      // Obligatorio subir RESOLUCION_DESISTIMIENTO si existe RESOLUCION_JURADO,
+      // sin importar si hay coautor: si la tesis se cierra (autor único), igual
+      // hay que formalizar el desistimiento porque ya hubo resolución oficial.
+      requiereResolucionDesistimiento: requiereResolucionDesistimiento(tieneResolucionJurado),
       estudiante: {
         id: w.user.id,
         nombreCompleto: `${w.user.apellidoPaterno} ${w.user.apellidoMaterno}, ${w.user.nombres}`,
@@ -116,10 +117,18 @@ export async function GET(
           createdAt: d.createdAt,
         })),
       },
-      resolucionModificatoria: w.resolucionDocumento ? {
-        id: w.resolucionDocumento.id,
-        nombre: w.resolucionDocumento.nombre,
-      } : null,
+      // Solo exponemos como "resolución de desistimiento" si el documento vinculado
+      // es del tipo correcto. Withdrawals históricos (aprobados con la lógica anterior
+      // de modificatoria) tienen resolucionDocumentoId apuntando a una RESOLUCION_JURADO,
+      // y mostrarlos aquí sería engañoso.
+      resolucionDesistimiento:
+        w.resolucionDocumento && w.resolucionDocumento.tipo === 'RESOLUCION_DESISTIMIENTO'
+          ? {
+              id: w.resolucionDocumento.id,
+              nombre: w.resolucionDocumento.nombre,
+              rutaArchivo: w.resolucionDocumento.rutaArchivo,
+            }
+          : null,
     })
   } catch (error) {
     console.error('[Mesa-partes desistimiento detail]', error)

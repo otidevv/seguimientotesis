@@ -577,6 +577,7 @@ enum TipoDocumentoTesis {
   RESOLUCION_JURADO // Resolución de conformación de jurado de revisión
   RESOLUCION_JURADO_INFORME // Resolución de conformación de jurado evaluador de informe final
   RESOLUCION_APROBACION // Resolución de aprobación subida por mesa de partes
+  RESOLUCION_DESISTIMIENTO // Resolución de desistimiento (mesa de partes la sube al aprobar la solicitud)
   REPORTE_TURNITIN // Reporte de similitud Turnitin
   INFORME_FINAL_DOC // Documento de informe final
   VOUCHER_PAGO_INFORME // Voucher de pago informe final (S/. 20 - código 465)

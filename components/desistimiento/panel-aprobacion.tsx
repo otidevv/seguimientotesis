@@ -10,43 +10,39 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Loader2, CheckCircle2, XCircle, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
-interface ResolucionVigente { id: string; tipo: string; nombre: string; version: number }
-
 interface Props {
   desistimientoId: string
   thesisId: string
-  requiereModificatoria: boolean
-  /** Si NO hay coautor que continúe, la tesis pasa a DESISTIDA y no se piden modificatorias. */
+  /** True si ya existe RESOLUCION_JURADO emitida — la resolución de desistimiento es obligatoria. */
+  requiereResolucionDesistimiento: boolean
+  /** Si NO hay coautor que continúe, la tesis pasa a DESISTIDA. Solo informativo en la UI. */
   hayCoautorQueContinua: boolean
-  resolucionesVigentes: ResolucionVigente[]
   onDone?: () => void
 }
 
-export function PanelAprobacionDesistimiento({ desistimientoId, requiereModificatoria, hayCoautorQueContinua, resolucionesVigentes, onDone }: Props) {
+export function PanelAprobacionDesistimiento({
+  desistimientoId,
+  requiereResolucionDesistimiento,
+  hayCoautorQueContinua,
+  onDone,
+}: Props) {
   const [aprobarOpen, setAprobarOpen] = useState(false)
   const [rechazarOpen, setRechazarOpen] = useState(false)
-  const [archivoJurado, setArchivoJurado] = useState<File | null>(null)
-  const [archivoAprob, setArchivoAprob] = useState<File | null>(null)
+  const [archivoDesistimiento, setArchivoDesistimiento] = useState<File | null>(null)
   const [motivoRechazo, setMotivoRechazo] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const tieneJurado = resolucionesVigentes.some(r => r.tipo === 'RESOLUCION_JURADO')
-  const tieneAprob = resolucionesVigentes.some(r => r.tipo === 'RESOLUCION_APROBACION')
-  const versionJurado = resolucionesVigentes.find(r => r.tipo === 'RESOLUCION_JURADO')?.version
-
   async function aprobar() {
     setError(null)
-    // Solo se exige modificatoria cuando hay coautor que continúa con la tesis.
-    // Si es autor único, la tesis pasa a DESISTIDA y no hay nada que modificar.
-    if (hayCoautorQueContinua && requiereModificatoria && tieneJurado && !archivoJurado) {
-      setError('Sube la resolución modificatoria de conformación de jurado'); return
+    if (requiereResolucionDesistimiento && !archivoDesistimiento) {
+      setError('Sube la resolución de desistimiento (PDF). Es obligatoria porque ya existe la resolución de conformación de jurado.')
+      return
     }
     setLoading(true)
     try {
       const form = new FormData()
-      if (archivoJurado) form.append('resolucionJuradoModificatoria', archivoJurado)
-      if (archivoAprob) form.append('resolucionAprobacionModificatoria', archivoAprob)
+      if (archivoDesistimiento) form.append('resolucionDesistimiento', archivoDesistimiento)
       const res = await fetch(`/api/mesa-partes/desistimientos/${desistimientoId}/aprobar`, { method: 'POST', body: form })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error')
@@ -100,24 +96,38 @@ export function PanelAprobacionDesistimiento({ desistimientoId, requiereModifica
             {!hayCoautorQueContinua && (
               <div className="rounded-md border border-red-300 bg-red-50/60 dark:bg-red-950/30 p-3 text-sm text-red-900 dark:text-red-100">
                 El tesista es <strong>autor único</strong>. Al aprobar, la tesis pasará a <strong>DESISTIDA</strong> y se dará de baja.
-                No se requiere modificatoria de resoluciones porque el proyecto se cierra.
               </div>
             )}
-            {hayCoautorQueContinua && tieneJurado && (
+            {requiereResolucionDesistimiento ? (
               <div className="space-y-2">
-                <Label htmlFor="resJurado">Resolución modificatoria de conformación de jurado (PDF)</Label>
-                <Input id="resJurado" type="file" accept="application/pdf" onChange={(e) => setArchivoJurado(e.target.files?.[0] ?? null)} />
-                <p className="text-xs text-muted-foreground">Reemplaza la v{versionJurado}.</p>
+                <Label htmlFor="resDesistimiento">
+                  Resolución de desistimiento (PDF) <span className="text-red-600">*</span>
+                </Label>
+                <Input
+                  id="resDesistimiento"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setArchivoDesistimiento(e.target.files?.[0] ?? null)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Obligatoria: ya existe resolución de conformación de jurado. La resolución de jurado <strong>no se reemplaza</strong>; la de desistimiento se agrega como documento aparte.
+                </p>
               </div>
-            )}
-            {hayCoautorQueContinua && tieneAprob && (
+            ) : (
               <div className="space-y-2">
-                <Label htmlFor="resAprob">Resolución modificatoria de aprobación (PDF, opcional)</Label>
-                <Input id="resAprob" type="file" accept="application/pdf" onChange={(e) => setArchivoAprob(e.target.files?.[0] ?? null)} />
+                <Label htmlFor="resDesistimiento">
+                  Resolución de desistimiento (PDF, opcional)
+                </Label>
+                <Input
+                  id="resDesistimiento"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setArchivoDesistimiento(e.target.files?.[0] ?? null)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Aún no hay resolución de jurado emitida, así que adjuntarla es opcional.
+                </p>
               </div>
-            )}
-            {hayCoautorQueContinua && !tieneJurado && !tieneAprob && (
-              <p className="text-sm text-muted-foreground">No hay resoluciones vigentes que requieran modificatoria. Al aprobar, el coautor continuará como autor principal.</p>
             )}
             {error && <div className="text-sm text-red-600">{error}</div>}
           </div>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { crearNotificacion } from '@/lib/notificaciones'
-import { estadoDestinoConCoautor, requiereModificatoria } from '@/lib/desistimiento/transiciones'
+import { estadoDestinoConCoautor, requiereResolucionDesistimiento } from '@/lib/desistimiento/transiciones'
 import { invalidarCartasAsesores } from '@/lib/cartas-aceptacion/invalidar'
 import { EstadoTesis } from '@prisma/client'
 import path from 'path'
@@ -11,7 +11,6 @@ import { randomUUID } from 'crypto'
 
 // Mismo directorio que /api/tesis/[id]/documentos: public/documentos/tesis/<thesisId>.
 // Next.js sirve estáticamente public/ al root — la URL /documentos/tesis/... resuelve.
-// Si se cambia a uploads/ externo, la URL pública no resuelve (404).
 const UPLOAD_ROOT = path.join(process.cwd(), 'public', 'documentos', 'tesis')
 
 export async function POST(
@@ -35,8 +34,7 @@ export async function POST(
     ) : null
 
     const form = await request.formData()
-    const archivoJurado = form.get('resolucionJuradoModificatoria') as File | null
-    const archivoAprobacion = form.get('resolucionAprobacionModificatoria') as File | null
+    const archivoDesistimiento = form.get('resolucionDesistimiento') as File | null
 
     const w = await prisma.thesisWithdrawal.findUnique({
       where: { id },
@@ -47,7 +45,7 @@ export async function POST(
               include: { user: { select: { id: true, nombres: true, apellidoPaterno: true } } },
             },
             asesores: { where: { estado: 'ACEPTADO' }, select: { userId: true } },
-            documentos: { where: { esVersionActual: true } },
+            documentos: { where: { tipo: 'RESOLUCION_JURADO' }, select: { id: true } },
           },
         },
         thesisAuthor: { include: { user: { select: { nombres: true, apellidoPaterno: true } } } },
@@ -61,7 +59,6 @@ export async function POST(
       return NextResponse.json({ error: `Estado actual: ${w.estadoSolicitud}` }, { status: 400 })
     }
     // Defensa contra concurrencia: la tesis debe seguir en SOLICITUD_DESISTIMIENTO.
-    // Si otro proceso la cambió (admin, otro operador), abortar.
     if (w.thesis.estado !== 'SOLICITUD_DESISTIMIENTO') {
       return NextResponse.json(
         { error: `Conflicto: la tesis cambió de estado (${w.thesis.estado}). Refresca la página.` },
@@ -69,66 +66,55 @@ export async function POST(
       )
     }
 
-    const resolJurado = w.thesis.documentos.find(d => d.tipo === 'RESOLUCION_JURADO')
-    const resolAprob = w.thesis.documentos.find(d => d.tipo === 'RESOLUCION_APROBACION')
+    // ¿Existe ya una resolución de conformación de jurado para esta tesis?
+    // Si existe (en cualquier versión), debe subirse RESOLUCION_DESISTIMIENTO obligatoriamente.
+    const tieneResolucionJurado = w.thesis.documentos.length > 0
 
-    // ¿Hay coautor que continúa con la tesis?
-    // Si NO hay coautor, la tesis pasa a DESISTIDA (ningún autor la continúa)
-    // → no tiene sentido pedir modificatoria de resolución: la tesis se cierra.
-    const hayCoautorQueContinua = w.thesis.autores.some(
-      a => a.user.id !== w.userId && a.estado === 'ACEPTADO'
-    )
-
-    if (hayCoautorQueContinua && requiereModificatoria(w.estadoTesisAlSolicitar) && resolJurado && !archivoJurado) {
+    if (requiereResolucionDesistimiento(tieneResolucionJurado) && !archivoDesistimiento) {
       return NextResponse.json({
-        error: 'Debe subir la resolución modificatoria de conformación de jurado'
-      }, { status: 400 })
-    }
-    if (hayCoautorQueContinua && resolAprob && w.estadoTesisAlSolicitar === 'PROYECTO_APROBADO' && !archivoAprobacion) {
-      return NextResponse.json({
-        error: 'Debe subir la resolución modificatoria de aprobación de proyecto'
+        error: 'Debe subir la resolución de desistimiento (PDF). Es obligatoria porque ya existe la resolución de conformación de jurado.'
       }, { status: 400 })
     }
 
-    // Validación de cada archivo antes de persistir
+    // Validación del archivo (si vino)
     const MAX_SIZE_BYTES = 25 * 1024 * 1024 // 25 MB
-    const validarArchivo = (f: File | null, etiqueta: string): string | null => {
-      if (!f) return null
-      if (f.type !== 'application/pdf') {
-        return `${etiqueta}: solo se permiten archivos PDF (recibido: ${f.type || 'desconocido'}).`
+    if (archivoDesistimiento) {
+      if (archivoDesistimiento.type !== 'application/pdf') {
+        return NextResponse.json(
+          { error: `Resolución de desistimiento: solo se permiten archivos PDF (recibido: ${archivoDesistimiento.type || 'desconocido'}).` },
+          { status: 400 }
+        )
       }
-      if (f.size > MAX_SIZE_BYTES) {
-        return `${etiqueta}: el archivo excede 25 MB.`
+      if (archivoDesistimiento.size > MAX_SIZE_BYTES) {
+        return NextResponse.json(
+          { error: 'Resolución de desistimiento: el archivo excede 25 MB.' },
+          { status: 400 }
+        )
       }
-      if (f.size === 0) {
-        return `${etiqueta}: el archivo está vacío.`
+      if (archivoDesistimiento.size === 0) {
+        return NextResponse.json(
+          { error: 'Resolución de desistimiento: el archivo está vacío.' },
+          { status: 400 }
+        )
       }
-      return null
     }
-    const errJurado = validarArchivo(archivoJurado, 'Resolución modificatoria de jurado')
-    const errAprob = validarArchivo(archivoAprobacion, 'Resolución modificatoria de aprobación')
-    if (errJurado) return NextResponse.json({ error: errJurado }, { status: 400 })
-    if (errAprob) return NextResponse.json({ error: errAprob }, { status: 400 })
 
-    async function persistirArchivo(f: File, prefijo: string): Promise<{ ruta: string; mime: string; size: number; nombre: string }> {
-      const dir = path.join(UPLOAD_ROOT, w!.thesisId)
+    let archivoPersistido: { ruta: string; mime: string; size: number; nombre: string } | null = null
+    if (archivoDesistimiento) {
+      const dir = path.join(UPLOAD_ROOT, w.thesisId)
       await mkdir(dir, { recursive: true })
-      const buffer = Buffer.from(await f.arrayBuffer())
-      // Forzar extensión .pdf siempre — ya validamos MIME arriba.
-      const nombreArchivo = `${prefijo}-${randomUUID()}.pdf`
+      const buffer = Buffer.from(await archivoDesistimiento.arrayBuffer())
+      const nombreArchivo = `res-desistimiento-${randomUUID()}.pdf`
       const rutaFisica = path.join(dir, nombreArchivo)
       await writeFile(rutaFisica, buffer)
-      return {
-        ruta: `/documentos/tesis/${w!.thesisId}/${nombreArchivo}`,
+      archivoPersistido = {
+        ruta: `/documentos/tesis/${w.thesisId}/${nombreArchivo}`,
         mime: 'application/pdf',
         size: buffer.length,
         // Sanear nombre original para display: eliminar path separators/nulls
-        nombre: f.name.replace(/[\x00\/\\]/g, '_').slice(0, 200),
+        nombre: archivoDesistimiento.name.replace(/[\x00\/\\]/g, '_').slice(0, 200),
       }
     }
-
-    const nuevoJurado = archivoJurado ? await persistirArchivo(archivoJurado, 'res-jurado-modif') : null
-    const nuevoAprob = archivoAprobacion ? await persistirArchivo(archivoAprobacion, 'res-aprob-modif') : null
 
     const coautoresActivos = w.thesis.autores.filter(
       a => a.user.id !== w.userId && a.estado === 'ACEPTADO'
@@ -139,10 +125,9 @@ export async function POST(
     )
     const hayCoautor = coautoresActivos.length > 0
     const nuevoPrincipal = hayCoautor ? coautoresActivos[0] : null
-    const estadoDestino = hayCoautor ? estadoDestinoConCoautor(w.estadoTesisAlSolicitar) : 'DESISTIDA'
-    // Si retrocede a ASIGNANDO_JURADOS, limpiar evaluaciones del proyecto y resetear ronda
-    // para que CONFIRMAR_JURADOS (que setea rondaActual=1) no colisione con registros existentes
-    const debeLimpiarEvaluaciones = estadoDestino === 'ASIGNANDO_JURADOS'
+    const estadoDestino: EstadoTesis = hayCoautor
+      ? estadoDestinoConCoautor(w.estadoTesisAlSolicitar, tieneResolucionJurado)
+      : 'DESISTIDA'
 
     const nombreDesistente = `${w.thesisAuthor.user.nombres} ${w.thesisAuthor.user.apellidoPaterno}`
     // Rol del desistente antes de la actualización (se usa para redactar
@@ -152,44 +137,22 @@ export async function POST(
     const resolucionPrincipalId = await prisma.$transaction(async (tx) => {
       let resolucionRegistradaId: string | null = null
 
-      if (nuevoJurado && resolJurado) {
+      if (archivoPersistido) {
         const creado = await tx.thesisDocument.create({
           data: {
             thesisId: w.thesisId,
             uploadedById: user.id,
-            tipo: 'RESOLUCION_JURADO',
-            nombre: `Modificatoria — ${nuevoJurado.nombre}`,
-            rutaArchivo: nuevoJurado.ruta,
-            mimeType: nuevoJurado.mime,
-            tamano: nuevoJurado.size,
-            version: resolJurado.version + 1,
+            tipo: 'RESOLUCION_DESISTIMIENTO',
+            nombre: archivoPersistido.nombre,
+            rutaArchivo: archivoPersistido.ruta,
+            mimeType: archivoPersistido.mime,
+            tamano: archivoPersistido.size,
+            version: 1,
             esVersionActual: true,
-            esModificatoria: true,
-            reemplazaDocumentoId: resolJurado.id,
+            esModificatoria: false,
           },
         })
-        await tx.thesisDocument.update({ where: { id: resolJurado.id }, data: { esVersionActual: false } })
         resolucionRegistradaId = creado.id
-      }
-
-      if (nuevoAprob && resolAprob) {
-        const creado = await tx.thesisDocument.create({
-          data: {
-            thesisId: w.thesisId,
-            uploadedById: user.id,
-            tipo: 'RESOLUCION_APROBACION',
-            nombre: `Modificatoria — ${nuevoAprob.nombre}`,
-            rutaArchivo: nuevoAprob.ruta,
-            mimeType: nuevoAprob.mime,
-            tamano: nuevoAprob.size,
-            version: resolAprob.version + 1,
-            esVersionActual: true,
-            esModificatoria: true,
-            reemplazaDocumentoId: resolAprob.id,
-          },
-        })
-        await tx.thesisDocument.update({ where: { id: resolAprob.id }, data: { esVersionActual: false } })
-        resolucionRegistradaId = resolucionRegistradaId ?? creado.id
       }
 
       await tx.$executeRawUnsafe(
@@ -214,25 +177,24 @@ export async function POST(
         })
       }
 
-      // Si retrocede a ASIGNANDO_JURADOS: limpiar evaluaciones previas del proyecto
-      // y resetear rondaActual para evitar colisión de unique [juryMemberId, ronda]
-      if (debeLimpiarEvaluaciones) {
-        const juradosProyecto = await tx.thesisJury.findMany({
-          where: { thesisId: w.thesisId, fase: 'PROYECTO' },
-          select: { id: true },
-        })
-        if (juradosProyecto.length > 0) {
-          await tx.juryEvaluation.deleteMany({
-            where: { juryMemberId: { in: juradosProyecto.map(j => j.id) } },
-          })
-        }
+      // Si el estado cambia (retrocede a BORRADOR sin RESOLUCION_JURADO,
+      // o pasa a DESISTIDA), reseteamos plazos y ronda. Si el estado se
+      // mantiene (con RESOLUCION_JURADO), no tocamos plazos — la evaluación
+      // continúa donde estaba.
+      if (estadoDestino !== w.estadoTesisAlSolicitar) {
+        await tx.$executeRawUnsafe(
+          `UPDATE thesis SET estado = $1::"estado_tesis", fecha_limite_evaluacion = NULL, fecha_limite_correccion = NULL, ronda_actual = 0, updated_at = NOW() WHERE id = $2`,
+          estadoDestino,
+          w.thesisId
+        )
+      } else {
+        // Solo restauramos el estado (estaba en SOLICITUD_DESISTIMIENTO durante el flujo).
+        await tx.$executeRawUnsafe(
+          `UPDATE thesis SET estado = $1::"estado_tesis", updated_at = NOW() WHERE id = $2`,
+          estadoDestino,
+          w.thesisId
+        )
       }
-
-      await tx.$executeRawUnsafe(
-        `UPDATE thesis SET estado = $1::"estado_tesis", fecha_limite_evaluacion = NULL, fecha_limite_correccion = NULL, ronda_actual = 0, updated_at = NOW() WHERE id = $2`,
-        estadoDestino,
-        w.thesisId
-      )
 
       // updateMany con where condicional: si otro proceso lo cambió,
       // count === 0 y abortamos la transacción (optimistic locking).
@@ -253,7 +215,7 @@ export async function POST(
         data: {
           thesisId: w.thesisId,
           estadoAnterior: EstadoTesis.SOLICITUD_DESISTIMIENTO,
-          estadoNuevo: estadoDestino as EstadoTesis,
+          estadoNuevo: estadoDestino,
           comentario: hayCoautor
             ? (desistenteEraPrincipal
                 ? `Desistimiento aprobado de ${nombreDesistente} (autor principal). ${nuevoPrincipal!.user.nombres} ${nuevoPrincipal!.user.apellidoPaterno} asume como autor principal.`
@@ -263,9 +225,10 @@ export async function POST(
         },
       })
 
-      // Si la tesis continúa con el coautor y retrocede a BORRADOR, las cartas de
-      // aceptación listadas con ambos tesistas quedan obsoletas. Se invalidan
-      // para forzar que asesor/coasesor suban una nueva con los datos actuales.
+      // Si la tesis continúa con coautor y retrocede a BORRADOR (caso sin RESOLUCION_JURADO),
+      // las cartas de aceptación con ambos tesistas quedan obsoletas. Se invalidan para
+      // forzar que asesor/coasesor suban una nueva con los datos actuales.
+      // Si hay RESOLUCION_JURADO el estado se mantiene y las cartas conservan validez histórica.
       if (hayCoautor && estadoDestino === 'BORRADOR') {
         await invalidarCartasAsesores(
           tx,

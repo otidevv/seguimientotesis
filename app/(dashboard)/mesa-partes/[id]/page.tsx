@@ -59,7 +59,7 @@ import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   ESTADO_CONFIG, TIPO_JURADO_LABELS, TIPO_JURADO_COLORS,
-  ProjectSidebar, DocumentoCard,
+  ProjectSidebar, DocumentoCard, DateLimitBadge,
 } from '@/components/mesa-partes'
 import type { Documento, Proyecto, BusquedaJurado, Jurado } from '@/components/mesa-partes'
 import { useResolutionUploadInstance } from '@/hooks/use-resolution-upload'
@@ -1515,9 +1515,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       <div>
                         <p className="font-medium text-sm">Jurados evaluando el proyecto</p>
                         {proyecto.fechaLimiteEvaluacion && (
-                          <p className="text-xs text-muted-foreground">
-                            Fecha limite (dias habiles): {new Date(proyecto.fechaLimiteEvaluacion).toLocaleDateString('es-PE')}
-                          </p>
+                          <DateLimitBadge fechaLimite={proyecto.fechaLimiteEvaluacion} />
                         )}
                       </div>
                     </div>
@@ -1527,9 +1525,16 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
                       <div>
                         <p className="font-medium text-sm">Proyecto observado por jurado</p>
-                        <p className="text-xs text-muted-foreground">
-                          El estudiante tiene hasta {proyecto.fechaLimiteCorreccion ? new Date(proyecto.fechaLimiteCorreccion).toLocaleDateString('es-PE') : '30 dias habiles'} para corregir (dias habiles)
-                        </p>
+                        {proyecto.fechaLimiteCorreccion ? (
+                          <DateLimitBadge
+                            fechaLimite={proyecto.fechaLimiteCorreccion}
+                            label="Plazo de corrección (días hábiles)"
+                          />
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            El estudiante tiene 30 días hábiles para corregir
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1539,9 +1544,7 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
                       <div>
                         <p className="font-medium text-sm">Jurados evaluando el informe final</p>
                         {proyecto.fechaLimiteEvaluacion && (
-                          <p className="text-xs text-muted-foreground">
-                            Fecha limite (dias habiles): {new Date(proyecto.fechaLimiteEvaluacion).toLocaleDateString('es-PE')}
-                          </p>
+                          <DateLimitBadge fechaLimite={proyecto.fechaLimiteEvaluacion} />
                         )}
                       </div>
                     </div>

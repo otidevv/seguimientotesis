@@ -84,6 +84,23 @@ export async function PUT(
 
     // Manejar según el tipo de participante
     if (tipo === 'COAUTOR') {
+      // Bloqueo por resolución de jurado: si ya se emitió la RESOLUCION_JURADO,
+      // los nombres de los autores quedaron formalizados ahí. La composición no
+      // puede cambiar por sistema; un cambio requiere desistimiento formal +
+      // RESOLUCION_DESISTIMIENTO emitida por mesa de partes.
+      const tieneResolucionJurado = await prisma.thesisDocument.findFirst({
+        where: { thesisId: tesis.id, tipo: 'RESOLUCION_JURADO' },
+        select: { id: true },
+      })
+      if (tieneResolucionJurado) {
+        return NextResponse.json(
+          {
+            error: 'No se puede modificar el coautor: ya existe la resolución de conformación de jurado con los nombres de los tesistas. Si un coautor desea retirarse, debe iniciar una solicitud de desistimiento.',
+          },
+          { status: 409 }
+        )
+      }
+
       // Buscar el coautor actual (excluye desistidos — son históricos)
       const coautorActual = tesis.autores.find(
         (a) => a.orden > 1 && a.estado !== 'DESISTIDO' && (participanteId ? a.id === participanteId : true)
@@ -500,6 +517,22 @@ export async function POST(
     }
 
     if (tipo === 'COAUTOR') {
+      // Bloqueo por resolución de jurado: si ya se emitió la RESOLUCION_JURADO,
+      // los nombres de los autores quedaron formalizados ahí. No se admite agregar
+      // un nuevo coautor — un cambio de composición requiere desistimiento formal.
+      const tieneResolucionJurado = await prisma.thesisDocument.findFirst({
+        where: { thesisId: tesis.id, tipo: 'RESOLUCION_JURADO' },
+        select: { id: true },
+      })
+      if (tieneResolucionJurado) {
+        return NextResponse.json(
+          {
+            error: 'No se puede agregar un coautor: ya existe la resolución de conformación de jurado con los nombres de los tesistas.',
+          },
+          { status: 409 }
+        )
+      }
+
       // Verificar que no existe ya un coautor activo (los desistidos son históricos)
       const coautorExistente = tesis.autores.find((a) => a.orden > 1 && a.estado !== 'DESISTIDO')
       if (coautorExistente) {

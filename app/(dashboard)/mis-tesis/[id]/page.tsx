@@ -358,6 +358,11 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const coautorRechazado = coautor?.estado === 'RECHAZADO'
   const coautorPendiente = coautor?.estado === 'PENDIENTE'
 
+  // Si ya existe resolución de conformación de jurado, los nombres de los tesistas
+  // quedaron formalizados ahí. La composición no puede cambiar por sistema; un
+  // cambio requiere desistimiento formal + RESOLUCION_DESISTIMIENTO de mesa-partes.
+  const tieneResolucionJurado = tesis.documentos.some((d) => d.tipoDocumento === 'RESOLUCION_JURADO')
+
   // Calcular progreso
   // Requisitos base: 1) Proyecto, 2) Asesor acepta, 3) Carta asesor, 4) Voucher pago, 5) Mi sustentatorio
   // + Coasesor: 6) Coasesor acepta, 7) Carta coasesor
@@ -1912,7 +1917,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
           {/* Alerta cuando el coautor rechazó la invitación */}
-          {puedeEditar && esAutorPrincipal && coautorRechazado && coautor && (
+          {puedeEditar && esAutorPrincipal && coautorRechazado && coautor && !tieneResolucionJurado && (
             <Card className="border-2 border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20">
               <CardContent className="py-5">
                 <div className="flex items-start gap-4">
@@ -1965,6 +1970,27 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     </p>
                     <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-0.5">
                       Se envió una invitación como coautor. Recibirás una notificación cuando responda.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Aviso: composición congelada por resolución de jurado */}
+          {esAutorPrincipal && tieneResolucionJurado && (
+            <Card className="border-indigo-200 dark:border-indigo-800 bg-indigo-50/60 dark:bg-indigo-950/30">
+              <CardContent className="py-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+                    <FileCheck className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-indigo-900 dark:text-indigo-100">
+                      Composición de autores formalizada
+                    </p>
+                    <p className="text-xs text-indigo-700 dark:text-indigo-300 mt-0.5">
+                      Ya existe la resolución de conformación de jurado. Los nombres de los tesistas quedaron registrados ahí — el coautor no puede modificarse desde el sistema. Si alguien desea retirarse, debe iniciar una solicitud de desistimiento que mesa de partes formalizará con una resolución de desistimiento.
                     </p>
                   </div>
                 </div>
@@ -2561,7 +2587,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         <ThesisSidebar
           tesis={tesis}
           puedeEditar={puedeEditar}
-          puedeGestionarParticipantes={tesis.estado !== 'SOLICITUD_DESISTIMIENTO' && (puedeEditar || tesis.estado === 'ASIGNANDO_JURADOS')}
+          puedeGestionarParticipantes={tesis.estado !== 'SOLICITUD_DESISTIMIENTO' && !tieneResolucionJurado && (puedeEditar || tesis.estado === 'ASIGNANDO_JURADOS')}
           esAutorPrincipal={esAutorPrincipal}
           coautor={coautor}
           coasesor={coasesor}

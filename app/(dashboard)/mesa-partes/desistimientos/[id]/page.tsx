@@ -29,8 +29,9 @@ interface Detalle {
   solicitadoAt: string; aprobadoAt: string | null; aprobadoPor: string | null;
   motivoCategoria: string; motivoDescripcion: string; motivoRechazoMesaPartes: string | null;
   estadoTesisAlSolicitar: string; faseActual: string | null; teniaCoautor: boolean;
-  requiereModificatoria: boolean;
+  requiereResolucionDesistimiento: boolean;
   hayCoautorQueContinua: boolean;
+  tieneResolucionJurado: boolean;
   estudiante: { nombreCompleto: string; email: string; documento: string; carrera: string; facultad: string };
   tesis: {
     id: string; titulo: string; estado: string;
@@ -39,12 +40,13 @@ interface Detalle {
     resolucionesVigentes: Array<{ id: string; tipo: string; nombre: string; version: number; createdAt: string }>;
     cadenaResoluciones: CadenaDoc[];
   };
-  resolucionModificatoria: { id: string; nombre: string } | null;
+  resolucionDesistimiento: { id: string; nombre: string; rutaArchivo: string } | null;
 }
 
 const TIPO_RESOLUCION_LABEL: Record<string, string> = {
   RESOLUCION_JURADO: 'Resolución de conformación de jurado',
   RESOLUCION_APROBACION: 'Resolución de aprobación de proyecto',
+  RESOLUCION_DESISTIMIENTO: 'Resolución de desistimiento',
 }
 
 export default function DesistimientoDetallePage() {
@@ -138,7 +140,7 @@ export default function DesistimientoDetallePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(['RESOLUCION_JURADO', 'RESOLUCION_APROBACION'] as const).map(tipo => {
+              {(['RESOLUCION_JURADO', 'RESOLUCION_APROBACION', 'RESOLUCION_DESISTIMIENTO'] as const).map(tipo => {
                 const docsDeEsteTipo = data.tesis.cadenaResoluciones
                   .filter(d => d.tipo === tipo)
                   .sort((a, b) => a.version - b.version)
@@ -181,8 +183,10 @@ export default function DesistimientoDetallePage() {
                   </div>
                 )
               })}
-              {data.estadoSolicitud === 'PENDIENTE' && data.requiereModificatoria && (
-                <p className="text-xs text-amber-700 mt-2">Al aprobar, deberás subir las modificatorias correspondientes.</p>
+              {data.estadoSolicitud === 'PENDIENTE' && data.requiereResolucionDesistimiento && (
+                <p className="text-xs text-amber-700 mt-2">
+                  Al aprobar, deberás subir la <strong>resolución de desistimiento</strong>. La resolución de jurado <strong>no se reemplaza</strong>.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -192,9 +196,8 @@ export default function DesistimientoDetallePage() {
           <PanelAprobacionDesistimiento
             desistimientoId={data.id}
             thesisId={data.tesis.id}
-            requiereModificatoria={data.requiereModificatoria}
+            requiereResolucionDesistimiento={data.requiereResolucionDesistimiento}
             hayCoautorQueContinua={data.hayCoautorQueContinua}
-            resolucionesVigentes={data.tesis.resolucionesVigentes}
             onDone={() => router.push('/mesa-partes/desistimientos')}
           />
         )}
@@ -204,8 +207,25 @@ export default function DesistimientoDetallePage() {
             <CardContent className="py-4 text-sm space-y-3">
               <div>
                 Aprobado por <b>{data.aprobadoPor}</b> el {new Date(data.aprobadoAt!).toLocaleString('es-PE', { timeZone: 'America/Lima' })}.
-                {data.resolucionModificatoria && (<div className="mt-2">Resolución modificatoria: {data.resolucionModificatoria.nombre}</div>)}
               </div>
+              {data.resolucionDesistimiento && (
+                <div className="rounded-md border border-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/30 p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 mb-1">
+                    Resolución de desistimiento
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <FileText className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
+                    <a
+                      href={data.resolucionDesistimiento.rutaArchivo}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-emerald-800 dark:text-emerald-200 underline underline-offset-2 hover:text-emerald-900 break-all"
+                    >
+                      {data.resolucionDesistimiento.nombre}
+                    </a>
+                  </div>
+                </div>
+              )}
               <Button asChild variant="outline" size="sm">
                 <a href={`/api/mesa-partes/desistimientos/${data.id}/acta`} target="_blank" rel="noopener">
                   <Download className="w-4 h-4 mr-2" aria-hidden="true" />
