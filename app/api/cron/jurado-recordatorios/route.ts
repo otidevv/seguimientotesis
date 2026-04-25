@@ -41,6 +41,15 @@ interface ResultadoMP {
   motivo?: string
 }
 
+interface ResultadoEstudiante {
+  thesisId: string
+  thesisAuthorId: string
+  email: string
+  fase: Fase
+  ok: boolean
+  motivo?: string
+}
+
 export async function POST(request: NextRequest) {
   // --- Auth ---
   const secret = process.env.CRON_SECRET
@@ -58,6 +67,7 @@ export async function POST(request: NextRequest) {
   const inicioEjecucion = new Date()
   const resultadosJurados: ResultadoEnvio[] = []
   const resultadosMP: ResultadoMP[] = []
+  const resultadosEstudiantes: ResultadoEstudiante[] = []
 
   try {
     const tesisActivas = await prisma.thesis.findMany({
@@ -241,6 +251,86 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // ============================================================
+    // 2) ESTUDIANTES: tesis OBSERVADAS con plazo de corrección
+    // ============================================================
+    const tesisObservadas = await prisma.thesis.findMany({
+      where: {
+        deletedAt: null,
+        estado: { in: ['OBSERVADA_JURADO', 'OBSERVADA_INFORME'] },
+        fechaLimiteCorreccion: { not: null },
+      },
+      select: {
+        id: true,
+        titulo: true,
+        estado: true,
+        rondaActual: true,
+        fechaLimiteCorreccion: true,
+        autores: {
+          where: { estado: 'ACEPTADO' },
+          select: {
+            id: true,
+            user: { select: { nombres: true, apellidoPaterno: true, email: true } },
+          },
+        },
+      },
+    })
+
+    for (const tesis of tesisObservadas) {
+      if (!tesis.fechaLimiteCorreccion) continue
+
+      const limite = new Date(tesis.fechaLimiteCorreccion)
+      limite.setHours(0, 0, 0, 0)
+      const diasRestantes = limite > hoy ? diasHabilesEntre(hoy, limite) : -1
+
+      let fase: Fase | null = null
+      if (diasRestantes <= 0) fase = 'DIA_LIMITE'
+      else if (diasRestantes <= 2) fase = 'DOS_DIAS_ANTES'
+      if (!fase) continue
+
+      for (const autor of tesis.autores) {
+        if (!autor.user.email) continue
+
+        try {
+          await prisma.estudianteRecordatorio.create({
+            data: { thesisAuthorId: autor.id, ronda: tesis.rondaActual, fase },
+          })
+        } catch (err) {
+          if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+            continue
+          }
+          throw err
+        }
+
+        const nombreEstudiante = `${autor.user.nombres} ${autor.user.apellidoPaterno}`
+        const tpl = buildTemplateEstudiante({
+          nombreEstudiante,
+          tituloTesis: tesis.titulo,
+          fechaLimite: tesis.fechaLimiteCorreccion,
+          diasRestantes,
+          fase,
+          esInformeFinal: tesis.estado === 'OBSERVADA_INFORME',
+          enlace: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'}/mis-tesis/${tesis.id}`,
+        })
+        const ok = await sendEmail({ to: autor.user.email, subject: tpl.subject, html: tpl.html, text: tpl.text })
+
+        if (!ok) {
+          await prisma.estudianteRecordatorio.deleteMany({
+            where: { thesisAuthorId: autor.id, ronda: tesis.rondaActual, fase },
+          })
+        }
+
+        resultadosEstudiantes.push({
+          thesisId: tesis.id,
+          thesisAuthorId: autor.id,
+          email: autor.user.email,
+          fase,
+          ok,
+          motivo: ok ? undefined : 'sendEmail returned false',
+        })
+      }
+    }
+
     return NextResponse.json({
       ok: true,
       ejecutadoAt: inicioEjecucion.toISOString(),
@@ -254,6 +344,11 @@ export async function POST(request: NextRequest) {
         enviados: resultadosMP.filter((r) => r.ok).length,
         fallidos: resultadosMP.filter((r) => !r.ok).length,
         detalle: resultadosMP,
+      },
+      estudiantes: {
+        enviados: resultadosEstudiantes.filter((r) => r.ok).length,
+        fallidos: resultadosEstudiantes.filter((r) => !r.ok).length,
+        detalle: resultadosEstudiantes,
       },
     })
   } catch (error) {
@@ -418,6 +513,83 @@ Expediente: ${args.enlace}
   const subject = esLimite
     ? `[Mesa-Partes] ${args.diasRestantes < 0 ? 'Plazo VENCIDO' : 'Hoy vence'} — Tesis con jurados pendientes`
     : `[Mesa-Partes] Aviso: ${args.diasRestantes} día${args.diasRestantes === 1 ? '' : 's'} para evaluación de tesis`
+
+  return { subject, html, text }
+}
+
+interface TplEstudianteArgs {
+  nombreEstudiante: string
+  tituloTesis: string
+  fechaLimite: Date
+  diasRestantes: number
+  fase: Fase
+  esInformeFinal: boolean
+  enlace: string
+}
+
+function buildTemplateEstudiante(args: TplEstudianteArgs): { subject: string; html: string; text: string } {
+  const fechaStr = args.fechaLimite.toLocaleDateString('es-PE', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+  const esLimite = args.fase === 'DIA_LIMITE'
+  const tono = esLimite ? '#dc2626' : '#d97706'
+  const documentoLabel = args.esInformeFinal ? 'informe final' : 'proyecto'
+  const titulo = esLimite
+    ? args.diasRestantes < 0
+      ? 'Plazo de corrección VENCIDO'
+      : 'Hoy vence el plazo para subir tus correcciones'
+    : `Quedan ${args.diasRestantes} día${args.diasRestantes === 1 ? '' : 's'} hábil${args.diasRestantes === 1 ? '' : 'es'} para subir tus correcciones`
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head><meta charset="utf-8"></head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #111;">
+      <div style="border-left: 4px solid ${tono}; padding-left: 16px; margin-bottom: 24px;">
+        <h2 style="color: ${tono}; margin: 0 0 8px 0;">${titulo}</h2>
+        <p style="margin: 0; color: #555;">Estimado/a ${args.nombreEstudiante},</p>
+      </div>
+      <p>Tu ${documentoLabel} fue <strong>observado por el jurado</strong> y debes subir las correcciones dentro del plazo establecido:</p>
+      <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0;">
+        <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Tesis</div>
+        <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${args.tituloTesis}</div>
+        <div style="font-size: 13px; color: #6b7280; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Fecha límite de corrección</div>
+        <div style="font-size: 15px; margin-top: 4px; text-transform: capitalize;">${fechaStr}</div>
+      </div>
+      ${esLimite ? `
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin: 16px 0; font-size: 14px; color: #991b1b;">
+        <strong>${args.diasRestantes < 0 ? 'El plazo ya venció.' : 'Hoy es el último día.'}</strong> Si no presentas tus correcciones, mesa de partes podría rechazar tu ${documentoLabel}.
+      </div>
+      ` : ''}
+      <p style="margin-top: 24px;">
+        <a href="${args.enlace}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+          Ir a mi tesis y subir correcciones
+        </a>
+      </p>
+      <p style="font-size: 12px; color: #9ca3af; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+        Mensaje automático del sistema SeguiTesis UNAMAD. No responda a este correo.
+      </p>
+    </body>
+    </html>
+  `.trim()
+
+  const text = `${titulo}
+
+Estimado/a ${args.nombreEstudiante},
+
+Tu ${documentoLabel} fue observado por el jurado y debes subir las correcciones dentro del plazo:
+
+Tesis: "${args.tituloTesis}"
+Fecha límite de corrección: ${fechaStr}
+
+${esLimite ? `${args.diasRestantes < 0 ? 'El plazo ya venció.' : 'Hoy es el último día.'} Si no presentas tus correcciones, mesa de partes podría rechazar tu ${documentoLabel}.\n\n` : ''}Sube tus correcciones aquí: ${args.enlace}
+
+— Sistema SeguiTesis UNAMAD (mensaje automático)
+`
+
+  const subject = esLimite
+    ? `[URGENTE] ${args.diasRestantes < 0 ? 'Plazo vencido' : 'Hoy vence'} — Sube las correcciones de tu ${documentoLabel}`
+    : `Recordatorio: ${args.diasRestantes} día${args.diasRestantes === 1 ? '' : 's'} para subir correcciones de tu ${documentoLabel}`
 
   return { subject, html, text }
 }

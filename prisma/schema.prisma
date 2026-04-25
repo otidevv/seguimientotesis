@@ -676,6 +676,7 @@ model ThesisAuthor {
   user          User              @relation(fields: [userId], references: [id])
   studentCareer StudentCareer     @relation(fields: [studentCareerId], references: [id])
   desistimiento ThesisWithdrawal?
+  recordatorios EstudianteRecordatorio[]
 
   @@unique([thesisId, userId])
   @@index([thesisId])
@@ -871,6 +872,24 @@ model JuradoRecordatorio {
   @@unique([juryMemberId, ronda, fase])
   @@index([juryMemberId])
   @@map("jurado_recordatorios")
+}
+
+/// Recordatorios enviados a estudiantes (autores activos) cuando el plazo
+/// de corrección (`fechaLimiteCorreccion`) está por vencer. Reusa el enum
+/// FaseRecordatorioJurado por simplicidad — la semántica es la misma.
+/// Idempotencia: una sola fila por (autor, ronda, fase).
+model EstudianteRecordatorio {
+  id             String                 @id @default(cuid())
+  thesisAuthorId String                 @map("thesis_author_id")
+  ronda          Int
+  fase           FaseRecordatorioJurado
+  sentAt         DateTime               @default(now()) @map("sent_at")
+
+  thesisAuthor ThesisAuthor @relation(fields: [thesisAuthorId], references: [id], onDelete: Cascade)
+
+  @@unique([thesisAuthorId, ronda, fase])
+  @@index([thesisAuthorId])
+  @@map("estudiante_recordatorios")
 }
 
 /// Recordatorios enviados a mesa-partes (resumen por tesis) cuando jurados
