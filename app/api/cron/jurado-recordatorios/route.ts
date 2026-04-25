@@ -106,10 +106,10 @@ export async function POST(request: NextRequest) {
     for (const tesis of tesisActivas) {
       if (!tesis.fechaLimiteEvaluacion) continue
 
-      // Días hábiles desde hoy hasta la fecha límite
+      // Días hábiles desde hoy hasta la fecha límite (0 = hoy es el día límite, <0 = vencido)
       const limite = new Date(tesis.fechaLimiteEvaluacion)
       limite.setHours(0, 0, 0, 0)
-      const diasRestantes = limite > hoy ? diasHabilesEntre(hoy, limite) : -1
+      const diasRestantes = calcularDiasRestantes(hoy, limite)
 
       let fase: Fase | null = null
       if (diasRestantes <= 0) fase = 'DIA_LIMITE'
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
 
       const limite = new Date(tesis.fechaLimiteCorreccion)
       limite.setHours(0, 0, 0, 0)
-      const diasRestantes = limite > hoy ? diasHabilesEntre(hoy, limite) : -1
+      const diasRestantes = calcularDiasRestantes(hoy, limite)
 
       let fase: Fase | null = null
       if (diasRestantes <= 0) fase = 'DIA_LIMITE'
@@ -363,6 +363,20 @@ export async function POST(request: NextRequest) {
 // Soporte GET para schedulers que solo emiten GET (curl por defecto es GET)
 export async function GET(request: NextRequest) {
   return POST(request)
+}
+
+/**
+ * Días hábiles entre `hoy` y `limite`, asumiendo ambos a las 00:00.
+ *  - >0 si quedan días hábiles antes del límite
+ *  - 0 si hoy es exactamente el día límite (todavía válido)
+ *  - <0 si ya pasó el plazo (cuenta días hábiles vencidos como negativo)
+ */
+function calcularDiasRestantes(hoy: Date, limite: Date): number {
+  if (limite.getTime() === hoy.getTime()) return 0
+  if (limite > hoy) return diasHabilesEntre(hoy, limite)
+  // Límite ya pasó: devolver cuántos días hábiles vencidos en negativo
+  const vencidos = diasHabilesEntre(limite, hoy)
+  return vencidos > 0 ? -vencidos : -1
 }
 
 interface TplJuradoArgs {
