@@ -153,9 +153,12 @@ export async function POST(request: NextRequest) {
         const ok = await sendEmail({ to: j.user.email, subject: tpl.subject, html: tpl.html, text: tpl.text })
 
         if (!ok) {
-          await prisma.juradoRecordatorio.deleteMany({
-            where: { juryMemberId: j.id, ronda: tesis.rondaActual, fase },
-          })
+          await rollbackRecordatorio(
+            () => prisma.juradoRecordatorio.deleteMany({
+              where: { juryMemberId: j.id, ronda: tesis.rondaActual, fase },
+            }),
+            'jurado',
+          )
         } else {
           huboAlertaJurado = true
         }
@@ -210,9 +213,12 @@ export async function POST(request: NextRequest) {
 
       if (mpUsers.length === 0) {
         // Si no hay destinatarios, libero el slot para reintentar mañana
-        await prisma.mesaPartesRecordatorio.deleteMany({
-          where: { thesisId: tesis.id, ronda: tesis.rondaActual, fase },
-        })
+        await rollbackRecordatorio(
+          () => prisma.mesaPartesRecordatorio.deleteMany({
+            where: { thesisId: tesis.id, ronda: tesis.rondaActual, fase },
+          }),
+          'mesa-partes (sin destinatarios)',
+        )
         continue
       }
 
@@ -236,9 +242,12 @@ export async function POST(request: NextRequest) {
 
       // Si TODOS fallaron, libero el slot para reintentar mañana
       if (!alMenosUnoOk) {
-        await prisma.mesaPartesRecordatorio.deleteMany({
-          where: { thesisId: tesis.id, ronda: tesis.rondaActual, fase },
-        })
+        await rollbackRecordatorio(
+          () => prisma.mesaPartesRecordatorio.deleteMany({
+            where: { thesisId: tesis.id, ronda: tesis.rondaActual, fase },
+          }),
+          'mesa-partes (todos fallaron)',
+        )
       }
 
       resultadosMP.push({
@@ -315,9 +324,12 @@ export async function POST(request: NextRequest) {
         const ok = await sendEmail({ to: autor.user.email, subject: tpl.subject, html: tpl.html, text: tpl.text })
 
         if (!ok) {
-          await prisma.estudianteRecordatorio.deleteMany({
-            where: { thesisAuthorId: autor.id, ronda: tesis.rondaActual, fase },
-          })
+          await rollbackRecordatorio(
+            () => prisma.estudianteRecordatorio.deleteMany({
+              where: { thesisAuthorId: autor.id, ronda: tesis.rondaActual, fase },
+            }),
+            'estudiante',
+          )
         }
 
         resultadosEstudiantes.push({
@@ -379,6 +391,27 @@ function calcularDiasRestantes(hoy: Date, limite: Date): number {
   return vencidos > 0 ? -vencidos : -1
 }
 
+/** Escapa caracteres especiales HTML para prevenir XSS al interpolar
+ *  datos de DB en plantillas de email. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/** Rollback defensivo de un recordatorio. Si el delete falla (DB hiccup),
+ *  log y continúa — no debe tumbar la respuesta del cron. */
+async function rollbackRecordatorio(fn: () => Promise<unknown>, contexto: string): Promise<void> {
+  try {
+    await fn()
+  } catch (err) {
+    console.error(`[Cron rollback ${contexto}]`, err)
+  }
+}
+
 interface TplJuradoArgs {
   nombreJurado: string
   tituloTesis: string
@@ -400,6 +433,10 @@ function buildTemplateJurado(args: TplJuradoArgs): { subject: string; html: stri
       : 'Hoy vence el plazo de evaluación'
     : `Quedan ${args.diasRestantes} día${args.diasRestantes === 1 ? '' : 's'} hábil${args.diasRestantes === 1 ? '' : 'es'} para evaluar`
 
+  const nombreSafe = escapeHtml(args.nombreJurado)
+  const tituloTesisSafe = escapeHtml(args.tituloTesis)
+  const enlaceSafe = escapeHtml(args.enlace)
+
   const html = `
     <!DOCTYPE html>
     <html lang="es">
@@ -407,17 +444,17 @@ function buildTemplateJurado(args: TplJuradoArgs): { subject: string; html: stri
     <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #111;">
       <div style="border-left: 4px solid ${tono}; padding-left: 16px; margin-bottom: 24px;">
         <h2 style="color: ${tono}; margin: 0 0 8px 0;">${titulo}</h2>
-        <p style="margin: 0; color: #555;">Estimado/a ${args.nombreJurado},</p>
+        <p style="margin: 0; color: #555;">Estimado/a ${nombreSafe},</p>
       </div>
       <p>Le recordamos que tiene una evaluación pendiente como jurado para la siguiente tesis:</p>
       <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0;">
         <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Tesis</div>
-        <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${args.tituloTesis}</div>
+        <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${tituloTesisSafe}</div>
         <div style="font-size: 13px; color: #6b7280; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Fecha límite</div>
         <div style="font-size: 15px; margin-top: 4px; text-transform: capitalize;">${fechaStr}</div>
       </div>
       <p style="margin-top: 24px;">
-        <a href="${args.enlace}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+        <a href="${enlaceSafe}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
           Ir a mis evaluaciones
         </a>
       </p>
@@ -471,8 +508,10 @@ function buildTemplateMesaPartes(args: TplMPArgs): { subject: string; html: stri
     : `Quedan ${args.diasRestantes} día${args.diasRestantes === 1 ? '' : 's'} hábil${args.diasRestantes === 1 ? '' : 'es'}`
 
   const listaJurados = args.juradosPendientes
-    .map((n) => `<li style="padding: 4px 0;">${n}</li>`)
+    .map((n) => `<li style="padding: 4px 0;">${escapeHtml(n)}</li>`)
     .join('')
+  const tituloTesisSafe = escapeHtml(args.tituloTesis)
+  const enlaceSafe = escapeHtml(args.enlace)
 
   const html = `
     <!DOCTYPE html>
@@ -486,7 +525,7 @@ function buildTemplateMesaPartes(args: TplMPArgs): { subject: string; html: stri
       <p>Una tesis tiene jurados que aún no han registrado su evaluación dentro del plazo:</p>
       <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0;">
         <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Tesis</div>
-        <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${args.tituloTesis}</div>
+        <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${tituloTesisSafe}</div>
         <div style="font-size: 13px; color: #6b7280; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Fecha límite</div>
         <div style="font-size: 15px; margin-top: 4px; text-transform: capitalize;">${fechaStr}</div>
         <div style="font-size: 13px; color: #6b7280; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Jurados pendientes (${args.juradosPendientes.length})</div>
@@ -496,7 +535,7 @@ function buildTemplateMesaPartes(args: TplMPArgs): { subject: string; html: stri
         El sistema ya envió un recordatorio individual a cada jurado. Esta notificación es para que mesa-partes esté informada y pueda hacer seguimiento si corresponde.
       </p>
       <p style="margin-top: 24px;">
-        <a href="${args.enlace}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+        <a href="${enlaceSafe}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
           Ver expediente
         </a>
       </p>
@@ -554,6 +593,10 @@ function buildTemplateEstudiante(args: TplEstudianteArgs): { subject: string; ht
       : 'Hoy vence el plazo para subir tus correcciones'
     : `Quedan ${args.diasRestantes} día${args.diasRestantes === 1 ? '' : 's'} hábil${args.diasRestantes === 1 ? '' : 'es'} para subir tus correcciones`
 
+  const nombreSafe = escapeHtml(args.nombreEstudiante)
+  const tituloTesisSafe = escapeHtml(args.tituloTesis)
+  const enlaceSafe = escapeHtml(args.enlace)
+
   const html = `
     <!DOCTYPE html>
     <html lang="es">
@@ -561,12 +604,12 @@ function buildTemplateEstudiante(args: TplEstudianteArgs): { subject: string; ht
     <body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #111;">
       <div style="border-left: 4px solid ${tono}; padding-left: 16px; margin-bottom: 24px;">
         <h2 style="color: ${tono}; margin: 0 0 8px 0;">${titulo}</h2>
-        <p style="margin: 0; color: #555;">Estimado/a ${args.nombreEstudiante},</p>
+        <p style="margin: 0; color: #555;">Estimado/a ${nombreSafe},</p>
       </div>
       <p>Tu ${documentoLabel} fue <strong>observado por el jurado</strong> y debes subir las correcciones dentro del plazo establecido:</p>
       <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0;">
         <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Tesis</div>
-        <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${args.tituloTesis}</div>
+        <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${tituloTesisSafe}</div>
         <div style="font-size: 13px; color: #6b7280; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Fecha límite de corrección</div>
         <div style="font-size: 15px; margin-top: 4px; text-transform: capitalize;">${fechaStr}</div>
       </div>
@@ -576,7 +619,7 @@ function buildTemplateEstudiante(args: TplEstudianteArgs): { subject: string; ht
       </div>
       ` : ''}
       <p style="margin-top: 24px;">
-        <a href="${args.enlace}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+        <a href="${enlaceSafe}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
           Ir a mi tesis y subir correcciones
         </a>
       </p>
