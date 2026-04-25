@@ -37,7 +37,9 @@ export const UNAMAD_API_TOKEN = process.env.EXTERNAL_API_TOKEN || ''
 // Cookies
 export const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  secure: process.env.COOKIE_SECURE
+    ? process.env.COOKIE_SECURE === 'true'
+    : process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
   path: '/',
 }
