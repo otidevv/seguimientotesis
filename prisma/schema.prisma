@@ -640,11 +640,12 @@ model Thesis {
   // Relaciones
   autores            ThesisAuthor[]
   asesores           ThesisAdvisor[]
-  documentos         ThesisDocument[]
-  historialEstados   ThesisStatusHistory[]
-  jurados            ThesisJury[]
-  evaluacionesJurado JuryEvaluation[]
-  desistimientos     ThesisWithdrawal[]
+  documentos             ThesisDocument[]
+  historialEstados       ThesisStatusHistory[]
+  jurados                ThesisJury[]
+  evaluacionesJurado     JuryEvaluation[]
+  desistimientos         ThesisWithdrawal[]
+  recordatoriosMesaPartes MesaPartesRecordatorio[]
   academicOverrides  AcademicWindowOverride[]
 
   @@index([estado])
@@ -838,14 +839,54 @@ model ThesisJury {
   createdAt DateTime       @default(now()) @map("created_at")
   updatedAt DateTime       @updatedAt @map("updated_at")
 
-  thesis       Thesis           @relation(fields: [thesisId], references: [id], onDelete: Cascade)
-  user         User             @relation(fields: [userId], references: [id])
-  evaluaciones JuryEvaluation[]
+  thesis         Thesis               @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  user           User                 @relation(fields: [userId], references: [id])
+  evaluaciones   JuryEvaluation[]
+  recordatorios  JuradoRecordatorio[]
 
   @@unique([thesisId, userId, fase])
   @@index([thesisId])
   @@index([userId])
   @@map("thesis_jury")
+}
+
+enum FaseRecordatorioJurado {
+  DOS_DIAS_ANTES // Quedan ≤ 2 días hábiles para que venza el plazo
+  DIA_LIMITE     // Hoy es el día límite (o ya venció)
+
+  @@map("fase_recordatorio_jurado")
+}
+
+/// Recordatorios enviados a jurados sobre el plazo de evaluación.
+/// Garantiza idempotencia del cron: una sola fila por (jurado, ronda, fase).
+model JuradoRecordatorio {
+  id           String                 @id @default(cuid())
+  juryMemberId String                 @map("jury_member_id")
+  ronda        Int
+  fase         FaseRecordatorioJurado
+  sentAt       DateTime               @default(now()) @map("sent_at")
+
+  juryMember ThesisJury @relation(fields: [juryMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([juryMemberId, ronda, fase])
+  @@index([juryMemberId])
+  @@map("jurado_recordatorios")
+}
+
+/// Recordatorios enviados a mesa-partes (resumen por tesis) cuando jurados
+/// están por vencer. Idempotencia: una sola fila por (tesis, ronda, fase).
+model MesaPartesRecordatorio {
+  id        String                 @id @default(cuid())
+  thesisId  String                 @map("thesis_id")
+  ronda     Int
+  fase      FaseRecordatorioJurado
+  sentAt    DateTime               @default(now()) @map("sent_at")
+
+  thesis Thesis @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+
+  @@unique([thesisId, ronda, fase])
+  @@index([thesisId])
+  @@map("mesa_partes_recordatorios")
 }
 
 /// Evaluaciones individuales de jurados

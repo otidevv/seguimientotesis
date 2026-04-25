@@ -9,21 +9,28 @@ interface FacultyMailConfig {
 }
 
 function getFacultyMailConfig(facultyCodigo: string): FacultyMailConfig | null {
+  // Fallback global: MAIL_USER/MAIL_PASSWORD/MAIL_FROM se usan cuando no hay
+  // config específica de la facultad. Permite operar con un único correo SMTP
+  // sin necesidad de declarar MAIL_FI_*, MAIL_FE_*, MAIL_FCE_* por separado.
+  const globalUser = process.env.MAIL_USER || ''
+  const globalPass = process.env.MAIL_PASSWORD || ''
+  const globalFrom = process.env.MAIL_FROM || '"SeguiTesis UNAMAD" <noreply@unamad.edu.pe>'
+
   const configs: Record<string, FacultyMailConfig> = {
     FI: {
-      user: process.env.MAIL_FI_USER || '',
-      password: process.env.MAIL_FI_PASSWORD || '',
-      from: process.env.MAIL_FI_FROM || '"Mesa de Partes - Fac. Ingenieria UNAMAD" <noreply@unamad.edu.pe>',
+      user: process.env.MAIL_FI_USER || globalUser,
+      password: process.env.MAIL_FI_PASSWORD || globalPass,
+      from: process.env.MAIL_FI_FROM || globalFrom,
     },
     FE: {
-      user: process.env.MAIL_FE_USER || '',
-      password: process.env.MAIL_FE_PASSWORD || '',
-      from: process.env.MAIL_FE_FROM || '"Mesa de Partes - Fac. Educacion UNAMAD" <noreply@unamad.edu.pe>',
+      user: process.env.MAIL_FE_USER || globalUser,
+      password: process.env.MAIL_FE_PASSWORD || globalPass,
+      from: process.env.MAIL_FE_FROM || globalFrom,
     },
     FCE: {
-      user: process.env.MAIL_FCE_USER || '',
-      password: process.env.MAIL_FCE_PASSWORD || '',
-      from: process.env.MAIL_FCE_FROM || '"Mesa de Partes - Fac. Ciencias Empresariales UNAMAD" <noreply@unamad.edu.pe>',
+      user: process.env.MAIL_FCE_USER || globalUser,
+      password: process.env.MAIL_FCE_PASSWORD || globalPass,
+      from: process.env.MAIL_FCE_FROM || globalFrom,
     },
   }
 
@@ -56,7 +63,7 @@ function createTransporter(facultyCodigo?: string) {
     }
   }
 
-  // Fallback: usar FI como default
+  // Fallback: usar FI como default (que ya hace fallback al global MAIL_USER si no hay MAIL_FI_USER)
   const fiConfig = getFacultyMailConfig('FI')
   return {
     transporter: nodemailer.createTransport({
@@ -64,11 +71,11 @@ function createTransporter(facultyCodigo?: string) {
       port,
       secure: false,
       auth: {
-        user: fiConfig?.user || process.env.MAIL_FI_USER || '',
-        pass: fiConfig?.password || process.env.MAIL_FI_PASSWORD || '',
+        user: fiConfig?.user || process.env.MAIL_USER || '',
+        pass: fiConfig?.password || process.env.MAIL_PASSWORD || '',
       },
     }),
-    from: fiConfig?.from || '"SeguiTesis UNAMAD" <noreply@unamad.edu.pe>',
+    from: fiConfig?.from || process.env.MAIL_FROM || '"SeguiTesis UNAMAD" <noreply@unamad.edu.pe>',
   }
 }
 
