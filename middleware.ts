@@ -201,6 +201,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Endpoints de cron: autenticados por Bearer CRON_SECRET en el handler,
+  // no por JWT de usuario.
+  if (pathname.startsWith('/api/cron/')) {
+    return NextResponse.next()
+  }
+
   // Obtener token del header o cookie
   const authHeader = request.headers.get('authorization')
   let token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
