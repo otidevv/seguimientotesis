@@ -93,6 +93,8 @@ export async function GET(
             mimeType: true,
             tamano: true,
             firmadoDigitalmente: true,
+            requiereActualizacion: true,
+            motivoActualizacion: true,
             fechaFirma: true,
             createdAt: true,
             uploadedBy: {
@@ -239,6 +241,8 @@ export async function GET(
         mimeType: d.mimeType,
         tamano: d.tamano,
         firmado: d.firmadoDigitalmente,
+        requiereActualizacion: d.requiereActualizacion,
+        motivoActualizacion: d.motivoActualizacion,
         fechaFirma: d.fechaFirma,
         fechaSubida: d.createdAt,
         subidoPor: d.uploadedBy

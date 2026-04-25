@@ -140,11 +140,13 @@ export async function GET(request: NextRequest) {
           tieneProyecto: asesoria.thesis.documentos.some(
             (d) => d.tipo === 'PROYECTO'
           ),
+          // Una carta con requiereActualizacion: true está firmada pero quedó
+          // obsoleta. No cuenta como "tenida" para efectos de progreso.
           tieneCartaAsesor: asesoria.thesis.documentos.some(
-            (d) => d.tipo === 'CARTA_ACEPTACION_ASESOR'
+            (d) => d.tipo === 'CARTA_ACEPTACION_ASESOR' && !d.requiereActualizacion
           ),
           tieneCartaCoasesor: asesoria.thesis.documentos.some(
-            (d) => d.tipo === 'CARTA_ACEPTACION_COASESOR'
+            (d) => d.tipo === 'CARTA_ACEPTACION_COASESOR' && !d.requiereActualizacion
           ),
         },
       }

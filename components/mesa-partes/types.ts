@@ -6,6 +6,8 @@ export interface Documento {
   mimeType: string
   tamano: number
   firmado: boolean
+  requiereActualizacion?: boolean
+  motivoActualizacion?: string | null
   fechaFirma: string | null
   fechaSubida: string
   subidoPor: string | null

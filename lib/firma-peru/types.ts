@@ -78,6 +78,8 @@ export interface LoteParams {
   userId?: string;
   tipoAsesor?: string;
   tipoDocumento?: string;
+  // ID del ThesisDocument borrador que se promoverá al completar la firma
+  borradorDocumentId?: string;
 }
 
 // Response de carga de archivos firmados

@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
             tipo: true,
             nombre: true,
             rutaArchivo: true,
+            requiereActualizacion: true,
             createdAt: true,
           },
         },
@@ -164,12 +165,18 @@ export async function GET(request: NextRequest) {
             email: a.user.email,
           } : null,
         })),
-        // Resumen de documentos
+        // Resumen de documentos — una carta con `requiereActualizacion: true` NO
+        // cuenta como "tenida": el envío a mesa de partes la rechazará hasta que
+        // el asesor suba una nueva versión con los datos vigentes.
         documentos: {
           total: t.documentos.length,
           tieneProyecto: t.documentos.some((d) => d.tipo === 'PROYECTO'),
-          tieneCartaAsesor: t.documentos.some((d) => d.tipo === 'CARTA_ACEPTACION_ASESOR'),
-          tieneCartaCoasesor: t.documentos.some((d) => d.tipo === 'CARTA_ACEPTACION_COASESOR'),
+          tieneCartaAsesor: t.documentos.some(
+            (d) => d.tipo === 'CARTA_ACEPTACION_ASESOR' && !d.requiereActualizacion,
+          ),
+          tieneCartaCoasesor: t.documentos.some(
+            (d) => d.tipo === 'CARTA_ACEPTACION_COASESOR' && !d.requiereActualizacion,
+          ),
         },
         // Rol del usuario actual en esta tesis
         miRol: t.autores.some((a) => a.userId === user.id)

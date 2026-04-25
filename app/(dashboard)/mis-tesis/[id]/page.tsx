@@ -53,21 +53,12 @@ import {
 } from '@/components/ui/accordion'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
   ESTADO_CONFIG,
   ESTADO_ASESOR_CONFIG,
   DocumentUploadCard,
   AdvisorStatusCard,
   ReadOnlyDocumentCard,
   ReadOnlyAdvisorCard,
-  ReadOnlyCoauthorCard,
   ThesisSidebar,
   ParticipantDialog,
   formatFileSize,
@@ -88,9 +79,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   const [subiendo, setSubiendo] = useState<string | null>(null)
   const [respondiendo, setRespondiendo] = useState(false)
   const [mostrarObsAnteriores, setMostrarObsAnteriores] = useState(false)
-  const [rechazoDialogOpen, setRechazoDialogOpen] = useState(false)
-  const [motivoRechazo, setMotivoRechazo] = useState('')
-  const [invitacionARechazar, setInvitacionARechazar] = useState<string | null>(null)
   const [modalDesistirOpen, setModalDesistirOpen] = useState(false)
   const [modalConfirmarEnvioOpen, setModalConfirmarEnvioOpen] = useState(false)
   type VentanaInfo = {
@@ -198,32 +186,18 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
     }
   }
 
-  // Responder a invitación (para coautores pendientes)
-  const responderInvitacion = async (invitacionId: string, accion: 'ACEPTAR' | 'RECHAZAR', motivo?: string) => {
+  // Aceptar invitación como coautor (el rechazo se hace desde /mis-invitaciones).
+  const responderInvitacion = async (invitacionId: string, accion: 'ACEPTAR') => {
     setRespondiendo(true)
     try {
-      await api.post(`/api/mis-invitaciones/${invitacionId}/responder`, {
-        accion,
-        ...(accion === 'RECHAZAR' && motivo ? { motivoRechazo: motivo } : {}),
-      })
-      toast.success(accion === 'ACEPTAR' ? 'Invitación aceptada' : 'Invitación rechazada')
-      if (accion === 'RECHAZAR') {
-        setRechazoDialogOpen(false)
-        setMotivoRechazo('')
-        setInvitacionARechazar(null)
-      }
+      await api.post(`/api/mis-invitaciones/${invitacionId}/responder`, { accion })
+      toast.success('Invitación aceptada')
       loadTesis()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error de conexión')
     } finally {
       setRespondiendo(false)
     }
-  }
-
-  const abrirRechazoInvitacion = (invitacionId: string) => {
-    setInvitacionARechazar(invitacionId)
-    setMotivoRechazo('')
-    setRechazoDialogOpen(true)
   }
 
   if (authLoading || loading) {
@@ -346,9 +320,16 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       ? new Date(docInformeFinal.createdAt) > new Date(fechaObservacionActual)
       : false
     : false
-  // Cada tesista sube su propio documento sustentatorio
-  // Solo considerar autores activos (excluir DESISTIDO y RECHAZADO)
-  const autoresActivos = tesis.autores.filter((a) => a.estado !== 'DESISTIDO' && a.estado !== 'RECHAZADO')
+  // Cada tesista sube su propio documento sustentatorio.
+  // Autores activos = no DESISTIDO, no RECHAZADO, y tampoco quien tiene una
+  // solicitud de desistimiento PENDIENTE (si mesa de partes aprueba quedará
+  // DESISTIDO de todos modos — el progreso debe anticiparlo).
+  const usuarioSolicitandoDesistir = desistimientoPendiente?.solicitadoPor?.userId ?? null
+  const autoresActivos = tesis.autores.filter((a) => {
+    if (a.estado === 'DESISTIDO' || a.estado === 'RECHAZADO') return false
+    if (usuarioSolicitandoDesistir && usuarioSolicitandoDesistir === a.user.id) return false
+    return true
+  })
   const allSustentatorios = tesis.documentos.filter((d) => d.tipoDocumento === 'DOCUMENTO_SUSTENTATORIO')
   const miDocSustentatorio = allSustentatorios.find((d) => d.subidoPor?.id === user?.id)
   const otroAutor = autoresActivos.find((a) => a.user.id !== user?.id)
@@ -385,23 +366,28 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
   if (tieneCoasesor) requisitosRequeridos += 2 // Coasesor acepta + Carta coasesor
   if (coautor) requisitosRequeridos += 2 // Coautor acepta + Sustentatorio coautor
 
+  // Una carta con requiereActualizacion = true no cuenta como cumplida para
+  // efectos de envío: el backend la rechazaría y la UI debe reflejarlo.
+  const cartaAsesorVigente = docCartaAsesor && !docCartaAsesor.requiereActualizacion
+  const cartaCoasesorVigente = docCartaCoasesor && !docCartaCoasesor.requiereActualizacion
+
   let requisitosCompletados = 0
   if (docProyecto) requisitosCompletados++
   if (asesorAcepto) requisitosCompletados++
-  if (docCartaAsesor) requisitosCompletados++
+  if (cartaAsesorVigente) requisitosCompletados++
   if (docVoucherPago) requisitosCompletados++
   if (miDocSustentatorio) requisitosCompletados++
   if (tieneCoasesor && coasesorAcepto) requisitosCompletados++
-  if (tieneCoasesor && docCartaCoasesor) requisitosCompletados++
+  if (tieneCoasesor && cartaCoasesorVigente) requisitosCompletados++
   if (coautor && coautorAcepto) requisitosCompletados++
   if (coautor && docSustentatorioOtroAutor) requisitosCompletados++
   const progresoPercent = Math.round((requisitosCompletados / requisitosRequeridos) * 100)
 
   // Verificar si puede enviar
   const puedeEnviar = docProyecto &&
-    asesorAcepto && docCartaAsesor &&
+    asesorAcepto && cartaAsesorVigente &&
     docVoucherPago && todosSustentatoriosSubidos &&
-    (!tieneCoasesor || (coasesorAcepto && docCartaCoasesor)) &&
+    (!tieneCoasesor || (coasesorAcepto && cartaCoasesorVigente)) &&
     (!coautor || coautorAcepto)
 
   return (
@@ -471,34 +457,46 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       )}
 
       {/* Banner de solicitud de desistimiento en trámite */}
-      {tesis.estado === 'SOLICITUD_DESISTIMIENTO' && desistimientoPendiente && (
-        <Card className="border-2 border-amber-400 bg-amber-50/80 dark:bg-amber-950/30">
-          <CardContent className="py-4 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="font-semibold text-amber-800 dark:text-amber-200">
-                Solicitud de desistimiento en trámite
-              </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                Mesa de partes está revisando tu solicitud. No puedes realizar acciones de flujo normal hasta que se resuelva.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3"
-                onClick={async () => {
-                  if (!confirm('¿Cancelar tu solicitud de desistimiento?')) return
-                  const res = await fetch(`/api/tesis/${tesis.id}/desistir/cancelar`, { method: 'POST' })
-                  if (res.ok) { toast.success('Solicitud cancelada'); loadTesis() }
-                  else { const d = await res.json(); toast.error(d.error ?? 'Error') }
-                }}
-              >
-                Cancelar solicitud
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {tesis.estado === 'SOLICITUD_DESISTIMIENTO' && desistimientoPendiente && (() => {
+        const esMiSolicitud = desistimientoPendiente.solicitadoPor?.userId === user?.id
+        const nombreSolicitante = desistimientoPendiente.solicitadoPor
+          ? `${desistimientoPendiente.solicitadoPor.nombres} ${desistimientoPendiente.solicitadoPor.apellidoPaterno}`.trim()
+          : 'tu coautor'
+        return (
+          <Card className="border-2 border-amber-400 bg-amber-50/80 dark:bg-amber-950/30">
+            <CardContent className="py-4 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-amber-800 dark:text-amber-200">
+                  Solicitud de desistimiento en trámite
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  {esMiSolicitud ? (
+                    <>Mesa de partes está revisando tu solicitud. No puedes realizar acciones de flujo normal hasta que se resuelva.</>
+                  ) : (
+                    <><strong>{nombreSolicitante}</strong> solicitó desistir de esta tesis. Mesa de partes está revisando la solicitud; solo <strong>{nombreSolicitante}</strong> puede cancelarla. Si se aprueba, tú continuarás como autor principal.</>
+                  )}
+                </p>
+                {esMiSolicitud && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={async () => {
+                      if (!confirm('¿Cancelar tu solicitud de desistimiento?')) return
+                      const res = await fetch(`/api/tesis/${tesis.id}/desistir/cancelar`, { method: 'POST' })
+                      if (res.ok) { toast.success('Solicitud cancelada'); loadTesis() }
+                      else { const d = await res.json(); toast.error(d.error ?? 'Error') }
+                    }}
+                  >
+                    Cancelar solicitud
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Estado de revisión */}
       {tesis.estado === 'REGISTRO_PENDIENTE' && (
@@ -1877,9 +1875,9 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   Tienes una invitación pendiente
                 </p>
                 <p className="text-sm text-purple-700 dark:text-purple-300 mb-3">
-                  Has sido invitado como Tesista 2 en este proyecto. Debes aceptar la invitación antes de poder subir documentos.
+                  Has sido invitado como Tesista 2 en este proyecto. Revisa los detalles y acepta para empezar a participar.
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-3">
                   <Button
                     size="sm"
                     onClick={() => responderInvitacion(miRegistroCoautor.id, 'ACEPTAR')}
@@ -1893,16 +1891,16 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     )}
                     Aceptar invitación
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => abrirRechazoInvitacion(miRegistroCoautor.id)}
-                    disabled={respondiendo}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Rechazar
-                  </Button>
+                  <p className="text-xs text-purple-700/80 dark:text-purple-300/80">
+                    ¿No deseas participar?{' '}
+                    <Link
+                      href="/mis-invitaciones"
+                      className="underline underline-offset-2 font-medium hover:text-purple-900 dark:hover:text-purple-200"
+                    >
+                      Rechaza desde Mis Invitaciones
+                    </Link>
+                    .
+                  </p>
                 </div>
               </div>
             </div>
@@ -2354,11 +2352,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                       iconBg="bg-indigo-100 dark:bg-indigo-900/50"
                     />
                   )}
-                  {coautor && (
-                    <ReadOnlyCoauthorCard
-                      coautor={coautor}
-                    />
-                  )}
                   {docResolucionJurado && (
                     <ReadOnlyDocumentCard
                       titulo="Resolución de Conformación de Jurado"
@@ -2622,53 +2615,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      {/* Diálogo de rechazo de invitación */}
-      <Dialog open={rechazoDialogOpen} onOpenChange={setRechazoDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Rechazar invitación</DialogTitle>
-            <DialogDescription>
-              Indica el motivo por el cual rechazas participar como coautor en esta tesis.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <textarea
-              className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-              placeholder="Escribe el motivo del rechazo..."
-              value={motivoRechazo}
-              onChange={(e) => setMotivoRechazo(e.target.value)}
-              disabled={respondiendo}
-            />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => { setRechazoDialogOpen(false); setMotivoRechazo(''); setInvitacionARechazar(null) }}
-              disabled={respondiendo}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => invitacionARechazar && responderInvitacion(invitacionARechazar, 'RECHAZAR', motivoRechazo.trim())}
-              disabled={respondiendo || !motivoRechazo.trim()}
-            >
-              {respondiendo ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <X className="w-4 h-4 mr-2" />
-                  Confirmar rechazo
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Diálogo de agregar/reemplazar participante */}
       <ParticipantDialog
         open={participants.dialogOpen}
@@ -2706,6 +2652,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         thesisId={tesis.id}
         tituloTesis={tesis.titulo}
         tieneCoautor={tesis.autores.some(a => a.user.id !== user?.id && a.estado === 'ACEPTADO')}
+        esAutorPrincipal={esAutorPrincipal}
         onSuccess={() => loadTesis()}
       />
 

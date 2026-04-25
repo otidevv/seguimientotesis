@@ -95,6 +95,7 @@ export interface DashboardData {
     estudiante: string
     facultad: string
     fechaCreacion: string
+    detailUrl: string
   }[]
   actividadReciente: {
     estadoAnterior: string | null
@@ -111,6 +112,7 @@ export interface DashboardData {
     fecha: string
     estudiante: string
     carrera: string
+    detailUrl: string
   }[]
   statsAvanzados: {
     tasaAprobacion: number

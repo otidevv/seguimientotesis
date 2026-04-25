@@ -27,12 +27,12 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
+  ClipboardCheck,
   FileText,
   GraduationCap,
   Info,
   Loader2,
   Plus,
-  Sparkles,
   User,
   UserPlus,
   Users,
@@ -1177,7 +1177,7 @@ export default function NuevoProyectoPage() {
                   <CardHeader>
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                        <Sparkles className="w-6 h-6 text-green-600" />
+                        <ClipboardCheck className="w-6 h-6 text-green-600" />
                       </div>
                       <div>
                         <CardTitle>Confirmar y Crear</CardTitle>

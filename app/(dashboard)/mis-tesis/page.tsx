@@ -398,7 +398,7 @@ export default function MisTesisPage() {
                         </span>
                         {d.teniaCoautor && (
                           <span className="text-[11px] text-muted-foreground">
-                            {tesisContinua ? '· Continuó con el coautor' : '· La tesis quedó desistida'}
+                            {tesisContinua ? '· La tesis continuó con el otro tesista' : '· La tesis quedó desistida'}
                           </span>
                         )}
                       </div>
@@ -512,7 +512,10 @@ export default function MisTesisPage() {
                   const asesor = t.asesores.find(a => a.tipoAsesor === 'ASESOR')
                   const miRegistro = t.autores.find(a => a.user.id === user?.id)
                   const yoDesisti = miRegistro?.estado === 'DESISTIDO'
-                  const puedeDesistir = !yoDesisti && ESTADOS_DESISTIMIENTO.includes(t.estado)
+                  // Solo puede desistir quien ya aceptó formalmente su participación.
+                  // Un coautor PENDIENTE no ha "entrado" a la tesis: para salir debe
+                  // rechazar la invitación desde /mis-invitaciones, no desistir.
+                  const puedeDesistir = miRegistro?.estado === 'ACEPTADO' && ESTADOS_DESISTIMIENTO.includes(t.estado)
 
                   return (
                     <tr key={t.id} className={cn('border-b last:border-b-0 hover:bg-muted/30 transition-colors', yoDesisti && 'opacity-60')}>
@@ -596,7 +599,8 @@ export default function MisTesisPage() {
               const asesor = t.asesores.find(a => a.tipoAsesor === 'ASESOR')
               const miRegistroMobile = t.autores.find(a => a.user.id === user?.id)
               const yoDesistiMobile = miRegistroMobile?.estado === 'DESISTIDO'
-              const puedeDesistir = !yoDesistiMobile && ESTADOS_DESISTIMIENTO.includes(t.estado)
+              // Ver comentario arriba: solo un autor ACEPTADO puede desistir.
+              const puedeDesistir = miRegistroMobile?.estado === 'ACEPTADO' && ESTADOS_DESISTIMIENTO.includes(t.estado)
 
               return (
                 <div key={t.id} className={cn('p-4 space-y-3', yoDesistiMobile && 'opacity-60')}>
@@ -678,6 +682,9 @@ export default function MisTesisPage() {
           tituloTesis={tesisDesistir.titulo}
           tieneCoautor={tesisDesistir.autores.some(
             a => a.user.id !== user?.id && a.estado === 'ACEPTADO',
+          )}
+          esAutorPrincipal={tesisDesistir.autores.some(
+            a => a.user.id === user?.id && a.tipoParticipante === 'AUTOR_PRINCIPAL',
           )}
           onSuccess={() => {
             setTesisDesistir(null)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
+import { invalidarCartasAsesores } from '@/lib/cartas-aceptacion/invalidar'
 
 // POST /api/mis-invitaciones/[id]/responder - Aceptar o rechazar una invitación
 export async function POST(
@@ -64,6 +65,29 @@ export async function POST(
         )
       }
 
+      // Defensa: si existe un desistimiento APROBADO previo del mismo usuario
+      // en esta tesis (caso de datos legacy / invitación creada antes de los
+      // guardias actuales), NO permitir aceptar — el desistimiento formal no
+      // debe poder revertirse por el usuario.
+      if (accion === 'ACEPTAR') {
+        const withdrawalPrevio = await prisma.thesisWithdrawal.findFirst({
+          where: {
+            thesisId: invitacionCoautor.thesis.id,
+            userId: user.id,
+            estadoSolicitud: 'APROBADO',
+          },
+          select: { id: true },
+        })
+        if (withdrawalPrevio) {
+          return NextResponse.json(
+            {
+              error: 'Ya desististe formalmente de esta tesis. No puedes volver a aceptar esta invitación.',
+            },
+            { status: 409 }
+          )
+        }
+      }
+
       const nuevoEstado = accion === 'ACEPTAR' ? 'ACEPTADO' : 'RECHAZADO'
 
       await prisma.thesisAuthor.update({
@@ -86,6 +110,16 @@ export async function POST(
           changedById: user.id,
         },
       })
+
+      // Si el coautor ACEPTÓ, invalidar cartas de aceptación existentes: las cartas
+      // firmadas listan a los tesistas vigentes, y ahora el conjunto cambió.
+      if (accion === 'ACEPTAR') {
+        await invalidarCartasAsesores(
+          prisma,
+          invitacionCoautor.thesis.id,
+          `El tesista ${user.nombres} ${user.apellidoPaterno} aceptó la invitación como coautor de la tesis "${invitacionCoautor.thesis.titulo}".`,
+        )
+      }
 
       return NextResponse.json({
         success: true,

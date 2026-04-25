@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { estadoDestinoConCoautor, requiereModificatoria } from '@/lib/desistimiento/transiciones'
+import { invalidarCartasAsesores } from '@/lib/cartas-aceptacion/invalidar'
 import { EstadoTesis } from '@prisma/client'
 import path from 'path'
 import { writeFile, mkdir } from 'fs/promises'
@@ -144,6 +145,9 @@ export async function POST(
     const debeLimpiarEvaluaciones = estadoDestino === 'ASIGNANDO_JURADOS'
 
     const nombreDesistente = `${w.thesisAuthor.user.nombres} ${w.thesisAuthor.user.apellidoPaterno}`
+    // Rol del desistente antes de la actualización (se usa para redactar
+    // notificaciones e historial sin asumir que el receptor cambia de rol).
+    const desistenteEraPrincipal = w.thesisAuthor.orden === 1
 
     const resolucionPrincipalId = await prisma.$transaction(async (tx) => {
       let resolucionRegistradaId: string | null = null
@@ -251,11 +255,24 @@ export async function POST(
           estadoAnterior: EstadoTesis.SOLICITUD_DESISTIMIENTO,
           estadoNuevo: estadoDestino as EstadoTesis,
           comentario: hayCoautor
-            ? `Desistimiento aprobado de ${nombreDesistente}. ${nuevoPrincipal!.user.nombres} ${nuevoPrincipal!.user.apellidoPaterno} asume como autor principal.`
+            ? (desistenteEraPrincipal
+                ? `Desistimiento aprobado de ${nombreDesistente} (autor principal). ${nuevoPrincipal!.user.nombres} ${nuevoPrincipal!.user.apellidoPaterno} asume como autor principal.`
+                : `Desistimiento aprobado de ${nombreDesistente} (coautor). ${nuevoPrincipal!.user.nombres} ${nuevoPrincipal!.user.apellidoPaterno} continúa como autor principal.`)
             : `Desistimiento aprobado de ${nombreDesistente}. Tesis dada de baja.`,
           changedById: user.id,
         },
       })
+
+      // Si la tesis continúa con el coautor y retrocede a BORRADOR, las cartas de
+      // aceptación listadas con ambos tesistas quedan obsoletas. Se invalidan
+      // para forzar que asesor/coasesor suban una nueva con los datos actuales.
+      if (hayCoautor && estadoDestino === 'BORRADOR') {
+        await invalidarCartasAsesores(
+          tx,
+          w.thesisId,
+          `El tesista ${nombreDesistente} desistió de la tesis "${w.thesis.titulo}". La composición de autores cambió.`,
+        )
+      }
 
       return resolucionRegistradaId
     })
@@ -272,8 +289,12 @@ export async function POST(
       await crearNotificacion({
         userId: nuevoPrincipal.user.id,
         tipo: 'DESISTIMIENTO_COAUTOR',
-        titulo: 'Ahora eres el autor principal',
-        mensaje: `${nombreDesistente} desistió. Ahora eres el autor principal de "${w.thesis.titulo}".`,
+        titulo: desistenteEraPrincipal
+          ? 'Ahora eres el autor principal'
+          : 'Tu coautor desistió del proyecto',
+        mensaje: desistenteEraPrincipal
+          ? `${nombreDesistente} (autor principal) desistió. Asumes como autor principal de "${w.thesis.titulo}".`
+          : `${nombreDesistente} (coautor) desistió. Continúas solo como autor principal de "${w.thesis.titulo}".`,
         enlace: `/mis-tesis/${w.thesisId}`,
       })
     }

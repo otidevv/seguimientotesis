@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q') || ''
     const carrera = searchParams.get('carrera')
+    // tesisId opcional: si se pasa, se marca a los estudiantes que desistieron
+    // formalmente de ESA tesis para que la UI los muestre como no-invitables.
+    const tesisId = searchParams.get('tesisId')
 
     if (q.length < 2) {
       return NextResponse.json({
@@ -103,6 +106,20 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Detectar quiénes desistieron formalmente de la tesis actual (si se pasó tesisId).
+    let userIdsDesistidos = new Set<string>()
+    if (tesisId && userIds.length > 0) {
+      const desistidos = await prisma.thesisAuthor.findMany({
+        where: {
+          thesisId: tesisId,
+          userId: { in: userIds },
+          estado: 'DESISTIDO',
+        },
+        select: { userId: true },
+      })
+      userIdsDesistidos = new Set(desistidos.map((d) => d.userId))
+    }
+
     // Formatear respuesta
     const resultado = estudiantes
       .filter((e) => e.user) // Solo incluir registros con usuario válido
@@ -121,6 +138,7 @@ export async function GET(request: NextRequest) {
         studentCareerId: e.id,
         tieneTesisActiva: userIdsConTesisActiva.has(e.user.id),
         tesisActivaTitulo: userIdsConTesisActiva.get(e.user.id) ?? null,
+        desistioDeEstaTesis: userIdsDesistidos.has(e.user.id),
       }))
 
     return NextResponse.json({

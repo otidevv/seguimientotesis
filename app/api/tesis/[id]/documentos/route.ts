@@ -396,6 +396,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         tamano: true,
         version: true,
         firmadoDigitalmente: true,
+        requiereActualizacion: true,
+        motivoActualizacion: true,
         fechaFirma: true,
         createdAt: true,
       },

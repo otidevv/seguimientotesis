@@ -133,6 +133,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
+    // Buscar carta borrador pendiente del usuario (si existe)
+    const tipoCartaUsuario = asesorRegistro.tipo === 'PRINCIPAL'
+      ? 'CARTA_ACEPTACION_ASESOR'
+      : 'CARTA_ACEPTACION_COASESOR'
+
+    const cartaBorrador = await prisma.thesisDocument.findFirst({
+      where: {
+        thesisId: tesis.id,
+        uploadedById: user.id,
+        tipo: tipoCartaUsuario,
+        esBorrador: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
     // Obtener la facultad del primer autor (para mostrar la carrera/facultad)
     const primerAutor = tesis.autores[0]
     const facultadInfo = primerAutor?.studentCareer?.facultad
@@ -180,11 +195,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         user: a.user,
         esMiRegistro: a.userId === user.id,
       })),
+      cartaPendiente: cartaBorrador
+        ? {
+            id: cartaBorrador.id,
+            fileName: cartaBorrador.rutaArchivo.split('/').pop() || '',
+            tamano: cartaBorrador.tamano || 0,
+            subidoEn: cartaBorrador.createdAt,
+            archivoUrl: cartaBorrador.rutaArchivo,
+          }
+        : null,
       documentos: tesis.documentos.map((d) => ({
         id: d.id,
         tipoDocumento: d.tipo,
         nombre: d.nombre,
         descripcion: d.descripcion,
+        requiereActualizacion: d.requiereActualizacion,
+        motivoActualizacion: d.motivoActualizacion,
         archivoUrl: d.rutaArchivo,
         archivoNombre: d.nombre,
         archivoTamano: d.tamano,

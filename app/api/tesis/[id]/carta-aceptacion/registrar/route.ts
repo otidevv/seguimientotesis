@@ -1,7 +1,7 @@
 /**
  * API Route: /api/tesis/[id]/carta-aceptacion/registrar
  *
- * POST: Registra la carta de aceptación subida directamente (sin firma digital)
+ * POST: Promueve un ThesisDocument borrador a carta de aceptación definitiva (sin firma digital).
  * Se usa cuando el asesor ya tiene la carta firmada físicamente.
  */
 
@@ -28,17 +28,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { fileName } = body
-
-    if (!fileName) {
-      return NextResponse.json(
-        { error: 'Se requiere el nombre del archivo' },
-        { status: 400 }
-      )
-    }
-
-    // Verificar que la tesis existe y el usuario es asesor
     const tesis = await prisma.thesis.findUnique({
       where: { id: tesisId, deletedAt: null },
       include: {
@@ -104,82 +93,94 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Verificar que el archivo temporal existe
-    const tempPath = path.join(
-      process.cwd(),
-      'public',
-      'documentos',
-      'cartas-aceptacion',
-      'temp',
-      fileName
-    )
+    const tipoDoc = asesorRegistro.tipo === 'PRINCIPAL'
+      ? 'CARTA_ACEPTACION_ASESOR' as const
+      : 'CARTA_ACEPTACION_COASESOR' as const
+    const tipoAsesor = asesorRegistro.tipo === 'PRINCIPAL' ? 'asesor' : 'coasesor'
 
-    if (!fs.existsSync(tempPath)) {
+    // Buscar borrador — preferir documentoId explícito, si no el más reciente.
+    const body = await request.json().catch(() => ({})) as { documentoId?: string }
+    const borrador = body.documentoId
+      ? await prisma.thesisDocument.findFirst({
+          where: {
+            id: body.documentoId,
+            thesisId: tesisId,
+            uploadedById: user.id,
+            tipo: tipoDoc,
+            esBorrador: true,
+          },
+        })
+      : await prisma.thesisDocument.findFirst({
+          where: {
+            thesisId: tesisId,
+            uploadedById: user.id,
+            tipo: tipoDoc,
+            esBorrador: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+
+    if (!borrador) {
       return NextResponse.json(
-        { error: 'El archivo no fue encontrado. Vuelve a subirlo.' },
+        { error: 'No hay carta pendiente para registrar. Sube el archivo primero.' },
         { status: 404 }
       )
     }
 
-    // Mover de temp a directorio final
-    const tipoAsesor = asesorRegistro.tipo === 'PRINCIPAL' ? 'asesor' : 'coasesor'
-    const finalDir = path.join(
-      process.cwd(),
-      'public',
-      'documentos',
-      'cartas-aceptacion'
-    )
+    const borradorAbsPath = path.join(process.cwd(), 'public', borrador.rutaArchivo.replace(/^\//, ''))
+
+    if (!fs.existsSync(borradorAbsPath)) {
+      return NextResponse.json(
+        { error: 'El archivo del borrador no fue encontrado. Vuelve a subirlo.' },
+        { status: 404 }
+      )
+    }
+
+    // Mover borrador a carpeta final.
+    const finalDir = path.join(process.cwd(), 'public', 'documentos', 'cartas-aceptacion')
+    if (!fs.existsSync(finalDir)) {
+      fs.mkdirSync(finalDir, { recursive: true })
+    }
 
     const destFileName = `carta_${tipoAsesor}_${tesisId}_${Date.now()}.pdf`
-    const destPath = path.join(finalDir, destFileName)
+    const destAbsPath = path.join(finalDir, destFileName)
+    fs.copyFileSync(borradorAbsPath, destAbsPath)
+    const stats = fs.statSync(destAbsPath)
 
-    fs.copyFileSync(tempPath, destPath)
-
-    // Leer tamaño
-    const stats = fs.statSync(destPath)
-
-    // Determinar tipo de documento
-    const tipoDoc = asesorRegistro.tipo === 'PRINCIPAL'
-      ? 'CARTA_ACEPTACION_ASESOR' as const
-      : 'CARTA_ACEPTACION_COASESOR' as const
-
-    // Desactivar versiones anteriores
+    // Desactivar versiones anteriores del mismo tipo (distintas del propio borrador).
     await prisma.thesisDocument.updateMany({
       where: {
         thesisId: tesisId,
         tipo: tipoDoc,
         esVersionActual: true,
+        id: { not: borrador.id },
       },
       data: {
         esVersionActual: false,
       },
     })
 
-    // Registrar en DB sin firma digital
-    await prisma.thesisDocument.create({
+    // Promover el borrador a documento definitivo.
+    await prisma.thesisDocument.update({
+      where: { id: borrador.id },
       data: {
-        thesisId: tesisId,
-        tipo: tipoDoc,
-        nombre: `Carta de Aceptación ${asesorRegistro.tipo === 'PRINCIPAL' ? 'del Asesor' : 'del Coasesor'}`,
-        descripcion: 'Carta de aceptación registrada (firmada físicamente)',
-        rutaArchivo: `/documentos/cartas-aceptacion/${destFileName}`,
-        mimeType: 'application/pdf',
-        tamano: stats.size,
-        version: 1,
+        esBorrador: false,
         esVersionActual: true,
         firmadoDigitalmente: false,
-        uploadedById: user.id,
+        rutaArchivo: `/documentos/cartas-aceptacion/${destFileName}`,
+        tamano: stats.size,
+        descripcion: 'Carta de aceptación registrada (firmada físicamente)',
       },
     })
 
-    // Eliminar archivo temporal
+    // Eliminar archivo del borrador.
     try {
-      fs.unlinkSync(tempPath)
+      fs.unlinkSync(borradorAbsPath)
     } catch {
-      // No es crítico si no se puede borrar
+      // no crítico
     }
 
-    console.log(`[Carta Aceptación] Carta registrada sin firma digital: ${destFileName}`)
+    console.log(`[Carta Aceptación] Borrador ${borrador.id} promovido a registrado: ${destFileName}`)
 
     // === NOTIFICACIONES ===
     const asesorNombre = `${user.nombres} ${user.apellidoPaterno} ${(user as any).apellidoMaterno || ''}`.trim()
@@ -190,7 +191,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const facultadCodigo = facultad?.codigo || 'FI'
     const facultadNombre = facultad?.nombre || 'Facultad'
 
-    // Notificación in-app a cada autor
     const autorIds = tesis.autores.filter(a => a.estado === 'ACEPTADO').map(a => a.user.id)
     if (autorIds.length > 0) {
       try {
@@ -206,7 +206,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Email a cada autor activo (excluye desistidos)
     for (const autor of tesis.autores.filter(a => a.estado === 'ACEPTADO')) {
       if (autor.user?.email) {
         try {

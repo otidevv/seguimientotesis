@@ -110,7 +110,7 @@ function TesisRecientesTab({ data }: { data: DashboardData['tesisRecientes'] }) 
                         </TableCell>
                         <TableCell>
                           <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/mesa-partes/${tesis.id}`}><Eye className="h-4 w-4" /></Link>
+                            <Link href={tesis.detailUrl}><Eye className="h-4 w-4" /></Link>
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -128,7 +128,7 @@ function TesisRecientesTab({ data }: { data: DashboardData['tesisRecientes'] }) 
                 return (
                   <Link
                     key={tesis.id}
-                    href={`/mesa-partes/${tesis.id}`}
+                    href={tesis.detailUrl}
                     className="block p-4 rounded-lg border bg-card space-y-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -229,7 +229,7 @@ function EventosTab({ data }: { data: DashboardData['proximosEventos'] }) {
               return (
                 <Link
                   key={evento.id}
-                  href={`/mesa-partes/${evento.id}`}
+                  href={evento.detailUrl}
                   className={cn(
                     'flex items-center gap-4 p-4 rounded-lg border transition-colors hover:bg-muted/50',
                     esAprobada ? 'bg-green-500/5 border-green-500/20' : 'bg-violet-500/5 border-violet-500/20'

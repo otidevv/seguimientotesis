@@ -4,6 +4,7 @@ import { useState, useEffect, use, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { FIRMA_PERU_PORT, FIRMA_PERU_STATIC_TOKEN, type FirmaPeruParams } from '@/lib/firma-peru'
+import { FirmaPeruScripts } from '@/components/firma-peru'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -31,6 +32,7 @@ import {
   Gavel,
   GraduationCap,
   History,
+  Info,
   Loader2,
   PenTool,
   Receipt,
@@ -92,7 +94,17 @@ interface Documento {
   archivoTamano: number
   version: number
   firmadoDigitalmente: boolean
+  requiereActualizacion?: boolean
+  motivoActualizacion?: string | null
   createdAt: string
+}
+
+interface CartaPendiente {
+  id: string
+  fileName: string
+  tamano: number
+  subidoEn: string
+  archivoUrl: string
 }
 
 interface AsesoriaDetalle {
@@ -122,6 +134,7 @@ interface AsesoriaDetalle {
   tesistas: Tesista[]
   asesores: Asesor[]
   documentos: Documento[]
+  cartaPendiente: CartaPendiente | null
   historial: {
     id: string
     estadoAnterior: string
@@ -162,6 +175,7 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
   const [loading, setLoading] = useState(true)
   const [subiendoCarta, setSubiendoCarta] = useState(false)
   const [cartaSubida, setCartaSubida] = useState<{
+    documentoId: string
     fileName: string
     filePath: string
   } | null>(null)
@@ -171,6 +185,10 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
 
   // Estado para registrar carta sin firma digital
   const [registrandoCarta, setRegistrandoCarta] = useState(false)
+  const [showRegistrarDialog, setShowRegistrarDialog] = useState(false)
+
+  // Estado para flujo de "reemplazar carta" (asesor quiere cambiar una carta ya firmada)
+  const [reemplazandoCarta, setReemplazandoCarta] = useState(false)
 
   // Estados para aceptar/rechazar
   const [showRespuestaDialog, setShowRespuestaDialog] = useState(false)
@@ -189,6 +207,7 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
       toast.success('Carta firmada correctamente')
       setProcesandoFirma(false)
       setCartaSubida(null)
+      setReemplazandoCarta(false)
       await loadData()
     }
 
@@ -217,6 +236,17 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
     try {
       const result = await api.get<{ data: AsesoriaDetalle }>(`/api/mis-asesorias/${id}`)
       setData(result.data)
+
+      // Restaurar estado del borrador pendiente (si existe) al cargar la página.
+      if (result.data.cartaPendiente) {
+        setCartaSubida({
+          documentoId: result.data.cartaPendiente.id,
+          fileName: result.data.cartaPendiente.fileName,
+          filePath: result.data.cartaPendiente.archivoUrl,
+        })
+      } else {
+        setCartaSubida(null)
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al cargar datos')
       router.push('/mis-asesorias')
@@ -252,12 +282,14 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
   const registrarCartaSinFirma = async () => {
     if (!cartaSubida || !data) return
 
+    setShowRegistrarDialog(false)
     setRegistrandoCarta(true)
 
     try {
-      await api.post(`/api/tesis/${data.tesis.id}/carta-aceptacion/registrar`, { fileName: cartaSubida.fileName })
+      await api.post(`/api/tesis/${data.tesis.id}/carta-aceptacion/registrar`, { documentoId: cartaSubida.documentoId })
       toast.success('Carta de aceptación registrada correctamente')
       setCartaSubida(null)
+      setReemplazandoCarta(false)
       await loadData()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al registrar carta')
@@ -289,8 +321,9 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
       const formData = new FormData()
       formData.append('file', file)
 
-      const result = await api.post<{ data: { fileName: string; filePath: string } }>(`/api/tesis/${data.tesis.id}/carta-aceptacion/subir`, formData)
+      const result = await api.post<{ data: { documentoId: string; fileName: string; filePath: string } }>(`/api/tesis/${data.tesis.id}/carta-aceptacion/subir`, formData)
       setCartaSubida({
+        documentoId: result.data.documentoId,
         fileName: result.data.fileName,
         filePath: result.data.filePath,
       })
@@ -361,7 +394,7 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
 
       // Registrar el lote con metadata de tesis
       const result = await api.post<{ data: { token_lote: string } }>(`/api/tesis/${data.tesis.id}/carta-aceptacion/firmar`, {
-        fileName: cartaSubida.fileName,
+        documentoId: cartaSubida.documentoId,
         motivo: 1, // Autor
         apariencia: 1, // Horizontal
       })
@@ -439,6 +472,14 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
   // Verificar si ya tengo mi carta firmada
   const miCartaFirmada =
     miAsesoria.tipoAsesor === 'ASESOR' ? docCartaAsesor : docCartaCoasesor
+
+  // El asesor puede reemplazar su carta mientras la tesis siga editable (aún no se
+  // envió a mesa de partes o fue devuelta como OBSERVADA).
+  const puedeReemplazarCarta = !!miCartaFirmada && ['BORRADOR', 'OBSERVADA'].includes(data.tesis.estado)
+
+  // Mostramos el card de subida cuando: no hay carta firmada aún, o el asesor
+  // inició el flujo de reemplazo, o ya hay un borrador pendiente en curso.
+  const mostrarUploadCarta = !miCartaFirmada || reemplazandoCarta || !!cartaSubida
 
   // Documentos adicionales
   const docVoucher = data.documentos.find((d) => d.tipoDocumento === 'VOUCHER_PAGO')
@@ -661,20 +702,34 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Subir y firmar carta (solo si aceptado pero sin carta firmada) */}
-          {miAsesoria.estado === 'ACEPTADO' && !miCartaFirmada && (
+          {/* Subir y firmar carta */}
+          {miAsesoria.estado === 'ACEPTADO' && mostrarUploadCarta && (
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <FileSignature className="w-5 h-5 text-primary" />
                   </div>
-                  <div>
-                    <CardTitle className="text-lg">Carta de Aceptación</CardTitle>
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">
+                      {miCartaFirmada ? 'Reemplazar Carta de Aceptación' : 'Carta de Aceptación'}
+                    </CardTitle>
                     <CardDescription>
-                      Sube tu carta de aceptación en PDF. Puedes firmarla digitalmente o subir una carta ya firmada.
+                      {miCartaFirmada
+                        ? 'Sube una nueva versión de tu carta. Al registrarla o firmarla, reemplazará a la actual.'
+                        : 'Sube tu carta de aceptación en PDF. Puedes firmarla digitalmente o subir una carta ya firmada.'}
                     </CardDescription>
                   </div>
+                  {miCartaFirmada && reemplazandoCarta && !cartaSubida && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReemplazandoCarta(false)}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Cancelar
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -704,8 +759,20 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                         <p className="text-sm font-medium text-green-700 dark:text-green-300 truncate">
                           {cartaSubida.fileName}
                         </p>
-                        <p className="text-xs text-green-600">Carta subida correctamente</p>
+                        <p className="text-xs text-green-600">
+                          Archivo guardado — pendiente de registrar o firmar
+                        </p>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                      >
+                        <a href={cartaSubida.filePath} target="_blank" rel="noopener noreferrer">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Ver
+                        </a>
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -752,7 +819,7 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                       </p>
                       <Button
                         className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={registrarCartaSinFirma}
+                        onClick={() => setShowRegistrarDialog(true)}
                         disabled={registrandoCarta || procesandoFirma}
                       >
                         {registrandoCarta ? (
@@ -814,26 +881,64 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
           )}
 
           {/* Carta firmada (si existe) */}
-          {miCartaFirmada && (
-            <Card className="border-green-200 dark:border-green-800">
+          {miCartaFirmada && (() => {
+            const requiereActualizar = miCartaFirmada.requiereActualizacion === true
+            return (
+            <Card className={cn(
+              requiereActualizar
+                ? 'border-amber-300 dark:border-amber-800'
+                : 'border-green-200 dark:border-green-800',
+            )}>
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-                    <FileCheck className="w-5 h-5 text-green-600" />
+                  <div className={cn(
+                    'w-10 h-10 rounded-xl flex items-center justify-center',
+                    requiereActualizar
+                      ? 'bg-amber-100 dark:bg-amber-900/50'
+                      : 'bg-green-100 dark:bg-green-900/50',
+                  )}>
+                    {requiereActualizar ? (
+                      <AlertCircle className="w-5 h-5 text-amber-600" />
+                    ) : (
+                      <FileCheck className="w-5 h-5 text-green-600" />
+                    )}
                   </div>
                   <div>
-                    <CardTitle className="text-lg">Carta de Aceptación Registrada</CardTitle>
-                    <CardDescription>Tu carta de aceptación está registrada en el sistema</CardDescription>
+                    <CardTitle className="text-lg">
+                      {requiereActualizar
+                        ? 'Carta de Aceptación — Requiere Actualización'
+                        : 'Carta de Aceptación Registrada'}
+                    </CardTitle>
+                    <CardDescription>
+                      {requiereActualizar
+                        ? 'Tu carta quedó desactualizada y debe reemplazarse antes de que el tesista pueda enviar a mesa de partes.'
+                        : 'Tu carta de aceptación está registrada en el sistema'}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+              <CardContent className="space-y-3">
+                {requiereActualizar && miCartaFirmada.motivoActualizacion && (
+                  <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">
+                      Motivo del cambio
+                    </p>
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      {miCartaFirmada.motivoActualizacion}
+                    </p>
+                  </div>
+                )}
+                <div className={cn(
+                  'flex items-center justify-between p-3 rounded-lg border',
+                  requiereActualizar
+                    ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60'
+                    : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800',
+                )}>
                   <div className="flex items-center gap-3">
-                    <File className="w-5 h-5 text-green-600" />
+                    <File className={cn('w-5 h-5', requiereActualizar ? 'text-amber-600' : 'text-green-600')} />
                     <div>
                       <a href={miCartaFirmada.archivoUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-sm hover:underline cursor-pointer">{miCartaFirmada.nombre}</a>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <p className="text-xs text-muted-foreground">
                           {formatFileSize(miCartaFirmada.archivoTamano)} • {new Date(miCartaFirmada.createdAt).toLocaleDateString('es-PE')}
                         </p>
@@ -848,6 +953,12 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                             Firma Física
                           </Badge>
                         )}
+                        {requiereActualizar && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500 text-amber-700 bg-amber-50">
+                            <AlertCircle className="w-2.5 h-2.5 mr-1" />
+                            Desactualizada
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -858,9 +969,44 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                     </a>
                   </Button>
                 </div>
+
+                {(puedeReemplazarCarta || requiereActualizar) && !reemplazandoCarta && !cartaSubida && (
+                  <div className={cn(
+                    'mt-3 flex items-start gap-2 p-3 rounded-lg border',
+                    requiereActualizar
+                      ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-900/60'
+                      : 'bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/60',
+                  )}>
+                    <Info className={cn(
+                      'w-4 h-4 flex-shrink-0 mt-0.5',
+                      requiereActualizar ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400',
+                    )} />
+                    <div className={cn(
+                      'flex-1 text-xs',
+                      requiereActualizar ? 'text-amber-900 dark:text-amber-200' : 'text-blue-800 dark:text-blue-300',
+                    )}>
+                      {requiereActualizar
+                        ? 'Sube una nueva versión de tu carta con los datos vigentes de los tesistas. La carta anterior quedará como versión histórica.'
+                        : <>Mientras la tesis esté en <strong>{data.tesis.estado === 'BORRADOR' ? 'borrador' : 'observada'}</strong> y no haya sido enviada a mesa de partes, puedes reemplazar tu carta.</>}
+                    </div>
+                    <Button
+                      variant={requiereActualizar ? 'default' : 'outline'}
+                      size="sm"
+                      className={cn(
+                        'flex-shrink-0',
+                        requiereActualizar && 'bg-amber-600 hover:bg-amber-700',
+                      )}
+                      onClick={() => setReemplazandoCarta(true)}
+                    >
+                      <Upload className="w-3.5 h-3.5 mr-1" />
+                      {requiereActualizar ? 'Subir nueva versión' : 'Reemplazar carta'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          )}
+            )
+          })()}
 
           {/* Detalles del proyecto */}
           {(data.tesis.resumen || data.tesis.palabrasClave.length > 0 || data.tesis.lineaInvestigacion) && (
@@ -1187,6 +1333,11 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
                     <p className="text-sm font-medium truncate">{cartaSubida.fileName}</p>
                     <p className="text-xs text-muted-foreground">Carta de Aceptación - {tipoAsesorTexto}</p>
                   </div>
+                  <Button variant="ghost" size="sm" asChild className="flex-shrink-0">
+                    <a href={cartaSubida.filePath} target="_blank" rel="noopener noreferrer">
+                      <Eye className="w-4 h-4" />
+                    </a>
+                  </Button>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -1232,6 +1383,105 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
             <Button onClick={iniciarFirma} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-md shadow-purple-500/20">
               <PenTool className="w-4 h-4 mr-2" />
               Firmar Documento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de confirmación de registro sin firma digital */}
+      <Dialog open={showRegistrarDialog} onOpenChange={setShowRegistrarDialog}>
+        <DialogContent className="sm:max-w-md overflow-hidden">
+          <DialogHeader className="text-center sm:text-center">
+            <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/25">
+              <FileCheck className="w-7 h-7 text-white" />
+            </div>
+            <DialogTitle className="text-xl">Registrar Carta de Aceptación</DialogTitle>
+            <DialogDescription>
+              Vas a registrar tu carta de aceptación como {tipoAsesorTexto.toLowerCase()}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 overflow-hidden">
+            {/* Documento a registrar */}
+            <div className="rounded-xl border bg-muted/30 p-3 space-y-3 overflow-hidden">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Documento a registrar</p>
+              {cartaSubida && (
+                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-white dark:bg-gray-900 border overflow-hidden">
+                  <div className="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-950/30 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-red-500" />
+                  </div>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <p className="text-sm font-medium truncate">{cartaSubida.fileName}</p>
+                    <p className="text-xs text-muted-foreground">Carta de Aceptación - {tipoAsesorTexto}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild className="flex-shrink-0">
+                    <a href={cartaSubida.filePath} target="_blank" rel="noopener noreferrer">
+                      <Eye className="w-4 h-4" />
+                    </a>
+                  </Button>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">Código</p>
+                  <p className="font-mono font-medium">{data.tesis.codigo}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Rol</p>
+                  <p className="font-medium">{tipoAsesorTexto}</p>
+                </div>
+              </div>
+              <div className="text-sm overflow-hidden">
+                <p className="text-xs text-muted-foreground">Tesis</p>
+                <p className="font-medium line-clamp-2">{data.tesis.titulo}</p>
+              </div>
+            </div>
+
+            {/* Aviso de irreversibilidad */}
+            <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    Verifica antes de continuar
+                  </p>
+                  <p className="text-sm text-amber-800 dark:text-amber-300">
+                    Una vez registrada, <strong>no podrás modificar ni reemplazar</strong> la carta
+                    desde esta pantalla. Para cualquier cambio posterior tendrás que{' '}
+                    <strong>solicitar a Mesa de Partes</strong> la corrección.
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                    Asegúrate de que el PDF contiene tu firma (manuscrita o escaneada) y que los datos son correctos.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowRegistrarDialog(false)}
+              disabled={registrandoCarta}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={registrarCartaSinFirma}
+              disabled={registrandoCarta}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-md shadow-green-500/20"
+            >
+              {registrandoCarta ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Registrando...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Confirmar registro
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1316,6 +1566,9 @@ export default function DetalleAsesoriaPage({ params }: { params: Promise<{ id: 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* jQuery + callbacks de Firma Perú (necesario para firmar en esta ruta) */}
+      <FirmaPeruScripts />
     </div>
   )
 }

@@ -84,6 +84,8 @@ export async function GET(
             tamano: true,
             version: true,
             firmadoDigitalmente: true,
+            requiereActualizacion: true,
+            motivoActualizacion: true,
             fechaFirma: true,
             createdAt: true,
             uploadedBy: {
@@ -130,6 +132,16 @@ export async function GET(
         },
         desistimientos: {
           where: { estadoSolicitud: 'PENDIENTE' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+              },
+            },
+          },
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
@@ -256,6 +268,8 @@ export async function GET(
         tamano: d.tamano,
         version: d.version,
         firmadoDigitalmente: d.firmadoDigitalmente,
+        requiereActualizacion: d.requiereActualizacion,
+        motivoActualizacion: d.motivoActualizacion,
         fechaFirma: d.fechaFirma,
         createdAt: d.createdAt,
         subidoPor: d.uploadedBy,
@@ -323,6 +337,12 @@ export async function GET(
         id: d.id,
         estadoSolicitud: d.estadoSolicitud,
         createdAt: d.createdAt,
+        solicitadoPor: {
+          userId: d.userId,
+          nombres: d.user.nombres,
+          apellidoPaterno: d.user.apellidoPaterno,
+          apellidoMaterno: d.user.apellidoMaterno,
+        },
       })),
     }
 

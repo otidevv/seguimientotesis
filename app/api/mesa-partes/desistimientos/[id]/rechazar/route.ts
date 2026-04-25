@@ -41,8 +41,17 @@ export async function POST(
           select: {
             titulo: true,
             estado: true,
-            autores: { where: { estado: 'ACEPTADO' }, select: { userId: true } },
+            autores: {
+              where: { estado: 'ACEPTADO' },
+              select: { userId: true, orden: true },
+            },
             asesores: { where: { estado: 'ACEPTADO' }, select: { userId: true } },
+          },
+        },
+        thesisAuthor: {
+          select: {
+            orden: true,
+            user: { select: { nombres: true, apellidoPaterno: true } },
           },
         },
       },
@@ -99,16 +108,21 @@ export async function POST(
       enlace: `/mis-tesis/${w.thesisId}`,
     })
 
-    // Notificar al coautor ACEPTADO y asesores (si estaban en vilo por la solicitud)
+    // Notificar al otro tesista ACEPTADO y asesores (si estaban en vilo por la solicitud).
+    // Usamos el nombre del solicitante en vez de asumir "coautor", porque podría haber sido
+    // tanto el principal como un coautor quien pidió desistir.
     const coautorIds = w.thesis.autores
       .map(a => a.userId)
       .filter(uid => uid !== w.userId)
     if (coautorIds.length > 0) {
+      const nombreSolicitante = w.thesisAuthor?.user
+        ? `${w.thesisAuthor.user.nombres} ${w.thesisAuthor.user.apellidoPaterno}`
+        : 'El otro tesista'
       await crearNotificacion({
         userId: coautorIds,
         tipo: 'DESISTIMIENTO_RECHAZADO',
-        titulo: 'Solicitud de desistimiento del coautor rechazada',
-        mensaje: `Mesa de partes rechazó la solicitud. La tesis "${w.thesis.titulo}" continúa normalmente.`,
+        titulo: 'Solicitud de desistimiento rechazada',
+        mensaje: `Mesa de partes rechazó la solicitud de desistimiento de ${nombreSolicitante}. La tesis "${w.thesis.titulo}" continúa normalmente.`,
         enlace: `/mis-tesis/${w.thesisId}`,
       })
     }

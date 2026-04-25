@@ -98,8 +98,17 @@ function buildScope(user: ScopedUser): DashboardScope {
     (r) => r.role.codigo === 'ESTUDIANTE' && r.isActive
   )
   if (isEstudiante) {
+    // Excluir tesis donde el estudiante ya no participa activamente:
+    //  - DESISTIDO: se retiró formalmente (resolución de mesa de partes).
+    //  - RECHAZADO: rechazó la invitación como coautor.
+    // PENDIENTE sí se incluye (invitación por aceptar = tesis visible en su bandeja).
     conditions.push({
-      autores: { some: { userId: user.id } },
+      autores: {
+        some: {
+          userId: user.id,
+          estado: { notIn: ['DESISTIDO', 'RECHAZADO'] },
+        },
+      },
     })
     sawPersonal = true
   }
@@ -302,6 +311,67 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Determinar la URL de detalle correcta para cada tesis según la relación
+    // del usuario con ella. Un dashboard que mezcla roles debe enrutar a la
+    // vista donde el usuario tiene permiso, no siempre a mesa-partes.
+    const isAdminOrMesaPartes = (user.roles ?? []).some(
+      (r) =>
+        ['ADMIN', 'SUPER_ADMIN', 'MESA_PARTES'].includes(r.role.codigo) &&
+        r.isActive
+    )
+    const tesisIdsRecientes = tesisRecientes.map((t) => t.id)
+    const proximosEventosIds: string[] = []
+    // Se computa más abajo también los ids de proximosEventos para reusar el lookup.
+
+    type ParticipacionIds = {
+      autor: Set<string>
+      asesor: Set<string>
+      jurado: Set<string>
+    }
+    const calcularParticipacion = async (ids: string[]): Promise<ParticipacionIds> => {
+      if (ids.length === 0 || isAdminOrMesaPartes) {
+        return { autor: new Set(), asesor: new Set(), jurado: new Set() }
+      }
+      const [autorRows, asesorRows, juradoRows] = await Promise.all([
+        prisma.thesisAuthor.findMany({
+          where: {
+            userId: user.id,
+            thesisId: { in: ids },
+            estado: { notIn: ['DESISTIDO', 'RECHAZADO'] },
+          },
+          select: { thesisId: true },
+        }),
+        prisma.thesisAdvisor.findMany({
+          where: {
+            userId: user.id,
+            thesisId: { in: ids },
+            estado: 'ACEPTADO',
+          },
+          select: { thesisId: true },
+        }),
+        prisma.thesisJury.findMany({
+          where: { userId: user.id, thesisId: { in: ids }, isActive: true },
+          select: { thesisId: true },
+        }),
+      ])
+      return {
+        autor: new Set(autorRows.map((r) => r.thesisId)),
+        asesor: new Set(asesorRows.map((r) => r.thesisId)),
+        jurado: new Set(juradoRows.map((r) => r.thesisId)),
+      }
+    }
+
+    const urlDetalle = (tesisId: string, p: ParticipacionIds): string => {
+      if (isAdminOrMesaPartes) return `/mesa-partes/${tesisId}`
+      if (p.autor.has(tesisId)) return `/mis-tesis/${tesisId}`
+      if (p.asesor.has(tesisId)) return `/mis-asesorias/${tesisId}`
+      if (p.jurado.has(tesisId)) return `/mis-evaluaciones/${tesisId}`
+      // Fallback: la tesis entró al scope por alguna razón pero no
+      // matcheamos la relación. Mandar a mis-tesis (no romperá si el
+      // usuario no tiene acceso: la propia página mostrará el error).
+      return `/mis-tesis/${tesisId}`
+    }
+
     // 5. Actividad reciente (últimos 8 cambios de estado) — scoped al alcance
     const actividadReciente = await prisma.thesisStatusHistory.findMany({
       where: { thesis: thesisWhere },
@@ -341,6 +411,12 @@ export async function GET(request: NextRequest) {
         },
       },
     })
+    proximosEventosIds.push(...proximosEventos.map((t) => t.id))
+
+    // Calcular participación del usuario una sola vez para los ids que se van a devolver
+    const participacion = await calcularParticipacion(
+      Array.from(new Set([...tesisIdsRecientes, ...proximosEventosIds])),
+    )
 
     // 7. Stats avanzados
     const tasaAprobacion = totalTesis > 0 ? Math.round((aprobadas / totalTesis) * 1000) / 10 : 0
@@ -401,6 +477,7 @@ export async function GET(request: NextRequest) {
             : 'Sin autor',
           facultad: autor?.studentCareer?.facultad?.nombre || 'Sin facultad',
           fechaCreacion: t.createdAt,
+          detailUrl: urlDetalle(t.id, participacion),
         }
       }),
       actividadReciente: actividadReciente.map((a) => ({
@@ -422,6 +499,7 @@ export async function GET(request: NextRequest) {
             ? `${autor.user.nombres} ${autor.user.apellidoPaterno}`
             : 'Sin autor',
           carrera: autor?.studentCareer?.carreraNombre || '',
+          detailUrl: urlDetalle(t.id, participacion),
         }
       }),
       statsAvanzados: {

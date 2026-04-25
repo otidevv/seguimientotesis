@@ -163,6 +163,7 @@ export async function POST(
         userId?: string;
         tipoAsesor?: string;
         tipoDocumento?: string;
+        borradorDocumentId?: string;
       };
 
       if (loteExtendido.tesisId && loteExtendido.tipoDocumento) {
@@ -194,34 +195,76 @@ export async function POST(
           : 'CARTA_ACEPTACION_COASESOR';
 
         // Desactivar versiones anteriores del mismo tipo de documento
+        // (excluyendo el propio borrador si se va a promover).
         await prisma.thesisDocument.updateMany({
           where: {
             thesisId: loteExtendido.tesisId,
             tipo: tipoDoc,
             esVersionActual: true,
+            ...(loteExtendido.borradorDocumentId
+              ? { id: { not: loteExtendido.borradorDocumentId } }
+              : {}),
           },
           data: {
             esVersionActual: false,
           },
         });
 
-        // Crear registro del documento firmado en la base de datos
-        await prisma.thesisDocument.create({
-          data: {
-            thesisId: loteExtendido.tesisId!,
-            tipo: tipoDoc,
-            nombre: `Carta de Aceptación ${loteExtendido.tipoAsesor === 'ASESOR' ? 'del Asesor' : 'del Coasesor'} (Firmada)`,
-            descripcion: 'Carta de aceptación firmada digitalmente con Firma Perú',
-            rutaArchivo: `/documentos/cartas-aceptacion/firmadas/${destFileName}`,
-            mimeType: 'application/pdf',
-            tamano: fileBuffer.length,
-            version: 1,
-            esVersionActual: true,
-            firmadoDigitalmente: true,
-            fechaFirma: new Date(),
-            uploadedById: loteExtendido.userId!,
-          },
-        });
+        const borradorPrevio = loteExtendido.borradorDocumentId
+          ? await prisma.thesisDocument.findUnique({
+              where: { id: loteExtendido.borradorDocumentId },
+            })
+          : null;
+
+        if (borradorPrevio?.esBorrador) {
+          // Promover el borrador existente a documento firmado definitivo.
+          await prisma.thesisDocument.update({
+            where: { id: borradorPrevio.id },
+            data: {
+              nombre: `Carta de Aceptación ${loteExtendido.tipoAsesor === 'ASESOR' ? 'del Asesor' : 'del Coasesor'} (Firmada)`,
+              descripcion: 'Carta de aceptación firmada digitalmente con Firma Perú',
+              rutaArchivo: `/documentos/cartas-aceptacion/firmadas/${destFileName}`,
+              mimeType: 'application/pdf',
+              tamano: fileBuffer.length,
+              esVersionActual: true,
+              esBorrador: false,
+              firmadoDigitalmente: true,
+              fechaFirma: new Date(),
+            },
+          });
+
+          // Eliminar el archivo físico del borrador (ya quedó reemplazado por el firmado).
+          try {
+            const borradorAbsPath = path.join(
+              process.cwd(),
+              'public',
+              borradorPrevio.rutaArchivo.replace(/^\//, '')
+            );
+            if (fs.existsSync(borradorAbsPath)) {
+              fs.unlinkSync(borradorAbsPath);
+            }
+          } catch (err) {
+            console.warn('[Firma Perú] No se pudo borrar archivo de borrador:', err);
+          }
+        } else {
+          // Fallback: crear nuevo registro (flujo legacy sin borrador).
+          await prisma.thesisDocument.create({
+            data: {
+              thesisId: loteExtendido.tesisId!,
+              tipo: tipoDoc,
+              nombre: `Carta de Aceptación ${loteExtendido.tipoAsesor === 'ASESOR' ? 'del Asesor' : 'del Coasesor'} (Firmada)`,
+              descripcion: 'Carta de aceptación firmada digitalmente con Firma Perú',
+              rutaArchivo: `/documentos/cartas-aceptacion/firmadas/${destFileName}`,
+              mimeType: 'application/pdf',
+              tamano: fileBuffer.length,
+              version: 1,
+              esVersionActual: true,
+              firmadoDigitalmente: true,
+              fechaFirma: new Date(),
+              uploadedById: loteExtendido.userId!,
+            },
+          });
+        }
 
         // Actualizar estado del asesor a ACEPTADO
         if (loteExtendido.userId) {

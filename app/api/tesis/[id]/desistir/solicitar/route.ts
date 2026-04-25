@@ -167,16 +167,25 @@ export async function POST(
       })
     }
 
-    // Notificar al coautor ACEPTADO (si existe): está afectado por esta solicitud
+    // Notificar al otro tesista ACEPTADO (si existe): está afectado por esta solicitud.
+    // El mensaje depende del rol del solicitante:
+    //  - Si el solicitante es el principal y desiste → el otro (coautor) será promovido a principal.
+    //  - Si el solicitante es el coautor y desiste → el otro (principal) seguirá solo con la tesis.
     const coautorAceptado = tesis.autores.find(
       a => a.user.id !== user.id && a.estado === 'ACEPTADO',
     )
     if (coautorAceptado) {
+      const solicitanteEsPrincipal = miAutor.orden === 1
+      const mensajeNotif = solicitanteEsPrincipal
+        ? `${nombre} (autor principal) solicitó desistir de la tesis "${tesis.titulo}". Si mesa de partes aprueba, asumirás como autor principal del proyecto.`
+        : `${nombre} (coautor) solicitó desistir de la tesis "${tesis.titulo}". Si mesa de partes aprueba, continuarás solo con el proyecto.`
       await crearNotificacion({
         userId: coautorAceptado.user.id,
         tipo: 'COAUTOR_SOLICITO_DESISTIMIENTO',
-        titulo: 'Tu coautor solicitó desistir',
-        mensaje: `${nombre} solicitó desistir de la tesis "${tesis.titulo}". Si mesa de partes aprueba, tú continuarás como autor principal.`,
+        titulo: solicitanteEsPrincipal
+          ? 'El autor principal solicitó desistir'
+          : 'Tu coautor solicitó desistir',
+        mensaje: mensajeNotif,
         enlace: `/mis-tesis/${id}`,
       })
     }

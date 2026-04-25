@@ -12,6 +12,9 @@ try {
   console.log('>>> Ejecutando seed-academic-calendar...')
   execSync('npx tsx prisma/seed-academic-calendar.ts', { stdio: 'inherit' })
 
+  console.log('>>> Ejecutando seed-dev-project...')
+  execSync('npx tsx prisma/seed-dev-project.ts', { stdio: 'inherit' })
+
   console.log('\n✓ Todos los seeds ejecutados correctamente')
 } catch (e) {
   console.error('Error ejecutando seeds:', e)

@@ -44,13 +44,19 @@ export function AdvisorStatusCard({
 }: AdvisorStatusCardProps) {
   const estadoConfig = ESTADO_ASESOR_CONFIG[asesor.estado] || ESTADO_ASESOR_CONFIG.PENDIENTE
   const nombreAsesor = `${asesor.user.nombres} ${asesor.user.apellidoPaterno} ${asesor.user.apellidoMaterno}`
+  // Carta firmada pero marcada como desactualizada tras un cambio de autores.
+  // Aunque existe el documento, no cuenta como requisito cumplido: el asesor
+  // tiene que subir una nueva versión. Se pinta amber para diferenciarlo del
+  // verde (carta vigente) y del azul (falta carta inicial).
+  const cartaDesactualizada = asesor.estado === 'ACEPTADO' && !!documento?.requiereActualizacion
 
   return (
     <div
       className={cn(
         'relative rounded-xl border-2 transition-all',
         observado && 'border-orange-400 dark:border-orange-700 bg-orange-50/50 dark:bg-orange-950/20',
-        !observado && asesor.estado === 'ACEPTADO' && documento && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
+        !observado && cartaDesactualizada && 'border-amber-400 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20',
+        !observado && !cartaDesactualizada && asesor.estado === 'ACEPTADO' && documento && 'border-green-300 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20',
         !observado && asesor.estado === 'ACEPTADO' && !documento && 'border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20',
         !observado && asesor.estado === 'PENDIENTE' && 'border-yellow-300 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/20',
         !observado && asesor.estado === 'RECHAZADO' && 'border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
@@ -61,12 +67,15 @@ export function AdvisorStatusCard({
           <div className={cn(
             'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
             observado ? 'bg-orange-100 dark:bg-orange-900/50' :
+            cartaDesactualizada ? 'bg-amber-100 dark:bg-amber-900/50' :
             asesor.estado === 'ACEPTADO' && documento ? 'bg-green-100 dark:bg-green-900/50' :
             asesor.estado === 'ACEPTADO' && !documento ? 'bg-blue-100 dark:bg-blue-900/50' :
             asesor.estado === 'RECHAZADO' ? 'bg-red-100 dark:bg-red-900/50' : iconBg
           )}>
             {observado ? (
               <AlertCircle className="w-6 h-6 text-orange-600" />
+            ) : cartaDesactualizada ? (
+              <AlertCircle className="w-6 h-6 text-amber-600" />
             ) : asesor.estado === 'ACEPTADO' && documento ? (
               <FileCheck className="w-6 h-6 text-green-600" />
             ) : asesor.estado === 'ACEPTADO' && !documento ? (
@@ -84,6 +93,10 @@ export function AdvisorStatusCard({
               {observado ? (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-orange-500 text-orange-600">
                   Observado
+                </Badge>
+              ) : cartaDesactualizada ? (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500 text-amber-700 bg-amber-50">
+                  Desactualizada
                 </Badge>
               ) : asesor.estado === 'ACEPTADO' && documento && verificado ? (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-500 text-green-600">
@@ -124,20 +137,40 @@ export function AdvisorStatusCard({
             )}
 
             {asesor.estado === 'ACEPTADO' && documento ? (
-              <a
-                href={documento.archivoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border hover:bg-muted/50 transition-colors cursor-pointer"
-                title="Ver carta de aceptación"
-              >
-                <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm flex-1 truncate">{documento.nombre}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formatFileSize(documento.archivoTamano)}
-                </span>
-                <Eye className="w-4 h-4 text-muted-foreground" />
-              </a>
+              <div className="space-y-2">
+                {cartaDesactualizada && (
+                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-100/60 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-800">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">
+                        La carta quedó desactualizada
+                      </p>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                        {documento.motivoActualizacion || 'Los datos de los tesistas cambiaron.'} El {tipoAsesor.toLowerCase()} debe subir una nueva versión antes de que puedas enviar el expediente.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <a
+                  href={documento.archivoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    'flex items-center gap-2 p-2 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer',
+                    cartaDesactualizada
+                      ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900'
+                      : 'bg-white dark:bg-background',
+                  )}
+                  title="Ver carta de aceptación"
+                >
+                  <File className={cn('w-4 h-4 flex-shrink-0', cartaDesactualizada ? 'text-amber-600' : 'text-muted-foreground')} />
+                  <span className="text-sm flex-1 truncate">{documento.nombre}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatFileSize(documento.archivoTamano)}
+                  </span>
+                  <Eye className="w-4 h-4 text-muted-foreground" />
+                </a>
+              </div>
             ) : asesor.estado === 'ACEPTADO' && !documento ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-100/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                 <Clock className="w-4 h-4 text-blue-600 flex-shrink-0" />

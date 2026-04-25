@@ -27,6 +27,7 @@ export async function PUT(
           some: {
             userId: user.id,
             orden: 1, // Solo el autor principal puede modificar
+            estado: 'ACEPTADO', // Y debe estar activo (no desistido/pendiente/rechazado)
           },
         },
         deletedAt: null,
@@ -192,25 +193,28 @@ export async function PUT(
           )
         }
 
-        // Limpiar solicitudes de desistimiento fantasma antes de eliminar al coautor anterior
-        await prisma.thesisWithdrawal.deleteMany({
-          where: {
-            thesisAuthorId: coautorActual.id,
-            estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
-          },
-        })
-        // Eliminar el coautor anterior
-        await prisma.thesisAuthor.delete({
-          where: { id: coautorActual.id },
-        })
-
-        // Si el NUEVO participante ya tuvo un registro en esta tesis (desistido
-        // o rechazado antes), actualizar ese registro en vez de crear uno nuevo
-        // (unique[thesisId, userId]).
+        // Si el NUEVO participante ya desistió formalmente de ESTA tesis,
+        // bloquear la invitación antes de tocar al coautor actual.
         const taPrevio = await prisma.thesisAuthor.findUnique({
           where: { thesisId_userId: { thesisId: tesis.id, userId: nuevoParticipanteId } },
         })
-        if (taPrevio) {
+        if (taPrevio?.estado === 'DESISTIDO') {
+          return NextResponse.json(
+            { error: 'Este estudiante ya desistió formalmente de esta tesis. No puede ser reincorporado.' },
+            { status: 409 }
+          )
+        }
+
+        // Caso borde: "reemplazar" al coautor actual consigo mismo (misma persona).
+        // Sin esta rama borraríamos su fila y luego el update fallaría con P2025.
+        // Lo tratamos como una reinvitación: resetear estado a PENDIENTE en la fila existente.
+        if (taPrevio && taPrevio.id === coautorActual.id) {
+          await prisma.thesisWithdrawal.deleteMany({
+            where: {
+              thesisAuthorId: coautorActual.id,
+              estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
+            },
+          })
           await prisma.thesisAuthor.update({
             where: { id: taPrevio.id },
             data: {
@@ -222,15 +226,39 @@ export async function PUT(
             },
           })
         } else {
-          await prisma.thesisAuthor.create({
-            data: {
-              thesisId: tesis.id,
-              userId: nuevoParticipanteId,
-              studentCareerId: nuevoCoautorCareer.id,
-              orden: 2,
-              estado: 'PENDIENTE',
+          // Reemplazo real con otra persona.
+          await prisma.thesisWithdrawal.deleteMany({
+            where: {
+              thesisAuthorId: coautorActual.id,
+              estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
             },
           })
+          await prisma.thesisAuthor.delete({
+            where: { id: coautorActual.id },
+          })
+
+          if (taPrevio) {
+            await prisma.thesisAuthor.update({
+              where: { id: taPrevio.id },
+              data: {
+                estado: 'PENDIENTE',
+                orden: 2,
+                studentCareerId: nuevoCoautorCareer.id,
+                fechaRespuesta: null,
+                motivoRechazo: null,
+              },
+            })
+          } else {
+            await prisma.thesisAuthor.create({
+              data: {
+                thesisId: tesis.id,
+                userId: nuevoParticipanteId,
+                studentCareerId: nuevoCoautorCareer.id,
+                orden: 2,
+                estado: 'PENDIENTE',
+              },
+            })
+          }
         }
 
         // Registrar en historial
@@ -538,12 +566,19 @@ export async function POST(
         where: { thesisId_userId: { thesisId: tesis.id, userId: participanteId } },
       })
 
+      // Bloquear reincorporación de quien ya desistió formalmente de ESTA tesis:
+      // el desistimiento es un compromiso roto con resolución de mesa de partes;
+      // volver a invitarlo anularía el valor formal del proceso.
+      if (taPrevio?.estado === 'DESISTIDO') {
+        return NextResponse.json(
+          { error: 'Este estudiante ya desistió formalmente de esta tesis. No puede ser reincorporado.' },
+          { status: 409 }
+        )
+      }
+
       let comentarioHist = 'Coautor agregado - invitación enviada'
       if (taPrevio) {
-        // Si la withdrawal está APROBADA, cancelarla no es válido (es historia),
-        // pero sí reactivamos el autor. El previo desistimiento queda como registro.
-        // Si había solicitud PENDIENTE/RECHAZADO/CANCELADO, la dejamos donde está
-        // (la próxima desistimiento del mismo user la "upsertará" vía solicitar/route.ts).
+        // Reactivar registro previo (RECHAZADO / CANCELADO de invitación anterior).
         await prisma.thesisAuthor.update({
           where: { id: taPrevio.id },
           data: {
@@ -554,9 +589,7 @@ export async function POST(
             motivoRechazo: null,
           },
         })
-        comentarioHist = taPrevio.estado === 'DESISTIDO'
-          ? 'Coautor reincorporado (había desistido antes) - invitación enviada'
-          : 'Coautor reinvitado - invitación enviada'
+        comentarioHist = 'Coautor reinvitado - invitación enviada'
       } else {
         await prisma.thesisAuthor.create({
           data: {

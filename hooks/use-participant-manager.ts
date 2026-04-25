@@ -12,6 +12,9 @@ interface Participante {
   codigoDocente?: string
   departamento?: string
   studentCareerId?: string
+  tieneTesisActiva?: boolean
+  tesisActivaTitulo?: string | null
+  desistioDeEstaTesis?: boolean
 }
 
 type TipoParticipante = 'COAUTOR' | 'ASESOR' | 'COASESOR'
@@ -72,7 +75,8 @@ export function useParticipantManager(
       let endpoint: string
       if (tipoReemplazo === 'COAUTOR') {
         const carreraParam = tesis.carreraNombre ? `&carrera=${encodeURIComponent(tesis.carreraNombre)}` : ''
-        endpoint = `/api/tesis/buscar-estudiantes?q=${encodeURIComponent(query)}${carreraParam}`
+        const tesisParam = `&tesisId=${encodeURIComponent(tesis.id)}`
+        endpoint = `/api/tesis/buscar-estudiantes?q=${encodeURIComponent(query)}${carreraParam}${tesisParam}`
       } else {
         const facultadParam = tesis.facultad?.id ? `&facultadId=${encodeURIComponent(tesis.facultad.id)}` : ''
         endpoint = `/api/tesis/buscar-docentes?q=${encodeURIComponent(query)}${facultadParam}`

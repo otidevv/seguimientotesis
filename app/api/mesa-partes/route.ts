@@ -127,6 +127,7 @@ export async function GET(request: NextRequest) {
             nombre: true,
             rutaArchivo: true,
             firmadoDigitalmente: true,
+            requiereActualizacion: true,
           },
         },
         historialEstados: {
@@ -171,7 +172,10 @@ export async function GET(request: NextRequest) {
         facultad: primerAutor?.studentCareer?.facultad || null,
         // Documentos
         tieneProyecto: t.documentos.some((d) => d.tipo === 'PROYECTO'),
-        tieneCartaAsesor: t.documentos.some((d) => d.tipo === 'CARTA_ACEPTACION_ASESOR' && d.firmadoDigitalmente),
+        // Carta firmada y vigente (no marcada para actualización tras cambio de autores)
+        tieneCartaAsesor: t.documentos.some(
+          (d) => d.tipo === 'CARTA_ACEPTACION_ASESOR' && d.firmadoDigitalmente && !d.requiereActualizacion,
+        ),
         documentosCount: t.documentos.length,
       }
     })

@@ -601,10 +601,14 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             {puedeGestionar && (() => {
               const asesorNombre = proyecto.asesores.find((a: any) => a.tipo === 'ASESOR')?.nombre
               const coasesorNombre = proyecto.asesores.find((a: any) => a.tipo === 'COASESOR')?.nombre
+              // Una carta con `requiereActualizacion: true` existe pero quedó obsoleta
+              // tras un cambio de composición de autores — NO cuenta como presentada.
+              const cartaAsesorVigente = !!docCartaAsesor && !docCartaAsesor.requiereActualizacion
+              const cartaCoasesorVigente = !!docCartaCoasesor && !docCartaCoasesor.requiereActualizacion
               const checksBase = [
                 { key: 'proyecto', label: 'Proyecto de Tesis', presentado: !!docProyecto, doc: docProyecto, subidoPor: docProyecto?.subidoPor },
-                { key: 'carta_asesor', label: 'Carta de Aceptación del Asesor', presentado: !!docCartaAsesor, doc: docCartaAsesor, subidoPor: asesorNombre || docCartaAsesor?.subidoPor },
-                { key: 'carta_coasesor', label: 'Carta de Aceptación del Coasesor', presentado: !!docCartaCoasesor, doc: docCartaCoasesor, subidoPor: coasesorNombre || docCartaCoasesor?.subidoPor, opcional: !proyecto.asesores.some((a: any) => a.tipo === 'COASESOR') },
+                { key: 'carta_asesor', label: 'Carta de Aceptación del Asesor', presentado: cartaAsesorVigente, doc: docCartaAsesor, subidoPor: asesorNombre || docCartaAsesor?.subidoPor },
+                { key: 'carta_coasesor', label: 'Carta de Aceptación del Coasesor', presentado: cartaCoasesorVigente, doc: docCartaCoasesor, subidoPor: coasesorNombre || docCartaCoasesor?.subidoPor, opcional: !proyecto.asesores.some((a: any) => a.tipo === 'COASESOR') },
                 { key: 'voucher', label: 'Voucher de Pago (S/. 30.00 - Cód. 277)', presentado: !!docVoucher, doc: docVoucher, subidoPor: docVoucher?.subidoPor },
               ].filter(c => !c.opcional)
 

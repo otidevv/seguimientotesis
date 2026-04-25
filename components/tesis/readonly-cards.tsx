@@ -142,22 +142,45 @@ export function ReadOnlyAdvisorCard({ titulo, asesor, documento }: ReadOnlyAdvis
           <p className="text-sm font-medium">{nombreAsesor}</p>
           <p className="text-xs text-muted-foreground">{asesor.user.email}</p>
 
-          {asesor.estado === 'ACEPTADO' && documento && (
-            <a
-              href={documento.archivoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-background border mt-2 hover:bg-muted/50 transition-colors cursor-pointer"
-              title="Ver carta de aceptación"
-            >
-              <FileCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span className="text-sm flex-1 truncate">Carta de Aceptación</span>
-              <span className="text-xs text-muted-foreground">
-                {formatFileSize(documento.archivoTamano)}
-              </span>
-              <Eye className="w-4 h-4 text-muted-foreground" />
-            </a>
-          )}
+          {asesor.estado === 'ACEPTADO' && documento && (() => {
+            const desactualizada = documento.requiereActualizacion === true
+            return (
+              <div className="mt-2 space-y-1.5">
+                <a
+                  href={documento.archivoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    'flex items-center gap-2 p-2 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer',
+                    desactualizada
+                      ? 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-300 dark:border-amber-900'
+                      : 'bg-white dark:bg-background',
+                  )}
+                  title="Ver carta de aceptación"
+                >
+                  <FileCheck className={cn('w-4 h-4 flex-shrink-0', desactualizada ? 'text-amber-600' : 'text-green-600')} />
+                  <span className="text-sm flex-1 truncate">Carta de Aceptación</span>
+                  {desactualizada && (
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-amber-500 text-amber-700 bg-amber-50">
+                      Desactualizada
+                    </Badge>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {formatFileSize(documento.archivoTamano)}
+                  </span>
+                  <Eye className="w-4 h-4 text-muted-foreground" />
+                </a>
+                {desactualizada && (
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                    Esta carta quedó desactualizada y el asesor debe subir una nueva versión antes de enviar el expediente.
+                    {documento.motivoActualizacion && (
+                      <span className="block italic text-muted-foreground">{documento.motivoActualizacion}</span>
+                    )}
+                  </p>
+                )}
+              </div>
+            )
+          })()}
           {asesor.estado === 'ACEPTADO' && !documento && (
             <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
               Aceptó la asesoría — pendiente de subir carta

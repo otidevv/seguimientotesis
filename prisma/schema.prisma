@@ -719,6 +719,15 @@ model ThesisDocument {
   tamano          Int? // en bytes
   version         Int                @default(1)
   esVersionActual Boolean            @default(true) @map("es_version_actual")
+  esBorrador      Boolean            @default(false) @map("es_borrador")
+
+  // Flag de "el documento sigue siendo la versión vigente, pero quedó
+  // obsoleto por un cambio de contexto (p. ej. cambio en autores de la
+  // tesis hace que la carta liste datos que ya no son correctos)".
+  // El documento se mantiene visible, con un badge de "desactualizado",
+  // hasta que el uploader suba una nueva versión.
+  requiereActualizacion Boolean @default(false) @map("requiere_actualizacion")
+  motivoActualizacion   String? @map("motivo_actualizacion") @db.Text
 
   // Firma digital
   firmadoDigitalmente Boolean   @default(false) @map("firmado_digitalmente")

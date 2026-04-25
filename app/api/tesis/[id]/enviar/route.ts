@@ -133,16 +133,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         : 'No hay asesor asignado',
     })
 
-    // 3. Carta de aceptación del asesor (firmada digital o físicamente)
+    // 3. Carta de aceptación del asesor (firmada digital o físicamente).
+    // Si la carta está marcada como `requiereActualizacion`, se considera NO
+    // cumplida: la composición de tesistas cambió y la carta contiene datos
+    // desactualizados. El asesor debe subir una versión nueva.
     const cartaAsesor = tesis.documentos.find(
       (d) => d.tipo === 'CARTA_ACEPTACION_ASESOR'
     )
+    const cartaAsesorDesactualizada = !!cartaAsesor?.requiereActualizacion
     requisitos.push({
       nombre: 'Carta de Aceptación del Asesor',
-      cumplido: !!cartaAsesor,
-      detalle: cartaAsesor
-        ? cartaAsesor.firmadoDigitalmente ? 'Carta firmada digitalmente' : 'Carta registrada'
-        : 'El asesor debe subir su carta de aceptación',
+      cumplido: !!cartaAsesor && !cartaAsesorDesactualizada,
+      detalle: !cartaAsesor
+        ? 'El asesor debe subir su carta de aceptación'
+        : cartaAsesorDesactualizada
+          ? 'La carta quedó desactualizada tras un cambio en los autores — el asesor debe subir una nueva versión'
+          : cartaAsesor.firmadoDigitalmente ? 'Carta firmada digitalmente' : 'Carta registrada',
     })
 
     // 4. Coasesor (si existe) aceptó
@@ -157,16 +163,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           : 'Esperando aceptación del coasesor',
       })
 
-      // 5. Carta de aceptación del coasesor (firmada digital o físicamente)
+      // 5. Carta de aceptación del coasesor (firmada digital o físicamente).
+      // Mismo trato que el asesor: si está marcada como desactualizada, bloquea.
       const cartaCoasesor = tesis.documentos.find(
         (d) => d.tipo === 'CARTA_ACEPTACION_COASESOR'
       )
+      const cartaCoasesorDesactualizada = !!cartaCoasesor?.requiereActualizacion
       requisitos.push({
         nombre: 'Carta de Aceptación del Coasesor',
-        cumplido: !!cartaCoasesor,
-        detalle: cartaCoasesor
-          ? cartaCoasesor.firmadoDigitalmente ? 'Carta firmada digitalmente' : 'Carta registrada'
-          : 'El coasesor debe subir su carta de aceptación',
+        cumplido: !!cartaCoasesor && !cartaCoasesorDesactualizada,
+        detalle: !cartaCoasesor
+          ? 'El coasesor debe subir su carta de aceptación'
+          : cartaCoasesorDesactualizada
+            ? 'La carta quedó desactualizada tras un cambio en los autores — el coasesor debe subir una nueva versión'
+            : cartaCoasesor.firmadoDigitalmente ? 'Carta firmada digitalmente' : 'Carta registrada',
       })
     }
 

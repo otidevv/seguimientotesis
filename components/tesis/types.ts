@@ -6,6 +6,9 @@ export interface Documento {
   archivoTamano: number
   archivoMimeType: string
   createdAt: string
+  requiereActualizacion?: boolean
+  motivoActualizacion?: string | null
+  firmadoDigitalmente?: boolean
   subidoPor?: {
     id: string
     nombres: string
@@ -68,6 +71,12 @@ export interface Tesis {
     id: string
     estadoSolicitud: string
     createdAt: string
+    solicitadoPor: {
+      userId: string
+      nombres: string
+      apellidoPaterno: string
+      apellidoMaterno: string | null
+    }
   }[]
 }
 
@@ -82,4 +91,7 @@ export interface Participante {
   carrera?: string
   departamento?: string
   studentCareerId?: string
+  tieneTesisActiva?: boolean
+  tesisActivaTitulo?: string | null
+  desistioDeEstaTesis?: boolean
 }

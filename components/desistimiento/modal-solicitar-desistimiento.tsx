@@ -18,6 +18,8 @@ interface Props {
   tituloTesis: string
   /** Si es `true`, la tesis continuará con el coautor. Si es `false`, quedará DESISTIDA. */
   tieneCoautor?: boolean
+  /** `true` si quien desiste es el AUTOR_PRINCIPAL, `false` si es coautor. */
+  esAutorPrincipal?: boolean
   onSuccess?: () => void
 }
 
@@ -38,6 +40,7 @@ export function ModalSolicitarDesistimiento({
   thesisId,
   tituloTesis,
   tieneCoautor,
+  esAutorPrincipal,
   onSuccess,
 }: Props) {
   const [categoria, setCategoria] = useState<string>('')
@@ -114,32 +117,48 @@ export function ModalSolicitarDesistimiento({
         </DialogHeader>
 
         {/* Advertencia contextual según escenario */}
-        {tieneCoautor !== undefined && (
-          <div
-            className={cn(
-              'rounded-lg border-2 p-3 flex items-start gap-3',
-              tieneCoautor
-                ? 'border-blue-300 bg-blue-50 dark:bg-blue-950/30'
-                : 'border-red-300 bg-red-50 dark:bg-red-950/30',
-            )}
-          >
-            {tieneCoautor ? (
-              <Users className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
-            ) : (
-              <User className="w-5 h-5 text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
-            )}
-            <div className="text-sm">
-              <p className={cn('font-semibold', tieneCoautor ? 'text-blue-900 dark:text-blue-100' : 'text-red-900 dark:text-red-100')}>
-                {tieneCoautor ? 'Hay coautor en este proyecto' : 'Eres el autor único del proyecto'}
-              </p>
-              <p className={cn('mt-0.5', tieneCoautor ? 'text-blue-800 dark:text-blue-200' : 'text-red-800 dark:text-red-200')}>
-                {tieneCoautor
-                  ? 'Si mesa de partes aprueba, tu coautor continuará como autor principal. La tesis no se pierde.'
-                  : 'Si mesa de partes aprueba, la tesis quedará en estado DESISTIDA y no podrás retomarla. Podrás crear un proyecto nuevo.'}
-              </p>
+        {tieneCoautor !== undefined && (() => {
+          // Tres escenarios:
+          // A) Único autor (no hay coautor) → tesis se cierra.
+          // B) Autor principal desiste, coautor continúa → coautor asume como principal.
+          // C) Coautor desiste, principal continúa → principal sigue solo con la tesis.
+          let titulo: string
+          let descripcion: string
+          if (!tieneCoautor) {
+            titulo = 'Eres el autor único del proyecto'
+            descripcion = 'Si mesa de partes aprueba, la tesis quedará en estado DESISTIDA y no podrás retomarla. Podrás crear un proyecto nuevo.'
+          } else if (esAutorPrincipal) {
+            titulo = 'Tu coautor continuará con la tesis'
+            descripcion = 'Si mesa de partes aprueba, tu coautor asumirá como autor principal y la tesis seguirá su curso. Tu participación quedará registrada como DESISTIDA.'
+          } else {
+            titulo = 'El autor principal continuará con la tesis'
+            descripcion = 'Si mesa de partes aprueba, el autor principal seguirá solo con el proyecto. Tu participación como coautor quedará registrada como DESISTIDA.'
+          }
+          return (
+            <div
+              className={cn(
+                'rounded-lg border-2 p-3 flex items-start gap-3',
+                tieneCoautor
+                  ? 'border-blue-300 bg-blue-50 dark:bg-blue-950/30'
+                  : 'border-red-300 bg-red-50 dark:bg-red-950/30',
+              )}
+            >
+              {tieneCoautor ? (
+                <Users className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
+              ) : (
+                <User className="w-5 h-5 text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
+              )}
+              <div className="text-sm">
+                <p className={cn('font-semibold', tieneCoautor ? 'text-blue-900 dark:text-blue-100' : 'text-red-900 dark:text-red-100')}>
+                  {titulo}
+                </p>
+                <p className={cn('mt-0.5', tieneCoautor ? 'text-blue-800 dark:text-blue-200' : 'text-red-800 dark:text-red-200')}>
+                  {descripcion}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">

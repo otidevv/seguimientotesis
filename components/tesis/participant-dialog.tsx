@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
-import { Check, CheckCircle2, GraduationCap, Loader2, Search, User } from 'lucide-react'
+import { Ban, Check, CheckCircle2, GraduationCap, Loader2, Search, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Participante } from './types'
 
@@ -77,41 +77,54 @@ export function ParticipantDialog({
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : resultados.length > 0 ? (
-              resultados.map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => onSeleccionar(p)}
-                  className={cn(
-                    'p-3 rounded-lg border cursor-pointer transition-all',
-                    seleccionado?.id === p.id
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                      {esEstudiante ? (
-                        <User className="w-5 h-5 text-muted-foreground" />
-                      ) : (
-                        <GraduationCap className="w-5 h-5 text-muted-foreground" />
+              resultados.map((p) => {
+                const bloqueado = p.desistioDeEstaTesis === true
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => { if (!bloqueado) onSeleccionar(p) }}
+                    aria-disabled={bloqueado}
+                    className={cn(
+                      'p-3 rounded-lg border transition-all',
+                      bloqueado
+                        ? 'cursor-not-allowed border-border bg-muted/40 opacity-60'
+                        : 'cursor-pointer',
+                      !bloqueado && seleccionado?.id === p.id
+                        ? 'border-primary bg-primary/5'
+                        : !bloqueado && 'border-border hover:border-primary/50'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                        {esEstudiante ? (
+                          <User className="w-5 h-5 text-muted-foreground" />
+                        ) : (
+                          <GraduationCap className="w-5 h-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">
+                          {p.apellidoPaterno} {p.apellidoMaterno}, {p.nombres}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {esEstudiante
+                            ? `${p.codigoEstudiante || 'Sin código'} • ${p.carrera || 'Sin carrera'}`
+                            : `${p.codigoDocente || ''} • ${p.departamento || 'Sin departamento'}`}
+                        </p>
+                        {bloqueado && (
+                          <p className="mt-1 flex items-center gap-1 text-[11px] text-red-600 dark:text-red-400">
+                            <Ban className="w-3 h-3" />
+                            Ya desistió de esta tesis, no puede ser reincorporado.
+                          </p>
+                        )}
+                      </div>
+                      {!bloqueado && seleccionado?.id === p.id && (
+                        <CheckCircle2 className="w-5 h-5 text-primary" />
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {p.apellidoPaterno} {p.apellidoMaterno}, {p.nombres}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {esEstudiante
-                          ? `${p.codigoEstudiante || 'Sin código'} • ${p.carrera || 'Sin carrera'}`
-                          : `${p.codigoDocente || ''} • ${p.departamento || 'Sin departamento'}`}
-                      </p>
-                    </div>
-                    {seleccionado?.id === p.id && (
-                      <CheckCircle2 className="w-5 h-5 text-primary" />
-                    )}
                   </div>
-                </div>
-              ))
+                )
+              })
             ) : busqueda.length >= 2 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p className="text-sm">No se encontraron resultados</p>

@@ -405,28 +405,32 @@ function UserFooter({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate
 
   return (
     <div className="border-t border-sidebar-border p-3 space-y-2">
-      <Link
-        href="/perfil"
-        onClick={onNavigate}
-        className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-sidebar-accent transition-colors"
-      >
-        <Avatar className="h-8 w-8 flex-shrink-0">
-          {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={nombreCompleto} />}
-          <AvatarFallback className="bg-sidebar-primary/10 text-sidebar-primary text-xs font-semibold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium text-sidebar-foreground truncate">{nombreCompleto}</p>
-          <p className="text-[11px] text-sidebar-foreground/50 truncate">{primerRol}</p>
-        </div>
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); logout(); onNavigate?.() }}
-          className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md text-sidebar-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+      <div className="flex items-center gap-1">
+        <Link
+          href="/perfil"
+          onClick={onNavigate}
+          className="flex flex-1 min-w-0 items-center gap-3 rounded-lg px-2 py-2 hover:bg-sidebar-accent transition-colors"
         >
-          <LogOut className="h-4 w-4" />
+          <Avatar className="h-8 w-8 flex-shrink-0">
+            {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={nombreCompleto} />}
+            <AvatarFallback className="bg-sidebar-primary/10 text-sidebar-primary text-xs font-semibold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium text-sidebar-foreground truncate">{nombreCompleto}</p>
+            <p className="text-[11px] text-sidebar-foreground/50 truncate">{primerRol}</p>
+          </div>
+        </Link>
+        <button
+          onClick={() => { logout(); onNavigate?.() }}
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
+          className="self-stretch w-11 flex-shrink-0 flex items-center justify-center rounded-lg text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+        >
+          <LogOut className="h-[18px] w-[18px]" />
         </button>
-      </Link>
+      </div>
 
       <p className="text-[10px] text-sidebar-foreground/30 text-center">v1.0.0</p>
     </div>

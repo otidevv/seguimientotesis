@@ -1,7 +1,8 @@
 /**
  * API Route: /api/tesis/[id]/carta-aceptacion/firmar
  *
- * POST: Inicia el proceso de firma digital de la carta de aceptación
+ * POST: Inicia el proceso de firma digital de la carta de aceptación.
+ * Requiere que exista un ThesisDocument borrador subido previamente.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -9,6 +10,8 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateTokenLote, saveLoteParams } from '@/lib/firma-peru/storage'
 import type { LoteParams } from '@/lib/firma-peru/types'
+import path from 'path'
+import fs from 'fs'
 
 interface RouteParams {
   params: Promise<{
@@ -26,16 +29,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json()
-    const { fileName, motivo = 1, apariencia = 1 } = body
-
-    if (!fileName) {
-      return NextResponse.json(
-        { error: 'Se requiere el nombre del archivo a firmar' },
-        { status: 400 }
-      )
+    const { motivo = 1, apariencia = 1, documentoId } = body as {
+      motivo?: number
+      apariencia?: number
+      documentoId?: string
     }
 
-    // Verificar que la tesis existe y el usuario es asesor de ella
     const tesis = await prisma.thesis.findUnique({
       where: { id: tesisId, deletedAt: null },
       include: {
@@ -65,38 +64,75 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Generar token único para este lote de firma
-    const tokenLote = generateTokenLote()
-
-    // Determinar el tipo de documento según el tipo de asesor
     const tipoAsesor = asesorRegistro.tipo === 'PRINCIPAL' ? 'ASESOR' : 'COASESOR'
     const tipoDocumento =
       asesorRegistro.tipo === 'PRINCIPAL'
         ? 'CARTA_ACEPTACION_ASESOR'
         : 'CARTA_ACEPTACION_COASESOR'
 
-    // Crear un ID numérico único basado en timestamp para Firma Perú
+    // Buscar el borrador — por documentoId si se pasó, o el más reciente del usuario.
+    const borrador = documentoId
+      ? await prisma.thesisDocument.findFirst({
+          where: {
+            id: documentoId,
+            thesisId: tesisId,
+            uploadedById: user.id,
+            tipo: tipoDocumento,
+            esBorrador: true,
+          },
+        })
+      : await prisma.thesisDocument.findFirst({
+          where: {
+            thesisId: tesisId,
+            uploadedById: user.id,
+            tipo: tipoDocumento,
+            esBorrador: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+
+    if (!borrador) {
+      return NextResponse.json(
+        { error: 'No hay carta pendiente para firmar. Sube el archivo primero.' },
+        { status: 404 }
+      )
+    }
+
+    // Verificar que el archivo existe físicamente.
+    const absPath = path.join(process.cwd(), 'public', borrador.rutaArchivo.replace(/^\//, ''))
+    if (!fs.existsSync(absPath)) {
+      return NextResponse.json(
+        { error: 'El archivo del borrador no fue encontrado. Vuelve a subirlo.' },
+        { status: 404 }
+      )
+    }
+
+    // Path relativo a public/documentos (que es el que usa /lote/[codigo]/descargar).
+    // rutaArchivo es algo como "/documentos/cartas-aceptacion/borradores/<file>.pdf";
+    // le quitamos el prefijo "/documentos/" para obtener la ruta relativa esperada.
+    const rutaRelativaDocumentos = borrador.rutaArchivo.replace(/^\/documentos\//, '')
+
+    const tokenLote = generateTokenLote()
     const archivoId = Date.now()
 
-    // Guardar parámetros del lote con metadata extendida para el proceso de firma
     const loteParams: LoteParams = {
       archivo_ids: [archivoId],
-      archivo_nombres: [`cartas-aceptacion/temp/${fileName}`],
+      archivo_nombres: [rutaRelativaDocumentos],
       motivo,
       apariencia,
       nombre_lote: `Carta de Aceptación - ${tesis.titulo.substring(0, 50)}`,
       fecha: new Date().toISOString(),
-      // Campos extendidos para identificar el documento de tesis
       tesisId,
       userId: user.id,
       tipoAsesor,
       tipoDocumento,
+      borradorDocumentId: borrador.id,
     }
 
     saveLoteParams(tokenLote, loteParams)
 
     console.log(`[Carta Aceptación] Lote de firma creado: ${tokenLote}`)
-    console.log(`[Carta Aceptación] Tesis: ${tesisId}, Asesor: ${tipoAsesor}`)
+    console.log(`[Carta Aceptación] Tesis: ${tesisId}, Asesor: ${tipoAsesor}, Borrador: ${borrador.id}`)
 
     return NextResponse.json({
       success: true,
