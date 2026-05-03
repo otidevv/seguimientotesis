@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isoDateLima } from '@/lib/academic-calendar'
 import { z } from 'zod'
 
 function requireAdmin(request: NextRequest): { userId: string } | NextResponse {
@@ -43,7 +44,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
   if (fechaInicio < prev.periodo.fechaInicio || fechaFin > prev.periodo.fechaFin) {
     return NextResponse.json({
-      error: `La ventana debe caer dentro del periodo "${prev.periodo.nombre}" (${prev.periodo.fechaInicio.toISOString().slice(0, 10)} — ${prev.periodo.fechaFin.toISOString().slice(0, 10)}).`,
+      error: `La ventana debe caer dentro del periodo "${prev.periodo.nombre}" (${isoDateLima(prev.periodo.fechaInicio)} — ${isoDateLima(prev.periodo.fechaFin)}).`,
     }, { status: 400 })
   }
 

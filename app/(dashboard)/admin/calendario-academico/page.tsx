@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,7 +21,12 @@ import {
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { Loader2, Plus, Pencil, Trash2, CalendarDays, ChevronRight, Power, ShieldAlert } from 'lucide-react'
+import {
+  Loader2, Plus, Pencil, Trash2, CalendarDays, ChevronRight, Power, ShieldAlert,
+  AlertTriangle, CheckCircle2, Clock, Sparkles, Layers, Star, Lightbulb,
+  CalendarOff, FileText, Inbox, Users, ClipboardCheck, FileCheck2, GraduationCap, Ban,
+  type LucideIcon,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Semestre = 'I' | 'II' | 'VERANO'
@@ -80,15 +85,106 @@ function isoDate(s: string) {
   return new Date(s).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })
 }
 
+function fmtFechaCorta(s: string) {
+  return new Date(s).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'America/Lima' }).replace('.', '')
+}
+
+const TIPO_ICON: Record<WindowType, LucideIcon> = {
+  PRESENTACION_PROYECTO: FileText,
+  REVISION_MESA_PARTES:  Inbox,
+  ASIGNACION_JURADOS:    Users,
+  EVALUACION_JURADO:     ClipboardCheck,
+  INFORME_FINAL:         FileCheck2,
+  SUSTENTACION:          GraduationCap,
+  DESISTIMIENTO:         Ban,
+}
+
+function diasEntre(a: Date, b: Date) {
+  const MS = 86400000
+  const ymd = (d: Date) => {
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d)
+    const get = (t: string) => Number(parts.find(p => p.type === t)?.value)
+    return Date.UTC(get('year'), get('month') - 1, get('day'))
+  }
+  return Math.round((ymd(a) - ymd(b)) / MS)
+}
+
+function progresoPeriodo(inicio: string, fin: string, ahora: Date) {
+  const i = new Date(inicio).getTime()
+  const f = new Date(fin).getTime()
+  const n = ahora.getTime()
+  if (n < i) return 0
+  if (n > f) return 100
+  return Math.round(((n - i) / (f - i)) * 100)
+}
+
+const ESTADO_STYLE: Record<Estado, { dot: string; bg: string; ink: string; ring: string; pulse: boolean; label: string }> = {
+  ACTIVO:      { dot: 'bg-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', ink: 'text-emerald-700 dark:text-emerald-300', ring: 'ring-emerald-500/30 border-emerald-200 dark:border-emerald-900/60', pulse: true,  label: 'Activo' },
+  PLANIFICADO: { dot: 'bg-sky-500',     bg: 'bg-sky-50 dark:bg-sky-950/30',         ink: 'text-sky-700 dark:text-sky-300',         ring: 'ring-sky-500/30 border-sky-200 dark:border-sky-900/60',           pulse: false, label: 'Planificado' },
+  CERRADO:     { dot: 'bg-slate-400',   bg: 'bg-slate-100 dark:bg-slate-800/40',    ink: 'text-slate-700 dark:text-slate-300',     ring: 'ring-slate-300/30 border-slate-200 dark:border-slate-800/60',     pulse: false, label: 'Cerrado' },
+}
+
+interface StatCellProps {
+  icon: LucideIcon
+  label: string
+  value: string | number
+  sub?: string
+  tone?: 'default' | 'emerald' | 'sky' | 'primary'
+  isText?: boolean
+}
+function StatCell({ icon: Icon, label, value, sub, tone = 'default', isText }: StatCellProps) {
+  const toneClass = {
+    default: 'bg-card',
+    emerald: 'bg-emerald-50/40 dark:bg-emerald-950/15',
+    sky: 'bg-sky-50/40 dark:bg-sky-950/15',
+    primary: 'bg-primary/[0.04]',
+  }[tone]
+  const iconClass = {
+    default: 'text-muted-foreground bg-muted',
+    emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/40',
+    sky: 'text-sky-600 dark:text-sky-400 bg-sky-100/70 dark:bg-sky-950/40',
+    primary: 'text-primary bg-primary/10',
+  }[tone]
+  return (
+    <div className={cn('flex items-center gap-3 px-5 py-4', toneClass)}>
+      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ring-black/5 dark:ring-white/5', iconClass)}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className={cn('font-bold tracking-tight leading-tight truncate', isText ? 'text-base capitalize' : 'text-2xl tabular-nums')}>{value}</p>
+        {sub && <p className="text-[11px] text-muted-foreground truncate mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  )
+}
+
+function EstadoPill({ estado }: { estado: Estado }) {
+  const s = ESTADO_STYLE[estado]
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', s.bg, s.ink)}>
+      <span className="relative flex h-1.5 w-1.5">
+        {s.pulse && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />}
+        <span className={cn('relative inline-flex h-1.5 w-1.5 rounded-full', s.dot)} />
+      </span>
+      {s.label}
+    </span>
+  )
+}
+
 function toInputValue(s: string) {
-  // yyyy-mm-dd para input date en America/Lima
-  const d = new Date(s)
-  const off = d.getTimezoneOffset() * 60000
-  return new Date(d.getTime() - off).toISOString().slice(0, 10)
+  // yyyy-mm-dd en zona America/Lima, independiente del TZ del navegador.
+  // Usar getTimezoneOffset() del navegador era frágil: solo funcionaba si el
+  // admin estaba físicamente en UTC-5; en otra zona el input mostraba el día corrido.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Lima',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date(s))
 }
 
 function fromInputValue(s: string, endOfDay = false) {
-  // input yyyy-mm-dd en zona Lima (UTC-5)
+  // input yyyy-mm-dd interpretado en zona Lima (UTC-5).
+  // Ej: '2026-05-03' con endOfDay=true → '2026-05-04T04:59:59Z' (= 03 may 23:59:59 Lima).
   const hora = endOfDay ? '23:59:59' : '00:00:00'
   return new Date(`${s}T${hora}-05:00`).toISOString()
 }
@@ -140,190 +236,360 @@ export default function CalendarioAcademicoPage() {
     else setDetalle(null)
   }, [expandedId, loadDetalle])
 
+  // Stats overview para el header
+  const ahora = new Date()
+  const stats = useMemo(() => {
+    const activos = periodos.filter(p => p.estado === 'ACTIVO').length
+    const planificados = periodos.filter(p => p.estado === 'PLANIFICADO').length
+    const cerrados = periodos.filter(p => p.estado === 'CERRADO').length
+    const totalVentanas = periodos.reduce((acc, p) => acc + p._count.ventanas, 0)
+    const activoActual = periodos.find(p => p.esActual && p.estado === 'ACTIVO') ?? periodos.find(p => p.estado === 'ACTIVO')
+    return { total: periodos.length, activos, planificados, cerrados, totalVentanas, activoActual }
+  }, [periodos])
+
+  // Warning: periodo ACTIVO global termina pronto y no hay siguiente PLANIFICADO.
+  const warning = useMemo(() => {
+    const globales = periodos.filter(p => p.facultadId === null)
+    const activoGlobal = globales.find(p => p.estado === 'ACTIVO')
+    if (!activoGlobal) return null
+    const fin = new Date(activoGlobal.fechaFin)
+    const diasParaFin = Math.ceil((fin.getTime() - ahora.getTime()) / 86400000)
+    if (diasParaFin > 30) return null
+    const hayFuturo = globales.some(p =>
+      p.id !== activoGlobal.id &&
+      (p.estado === 'PLANIFICADO' || p.estado === 'ACTIVO') &&
+      new Date(p.fechaInicio) > fin,
+    )
+    if (hayFuturo) return null
+    return { activoGlobal, diasParaFin }
+  }, [periodos, ahora])
+
   return (
     <div className="container mx-auto py-6 px-4 space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <CalendarDays className="w-6 h-6" /> Calendario academico
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestiona periodos academicos y ventanas de tramite. Las ventanas fuera de plazo
-            bloquean acciones de tesistas y mesa de partes.
-          </p>
-        </div>
-        <Button onClick={() => setCrearPeriodoOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" /> Nuevo periodo
-        </Button>
-      </div>
-
-      {(() => {
-        // Warning: periodo ACTIVO global termina pronto y no hay siguiente
-        // PLANIFICADO. Los plazos de jurados/correcciones podrian no saltar
-        // correctamente las vacaciones si no hay calendario futuro configurado.
-        const ahora = new Date()
-        const globales = periodos.filter((p) => p.facultadId === null)
-        const activoGlobal = globales.find((p) => p.estado === 'ACTIVO')
-        if (!activoGlobal) return null
-        const fin = new Date(activoGlobal.fechaFin)
-        const diasParaFin = Math.ceil((fin.getTime() - ahora.getTime()) / (24 * 60 * 60 * 1000))
-        if (diasParaFin > 30) return null
-        const hayFuturo = globales.some(
-          (p) => p.id !== activoGlobal.id &&
-            (p.estado === 'PLANIFICADO' || p.estado === 'ACTIVO') &&
-            new Date(p.fechaInicio) > fin,
-        )
-        if (hayFuturo) return null
-        return (
-          <Card className="border-amber-300 bg-amber-50/50 dark:bg-amber-950/20">
-            <CardContent className="py-3 text-sm flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
-              <div>
-                <p className="font-medium text-amber-900 dark:text-amber-100">
-                  El periodo global <b>{activoGlobal.nombre}</b> termina en {diasParaFin} dia{diasParaFin === 1 ? '' : 's'}
-                  {' '}y no hay un periodo siguiente configurado.
-                </p>
-                <p className="text-xs text-amber-800 dark:text-amber-200 mt-1">
-                  Los plazos de jurados y correcciones que se calculen ahora podrian no saltar
-                  correctamente las vacaciones. Crea el siguiente periodo (PLANIFICADO) antes de que termine este.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )
-      })()}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Periodos</CardTitle>
-          <CardDescription>Haz clic en un periodo para ver y configurar sus ventanas.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
-          ) : periodos.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground text-sm">
-              Aun no hay periodos registrados.
+      {/* Hero header */}
+      <section className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-card via-card to-muted/40">
+        <div className="absolute inset-0 -z-10 opacity-[0.04] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:24px_24px]" aria-hidden />
+        <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/15">
+              <CalendarDays className="h-6 w-6 text-primary" />
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10" />
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Facultad</TableHead>
-                  <TableHead>Fechas</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Ventanas</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {periodos.map((p) => (
-                  <TableRow
-                    key={p.id}
-                    className={cn('cursor-pointer', expandedId === p.id && 'bg-muted/40')}
-                    onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                  >
-                    <TableCell>
-                      <ChevronRight className={cn('w-4 h-4 transition-transform', expandedId === p.id && 'rotate-90')} />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {p.nombre}
-                      {p.esActual && <Badge variant="outline" className="ml-2 border-emerald-400 text-emerald-700">Actual</Badge>}
-                    </TableCell>
-                    <TableCell>{p.facultad?.codigo ?? <span className="text-muted-foreground">Global</span>}</TableCell>
-                    <TableCell className="text-sm">{isoDate(p.fechaInicio)} — {isoDate(p.fechaFin)}</TableCell>
-                    <TableCell>
-                      <Badge variant={p.estado === 'ACTIVO' ? 'default' : p.estado === 'CERRADO' ? 'destructive' : 'secondary'}>
-                        {p.estado}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{p._count.ventanas}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm" variant="ghost"
-                        onClick={(e) => { e.stopPropagation(); setEditPeriodo(p) }}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      {expandedId && detalle && (
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between">
             <div>
-              <CardTitle>Ventanas de {detalle.nombre}</CardTitle>
-              <CardDescription>Define cuando cada tramite esta abierto.</CardDescription>
+              <h1 className="text-2xl font-bold tracking-tight leading-tight">Calendario académico</h1>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground leading-relaxed">
+                Gestiona periodos académicos y ventanas de trámite. Las ventanas cerradas
+                bloquean envíos a revisión, asignación de jurados y demás acciones del flujo.
+              </p>
             </div>
-            <Button onClick={() => setCrearVentanaOpen(true)} size="sm">
-              <Plus className="w-4 h-4 mr-2" /> Nueva ventana
-            </Button>
-          </CardHeader>
-          <CardContent className="p-0">
-            {detalleLoading ? (
-              <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
-            ) : detalle.ventanas.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground text-sm">
-                Este periodo aun no tiene ventanas configuradas.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tramite</TableHead>
-                    <TableHead>Facultad</TableHead>
-                    <TableHead>Fechas</TableHead>
-                    <TableHead>Habilitada</TableHead>
-                    <TableHead>Overrides</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {detalle.ventanas.map((v) => (
-                    <TableRow key={v.id}>
-                      <TableCell className="font-medium">{TIPO_LABEL[v.tipo]}</TableCell>
-                      <TableCell>{v.facultad?.codigo ?? <span className="text-muted-foreground">Global</span>}</TableCell>
-                      <TableCell className="text-sm">{isoDate(v.fechaInicio)} — {isoDate(v.fechaFin)}</TableCell>
-                      <TableCell>
-                        <Badge variant={v.habilitada ? 'default' : 'secondary'}>{v.habilitada ? 'Si' : 'No'}</Badge>
-                      </TableCell>
-                      <TableCell>{v._count.overrides}</TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button size="sm" variant="ghost" title="Prorrogas" onClick={() => setOverridesVentana(v)}>
-                          <ShieldAlert className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditVentana(v)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm" variant="ghost"
-                          onClick={async () => {
-                            if (!confirm('Eliminar esta ventana?')) return
-                            const r = await fetch(`/api/admin/calendario-academico/ventanas/${v.id}`, { method: 'DELETE' })
-                            if (!r.ok) { toast.error('Error al eliminar'); return }
-                            toast.success('Ventana eliminada')
-                            loadDetalle(detalle.id)
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+          <Button onClick={() => setCrearPeriodoOpen(true)} size="default" className="shrink-0">
+            <Plus className="w-4 h-4 mr-2" /> Nuevo periodo
+          </Button>
+        </div>
+
+        {/* Stats strip */}
+        <div className="grid grid-cols-2 gap-px border-t bg-border lg:grid-cols-4">
+          <StatCell icon={Layers} label="Periodos" value={stats.total} sub={`${stats.activos} activos · ${stats.planificados} planif.`} />
+          <StatCell icon={CheckCircle2} label="Ventanas configuradas" value={stats.totalVentanas} sub="Trámites con plazo definido" tone="emerald" />
+          <StatCell icon={Sparkles} label="Periodo actual" value={stats.activoActual?.nombre ?? '—'} sub={stats.activoActual ? `${fmtFechaCorta(stats.activoActual.fechaInicio)} — ${fmtFechaCorta(stats.activoActual.fechaFin)}` : 'Sin periodo activo'} tone="sky" isText />
+          <StatCell icon={CalendarDays} label="Hoy" value={ahora.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', timeZone: 'America/Lima' }).replace('.', '')} sub={ahora.toLocaleDateString('es-PE', { weekday: 'long', timeZone: 'America/Lima' })} tone="primary" isText />
+        </div>
+      </section>
+
+      {/* Warning banner */}
+      {warning && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-300/70 bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-950/30 dark:to-amber-950/10 p-4 dark:border-amber-900/60">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-950/40">
+            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100 leading-tight">
+              El periodo global <b>{warning.activoGlobal.nombre}</b> termina en {warning.diasParaFin} día{warning.diasParaFin === 1 ? '' : 's'} y no hay un periodo siguiente configurado.
+            </p>
+            <p className="mt-1 text-xs text-amber-800/90 dark:text-amber-200/80 leading-relaxed">
+              Los plazos de jurados y correcciones que se calculen ahora podrían no saltar correctamente las vacaciones.
+              Crea el siguiente periodo (estado PLANIFICADO) antes de que termine este.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" className="border-amber-400 hover:bg-amber-100/50" onClick={() => setCrearPeriodoOpen(true)}>
+            <Plus className="w-3.5 h-3.5 mr-1.5" /> Crear siguiente
+          </Button>
+        </div>
       )}
+
+      {/* Periodos */}
+      <section className="rounded-2xl border bg-card overflow-hidden">
+        <header className="flex items-center justify-between border-b px-5 py-4">
+          <div>
+            <h2 className="text-[15px] font-semibold tracking-tight leading-tight">Periodos académicos</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Haz clic para ver y configurar sus ventanas.</p>
+          </div>
+          {!loading && periodos.length > 0 && (
+            <span className="text-[11px] tabular-nums text-muted-foreground">{periodos.length} {periodos.length === 1 ? 'periodo' : 'periodos'}</span>
+          )}
+        </header>
+        {loading ? (
+          <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+        ) : periodos.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+              <CalendarOff className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <p className="mt-3 text-sm font-medium">Aún no hay periodos registrados</p>
+            <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">Crea el primer periodo académico para empezar a definir las ventanas de trámite.</p>
+            <Button className="mt-4" size="sm" onClick={() => setCrearPeriodoOpen(true)}>
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> Crear periodo
+            </Button>
+          </div>
+        ) : (
+          <ul className="divide-y">
+            {periodos.map((p) => {
+              const expandido = expandedId === p.id
+              const progreso = progresoPeriodo(p.fechaInicio, p.fechaFin, ahora)
+              const cubreAhora = new Date(p.fechaInicio) <= ahora && new Date(p.fechaFin) >= ahora
+              return (
+                <li key={p.id} className={cn(expandido && 'bg-muted/15')}>
+                  {/* Fila clickeable del periodo */}
+                  <div
+                    className={cn(
+                      'flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-5 transition-colors',
+                      expandido ? 'bg-muted/40' : 'hover:bg-muted/20',
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(expandido ? null : p.id)}
+                      aria-label={expandido ? 'Ocultar ventanas' : 'Ver ventanas'}
+                      className={cn(
+                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer',
+                        expandido
+                          ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/20'
+                          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
+                      )}
+                    >
+                      <ChevronRight className={cn('w-4 h-4 transition-transform', expandido && 'rotate-90')} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(expandido ? null : p.id)}
+                      className="flex flex-1 items-start gap-3 min-w-0 text-left cursor-pointer"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-semibold tracking-tight">{p.nombre}</h3>
+                          <EstadoPill estado={p.estado} />
+                          {p.esActual && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+                              <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> Actual
+                            </span>
+                          )}
+                          <span className="text-[11px] text-muted-foreground">
+                            {p.facultad?.codigo ? <>Facultad <b>{p.facultad.codigo}</b></> : 'Alcance global'}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+                          {fmtFechaCorta(p.fechaInicio)} <span className="text-muted-foreground/50">→</span> {fmtFechaCorta(p.fechaFin)}
+                        </p>
+                        {/* timeline */}
+                        <div className="mt-2 relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div className={cn('h-full rounded-full transition-all', cubreAhora ? 'bg-emerald-500' : p.estado === 'CERRADO' ? 'bg-slate-400' : 'bg-sky-400')} style={{ width: `${progreso}%` }} />
+                          {cubreAhora && (
+                            <div className="absolute top-1/2 -translate-y-1/2 h-3 w-px bg-foreground" style={{ left: `calc(${progreso}% - 0.5px)` }} aria-label="hoy" />
+                          )}
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Acciones del periodo: claras, separadas y con texto */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId(expandido ? null : p.id)}
+                        className={cn(
+                          'inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer',
+                          expandido
+                            ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
+                            : 'bg-card hover:bg-muted/50 border-border',
+                        )}
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span className="tabular-nums">{p._count.ventanas}</span>
+                        <span className="hidden sm:inline">{expandido ? 'ventanas abiertas' : 'ver ventanas'}</span>
+                        <span className="inline sm:hidden">ventanas</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditPeriodo(p)}
+                        title="Editar periodo"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-border transition-colors cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span className="hidden md:inline">Editar</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Ventanas anidadas dentro del periodo expandido */}
+                  {expandido && detalle && detalle.id === p.id && (
+                    <div className="border-t bg-gradient-to-b from-muted/20 to-transparent">
+                      {(() => {
+                        const tiposGlobalesUsados = new Set(detalle.ventanas.filter(v => v.facultadId === null).map(v => v.tipo))
+                        const todosConfigurados = tiposGlobalesUsados.size >= TIPOS.length
+                        // Ordenar ventanas siguiendo el flujo natural del trámite
+                        const ventanasOrdenadas = [...detalle.ventanas].sort((a, b) => TIPOS.indexOf(a.tipo) - TIPOS.indexOf(b.tipo))
+
+                        return (
+                          <>
+                            <div className="flex items-center justify-between border-b bg-card/40 px-5 py-3">
+                              <div className="flex items-center gap-2">
+                                <Layers className="w-3.5 h-3.5 text-muted-foreground" />
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  Ventanas de trámite
+                                </h3>
+                                <span className="text-[10px] text-muted-foreground/70">
+                                  · ordenadas según el flujo del proyecto
+                                </span>
+                              </div>
+                              <Button
+                                onClick={() => setCrearVentanaOpen(true)}
+                                size="sm"
+                                variant="outline"
+                                disabled={todosConfigurados}
+                                title={todosConfigurados ? 'Todos los trámites ya tienen ventana en este periodo' : undefined}
+                                className="h-7 text-[11px]"
+                              >
+                                <Plus className="w-3 h-3 mr-1" /> Nueva ventana
+                              </Button>
+                            </div>
+
+                            {detalleLoading ? (
+                              <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+                            ) : detalle.ventanas.length === 0 ? (
+                              <div className="py-12 text-center px-4">
+                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                                  <Inbox className="w-6 h-6 text-muted-foreground" />
+                                </div>
+                                <p className="mt-3 text-sm font-medium">Este periodo aún no tiene ventanas</p>
+                                <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
+                                  Cada trámite (presentación, jurados, sustentación, etc.) necesita su propia ventana de plazo.
+                                </p>
+                                <Button className="mt-3" size="sm" onClick={() => setCrearVentanaOpen(true)}>
+                                  <Plus className="w-3.5 h-3.5 mr-1.5" /> Crear primera ventana
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-px bg-border md:grid-cols-2 xl:grid-cols-3">
+                                {ventanasOrdenadas.map((v, idx) => {
+                                  const Icon = TIPO_ICON[v.tipo] ?? FileText
+                                  const ahora2 = new Date()
+                                  const inicio = new Date(v.fechaInicio)
+                                  const fin = new Date(v.fechaFin)
+                                  const cubre = inicio <= ahora2 && fin >= ahora2 && v.habilitada
+                                  const proxima = ahora2 < inicio
+                                  const cerrada = fin < ahora2
+                                  const stateLabel = !v.habilitada ? 'Deshabilitada' : cubre ? 'Abierta' : proxima ? 'Próxima' : 'Cerrada'
+                                  const stateInk = !v.habilitada ? 'text-zinc-500' : cubre ? 'text-emerald-600 dark:text-emerald-400' : proxima ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500'
+                                  const stateBg = !v.habilitada ? 'bg-zinc-100 dark:bg-zinc-800/40' : cubre ? 'bg-emerald-50 dark:bg-emerald-950/30' : proxima ? 'bg-sky-50 dark:bg-sky-950/30' : 'bg-slate-100 dark:bg-slate-800/40'
+                                  const stateDot = !v.habilitada ? 'bg-zinc-400' : cubre ? 'bg-emerald-500' : proxima ? 'bg-sky-500' : 'bg-slate-400'
+                                  const progreso = progresoPeriodo(v.fechaInicio, v.fechaFin, ahora2)
+                                  const diasRel = cubre ? diasEntre(fin, ahora2) : proxima ? diasEntre(inicio, ahora2) : diasEntre(fin, ahora2)
+                                  const relTxt = cubre
+                                    ? (diasRel === 0 ? 'Cierra hoy' : diasRel === 1 ? 'Cierra mañana' : `Quedan ${diasRel} días`)
+                                    : proxima
+                                      ? (diasRel === 0 ? 'Abre hoy' : diasRel === 1 ? 'Abre mañana' : `Abre en ${diasRel} días`)
+                                      : cerrada
+                                        ? (Math.abs(diasRel) === 0 ? 'Cerró hoy' : Math.abs(diasRel) === 1 ? 'Cerró ayer' : `Cerró hace ${Math.abs(diasRel)} días`)
+                                        : ''
+
+                                  return (
+                                    <article key={v.id} className="bg-card p-4 transition-colors hover:bg-muted/30 group">
+                                      <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 min-w-0">
+                                          <div className="relative">
+                                            <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', stateBg)}>
+                                              <Icon className={cn('w-4 h-4', stateInk)} />
+                                            </div>
+                                            <span className="absolute -top-1 -left-1 inline-flex items-center justify-center h-4 min-w-4 rounded-full bg-foreground text-background text-[9px] font-bold tabular-nums px-1">
+                                              {idx + 1}
+                                            </span>
+                                          </div>
+                                          <div className="min-w-0">
+                                            <h4 className="text-sm font-semibold tracking-tight leading-tight truncate">{TIPO_LABEL[v.tipo]}</h4>
+                                            <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
+                                              {v.facultad?.codigo ? <>Facultad <b>{v.facultad.codigo}</b></> : 'Alcance global'}
+                                              {v._count.overrides > 0 && (
+                                                <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-amber-100/70 dark:bg-amber-950/30 px-1.5 py-0.5 text-amber-700 dark:text-amber-300 text-[10px]">
+                                                  <ShieldAlert className="w-2.5 h-2.5" /> {v._count.overrides} prórroga{v._count.overrides === 1 ? '' : 's'}
+                                                </span>
+                                              )}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <span className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', stateBg, stateInk)}>
+                                          <span className={cn('inline-block h-1.5 w-1.5 rounded-full', stateDot)} />
+                                          {stateLabel}
+                                        </span>
+                                      </div>
+
+                                      <div className="mt-3 flex items-baseline gap-2 text-xs tabular-nums">
+                                        <CalendarDays className="w-3.5 h-3.5 text-muted-foreground/60 self-center" />
+                                        <span className="font-medium">{fmtFechaCorta(v.fechaInicio)} <span className="text-muted-foreground/50">→</span> {fmtFechaCorta(v.fechaFin)}</span>
+                                      </div>
+
+                                      <div className="mt-2.5 space-y-1.5">
+                                        <div className="flex items-center justify-between text-[11px]">
+                                          <span className={cn('font-semibold', stateInk)}>{relTxt}</span>
+                                          {(cubre || cerrada) && (
+                                            <span className="text-[10px] text-muted-foreground tabular-nums">{progreso}% transcurrido</span>
+                                          )}
+                                        </div>
+                                        <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted">
+                                          <div className={cn('h-full rounded-full', stateDot)} style={{ width: `${progreso}%` }} />
+                                        </div>
+                                      </div>
+
+                                      <div className="mt-3 flex items-center justify-end gap-1 border-t pt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                        <Button
+                                          size="sm" variant="ghost" className="h-7 text-[11px] gap-1"
+                                          title="Gestionar prórrogas / overrides"
+                                          onClick={() => setOverridesVentana(v)}
+                                        >
+                                          <ShieldAlert className="w-3.5 h-3.5" /> Prórrogas
+                                        </Button>
+                                        <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1" onClick={() => setEditVentana(v)}>
+                                          <Pencil className="w-3.5 h-3.5" /> Editar
+                                        </Button>
+                                        <Button
+                                          size="sm" variant="ghost"
+                                          className="h-7 text-[11px] gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                          onClick={async () => {
+                                            if (!confirm(`¿Eliminar la ventana de "${TIPO_LABEL[v.tipo]}"? Esta acción no se puede deshacer.`)) return
+                                            const r = await fetch(`/api/admin/calendario-academico/ventanas/${v.id}`, { method: 'DELETE' })
+                                            if (!r.ok) { toast.error('Error al eliminar'); return }
+                                            toast.success('Ventana eliminada')
+                                            loadDetalle(detalle.id)
+                                          }}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                                        </Button>
+                                      </div>
+                                    </article>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </>
+                        )
+                      })()}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
       <PeriodoDialog
         open={crearPeriodoOpen}
@@ -458,139 +724,166 @@ function PeriodoDialog({ open, onOpenChange, onSaved, periodo, periodosExistente
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{editing ? 'Editar periodo' : 'Nuevo periodo'}</DialogTitle>
-          <DialogDescription>
-            {editing ? 'Modifica fechas, estado o vigencia.' : 'Crea un periodo academico global o por facultad.'}
-          </DialogDescription>
+      <DialogContent className="max-w-xl p-0 overflow-hidden">
+        <DialogHeader className="border-b bg-muted/30 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/15">
+              <CalendarDays className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <DialogTitle className="text-base font-semibold tracking-tight">
+                {editing ? `Editar ${periodo?.nombre ?? 'periodo'}` : 'Nuevo periodo académico'}
+              </DialogTitle>
+              <DialogDescription className="text-[12px] mt-0.5">
+                {editing
+                  ? 'Modifica fechas, estado o vigencia. Los cambios afectan inmediatamente las ventanas de este periodo.'
+                  : 'Las fechas se interpretan en zona América/Lima (UTC−5).'}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
-        <div className="space-y-3 py-2">
-          {!editing && (
+        <div className="space-y-5 px-6 py-5 max-h-[70vh] overflow-y-auto">
+          {/* Sección 1: identidad */}
+          <div className="space-y-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Identidad</p>
+            {!editing && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Año</Label>
+                  <Input className="mt-1" type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} />
+                </div>
+                <div>
+                  <Label className="text-xs">Semestre</Label>
+                  <Select value={semestre} onValueChange={(v) => setSemestre(v as Semestre)}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="I">I</SelectItem>
+                      <SelectItem value="II">II</SelectItem>
+                      <SelectItem value="VERANO">Verano</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+            <div>
+              <Label className="text-xs">Nombre visible</Label>
+              <Input className="mt-1" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="2026-I" />
+            </div>
+          </div>
+
+          {/* Sección 2: rango de fechas */}
+          <div className="space-y-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Rango de fechas</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Anio</Label>
-                <Input type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} />
+                <Label className="text-xs">Inicio</Label>
+                <Input className="mt-1" type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
               </div>
               <div>
-                <Label>Semestre</Label>
-                <Select value={semestre} onValueChange={(v) => setSemestre(v as Semestre)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Label className="text-xs">Fin</Label>
+                <Input className="mt-1" type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground flex items-start gap-1.5">
+              <Clock className="w-3 h-3 mt-0.5 shrink-0" />
+              <span>El día de inicio cuenta desde 00:00 y el día de fin hasta 23:59:59, hora Lima.</span>
+            </p>
+          </div>
+
+          {/* Sección 3: estado */}
+          <div className="space-y-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Estado</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Etapa</Label>
+                <Select value={estado} onValueChange={(v) => setEstado(v as Estado)}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="I">I</SelectItem>
-                    <SelectItem value="II">II</SelectItem>
-                    <SelectItem value="VERANO">Verano</SelectItem>
+                    <SelectItem value="PLANIFICADO">Planificado</SelectItem>
+                    <SelectItem value="ACTIVO">Activo</SelectItem>
+                    <SelectItem value="CERRADO">Cerrado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex items-end pb-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <Switch checked={esActual} onCheckedChange={setEsActual} id="esActual" />
+                  <span className="text-sm">Marcar como periodo actual</span>
+                </label>
+              </div>
             </div>
-          )}
+            <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2.5 text-[11px] text-muted-foreground">
+              <Lightbulb className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
+              <span>
+                <b className="text-foreground">Planificado</b>: ventanas no aplican aún. <b className="text-foreground">Activo</b>: ventanas vigentes y comparadas con la fecha actual. <b className="text-foreground">Cerrado</b>: bloquea todas las acciones del scope.
+              </span>
+            </div>
+          </div>
+
+          {/* Sección 4: observaciones */}
           <div>
-            <Label>Nombre mostrado</Label>
-            <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="2026-I" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Fecha inicio</Label>
-              <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-            </div>
-            <div>
-              <Label>Fecha fin</Label>
-              <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Estado</Label>
-              <Select value={estado} onValueChange={(v) => setEstado(v as Estado)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PLANIFICADO">Planificado</SelectItem>
-                  <SelectItem value="ACTIVO">Activo</SelectItem>
-                  <SelectItem value="CERRADO">Cerrado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-end gap-2">
-              <Switch checked={esActual} onCheckedChange={setEsActual} id="esActual" />
-              <Label htmlFor="esActual" className="cursor-pointer">Es periodo actual</Label>
-            </div>
-          </div>
-          <div>
-            <Label>Observaciones (opcional)</Label>
-            <Textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={2} />
+            <Label className="text-xs">Observaciones <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <Textarea className="mt-1" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={2} placeholder="Notas internas para mesa de partes..." />
           </div>
 
           {!editing && (
-            <div className="space-y-2 rounded-lg border p-3 bg-muted/20">
-              <Label className="text-sm font-medium">Ventanas iniciales</Label>
-              <p className="text-xs text-muted-foreground">
-                Ahorra tiempo auto-creando las 7 ventanas del periodo. Puedes ajustar fechas individuales despues.
-              </p>
-              <div className="space-y-2 pt-1">
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="radio" name="ventanasInit"
-                    className="mt-0.5"
-                    checked={ventanasInit === 'defecto'}
-                    onChange={() => setVentanasInit('defecto')}
-                  />
-                  <div>
-                    <div className="text-sm">Crear 7 ventanas por defecto</div>
-                    <div className="text-xs text-muted-foreground">Cada ventana cubre el rango completo del periodo. Ajustas fechas despues.</div>
-                  </div>
-                </label>
-
-                <label className={cn('flex items-start gap-2', candidatosCopia.length === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer')}>
-                  <input
-                    type="radio" name="ventanasInit"
-                    className="mt-0.5"
-                    disabled={candidatosCopia.length === 0}
-                    checked={ventanasInit === 'copiar'}
-                    onChange={() => setVentanasInit('copiar')}
-                  />
-                  <div className="flex-1">
-                    <div className="text-sm">Copiar ventanas de un periodo anterior</div>
-                    <div className="text-xs text-muted-foreground">
-                      {candidatosCopia.length === 0
-                        ? 'No hay periodos con ventanas configuradas aun.'
-                        : 'Copia las ventanas del periodo elegido, desplazando las fechas por el offset entre inicios.'}
-                    </div>
-                    {ventanasInit === 'copiar' && candidatosCopia.length > 0 && (
-                      <Select value={copiarDePeriodoId} onValueChange={setCopiarDePeriodoId}>
-                        <SelectTrigger className="mt-2 h-8 text-sm"><SelectValue placeholder="Selecciona periodo..." /></SelectTrigger>
-                        <SelectContent>
-                          {candidatosCopia.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.nombre} ({p._count.ventanas} ventanas)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+            <div className="space-y-3 rounded-xl border bg-gradient-to-br from-card to-muted/30 p-4">
+              <div className="flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-primary mt-0.5" />
+                <div>
+                  <p className="text-[13px] font-semibold leading-tight">Ventanas iniciales</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">
+                    Ahorra tiempo creando las 7 ventanas de trámite junto con el periodo. Podrás ajustarlas individualmente después.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                {([
+                  { v: 'defecto' as const, title: 'Crear 7 ventanas por defecto', sub: 'Cada ventana cubre todo el rango del periodo. Ajustas fechas después.', enabled: true },
+                  { v: 'copiar' as const, title: 'Copiar de un periodo anterior', sub: candidatosCopia.length === 0 ? 'No hay periodos con ventanas configuradas aún.' : 'Copia las ventanas del periodo elegido desplazando las fechas según el offset entre inicios.', enabled: candidatosCopia.length > 0 },
+                  { v: 'ninguna' as const, title: 'No crear ventanas', sub: 'Las creo manualmente después.', enabled: true },
+                ]).map(opt => (
+                  <label
+                    key={opt.v}
+                    className={cn(
+                      'flex items-start gap-2.5 rounded-lg border p-2.5 transition-colors',
+                      opt.enabled ? 'cursor-pointer hover:bg-muted/40' : 'opacity-50 cursor-not-allowed',
+                      ventanasInit === opt.v && opt.enabled && 'border-primary/40 bg-primary/[0.04]',
                     )}
-                  </div>
-                </label>
-
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="radio" name="ventanasInit"
-                    className="mt-0.5"
-                    checked={ventanasInit === 'ninguna'}
-                    onChange={() => setVentanasInit('ninguna')}
-                  />
-                  <div>
-                    <div className="text-sm">No crear ventanas</div>
-                    <div className="text-xs text-muted-foreground">Las creo manualmente despues.</div>
-                  </div>
-                </label>
+                  >
+                    <input
+                      type="radio" name="ventanasInit" className="mt-0.5 cursor-pointer disabled:cursor-not-allowed"
+                      disabled={!opt.enabled}
+                      checked={ventanasInit === opt.v}
+                      onChange={() => setVentanasInit(opt.v)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium">{opt.title}</div>
+                      <div className="text-[11px] text-muted-foreground leading-relaxed">{opt.sub}</div>
+                      {opt.v === 'copiar' && ventanasInit === 'copiar' && candidatosCopia.length > 0 && (
+                        <Select value={copiarDePeriodoId} onValueChange={setCopiarDePeriodoId}>
+                          <SelectTrigger className="mt-2 h-8 text-xs"><SelectValue placeholder="Selecciona periodo..." /></SelectTrigger>
+                          <SelectContent>
+                            {candidatosCopia.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.nombre} · {p._count.ventanas} ventana{p._count.ventanas === 1 ? '' : 's'}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </label>
+                ))}
               </div>
             </div>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="border-t bg-muted/20 px-6 py-3">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
           <Button onClick={guardar} disabled={saving}>
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Guardar
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {editing ? 'Guardar cambios' : 'Crear periodo'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -654,61 +947,130 @@ function VentanaDialog({ open, onOpenChange, onSaved, periodoId, ventana, tiposU
     }
   }
 
+  const TipoIcon = ventana ? TIPO_ICON[ventana.tipo] : (TIPO_ICON[tipo] ?? FileText)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{editing ? 'Editar ventana' : 'Nueva ventana'}</DialogTitle>
-          <DialogDescription>
-            Las fechas se interpretan en zona horaria America/Lima (UTC-5).
-          </DialogDescription>
+      <DialogContent className="max-w-xl p-0 overflow-hidden">
+        <DialogHeader className="border-b bg-muted/30 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/15">
+              <TipoIcon className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <DialogTitle className="text-base font-semibold tracking-tight">
+                {editing ? `Editar ventana — ${TIPO_LABEL[ventana!.tipo]}` : 'Nueva ventana de trámite'}
+              </DialogTitle>
+              <DialogDescription className="text-[12px] mt-0.5">
+                Define cuándo este trámite acepta acciones del flujo. Fechas en zona América/Lima (UTC−5).
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
-        <div className="space-y-3 py-2">
-          {!editing ? (
+        <div className="space-y-5 px-6 py-5">
+          {!editing && disponibles.length === 0 ? (
+            <div className="flex flex-col items-center text-center py-6 px-4 rounded-xl border bg-muted/30">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-950/40">
+                <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <p className="mt-3 text-sm font-semibold">Todos los trámites ya tienen ventana</p>
+              <p className="mt-1 text-xs text-muted-foreground max-w-sm">
+                Los {TIPOS.length} trámites de este periodo ya están configurados. Para cambiar fechas, usa el botón <b>Editar</b> en la tarjeta correspondiente.
+              </p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => onOpenChange(false)}>
+                Cerrar
+              </Button>
+            </div>
+          ) : !editing ? (
             <div>
-              <Label>Tramite</Label>
+              <Label className="text-xs">Trámite</Label>
               <Select value={tipo} onValueChange={(v) => setTipo(v as WindowType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecciona un trámite..." /></SelectTrigger>
                 <SelectContent>
-                  {disponibles.map((t) => (
-                    <SelectItem key={t} value={t}>{TIPO_LABEL[t]}</SelectItem>
-                  ))}
+                  {disponibles.map((t) => {
+                    const Ic = TIPO_ICON[t]
+                    return (
+                      <SelectItem key={t} value={t}>
+                        <span className="inline-flex items-center gap-2"><Ic className="w-3.5 h-3.5" />{TIPO_LABEL[t]}</span>
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
+              {disponibles.length < TIPOS.length && (
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Solo se muestran trámites sin ventana en este periodo. {TIPOS.length - disponibles.length} ya {TIPOS.length - disponibles.length === 1 ? 'configurado' : 'configurados'}.
+                </p>
+              )}
             </div>
           ) : (
-            <div>
-              <Label className="text-muted-foreground text-xs">Tramite</Label>
-              <p className="font-medium">{TIPO_LABEL[ventana!.tipo]}</p>
+            <div className="rounded-lg border bg-muted/20 p-3 flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                <TipoIcon className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Trámite</p>
+                <p className="text-sm font-medium">{TIPO_LABEL[ventana!.tipo]}</p>
+              </div>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Fecha inicio</Label>
-              <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-            </div>
-            <div>
-              <Label>Fecha fin</Label>
-              <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch checked={habilitada} onCheckedChange={setHabilitada} id="habilitada" />
-            <Label htmlFor="habilitada" className="cursor-pointer flex items-center gap-1">
-              <Power className="w-3.5 h-3.5" /> Habilitada
-            </Label>
-          </div>
-          <div>
-            <Label>Observaciones (opcional)</Label>
-            <Textarea value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={2} />
-          </div>
+
+          {/* Solo mostramos los demas campos cuando hay un trámite seleccionable */}
+          {(editing || disponibles.length > 0) && (
+            <>
+              {/* fechas */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Rango de plazo</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Inicio</Label>
+                    <Input className="mt-1" type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Fin</Label>
+                    <Input className="mt-1" type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground flex items-start gap-1.5">
+                  <Clock className="w-3 h-3 mt-0.5 shrink-0" />
+                  <span>Inicio cuenta desde 00:00 y fin hasta 23:59:59, hora Lima.</span>
+                </p>
+              </div>
+
+              {/* habilitada */}
+              <div className={cn(
+                'flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors',
+                habilitada ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-900/50' : 'bg-muted/30',
+              )}>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Power className={cn('w-4 h-4 shrink-0', habilitada ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')} />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-tight">Ventana habilitada</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                      {habilitada ? 'Las fechas se respetan según el rango configurado.' : 'Bloqueada — equivale a fuera de plazo aunque las fechas cubran hoy.'}
+                    </p>
+                  </div>
+                </div>
+                <Switch checked={habilitada} onCheckedChange={setHabilitada} id="habilitada" />
+              </div>
+
+              {/* observaciones */}
+              <div>
+                <Label className="text-xs">Observaciones <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Textarea className="mt-1" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} rows={2} placeholder="Notas internas, ej: 'Plazo extendido por paro académico'" />
+              </div>
+            </>
+          )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
-          <Button onClick={guardar} disabled={saving}>
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Guardar
-          </Button>
-        </DialogFooter>
+        {(editing || disponibles.length > 0) && (
+          <DialogFooter className="border-t bg-muted/20 px-6 py-3">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
+            <Button onClick={guardar} disabled={saving}>
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {editing ? 'Guardar cambios' : 'Crear ventana'}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -855,10 +1217,10 @@ function OverridesDialog({ open, ventana, onOpenChange, onChanged }: OverridesDi
   function quickChip(days: number) {
     const d = new Date()
     d.setDate(d.getDate() + days)
-    setVigenciaHasta(d.toISOString().slice(0, 10))
+    setVigenciaHasta(toInputValue(d.toISOString()))
   }
   function quickFinVentana() {
-    setVigenciaHasta(new Date(ventana.fechaFin).toISOString().slice(0, 10))
+    setVigenciaHasta(toInputValue(ventana.fechaFin))
   }
 
   function startEdit(o: OverrideItem) {
@@ -881,8 +1243,7 @@ function OverridesDialog({ open, ventana, onOpenChange, onChanged }: OverridesDi
     }
     setCategoria(o.categoria)
     setMotivo(o.motivo)
-    // toInputValue respeta zona America/Lima; usar toISOString().slice(0,10)
-    // desfasa un dia cuando la hora esta cerca de medianoche (23:59 UTC-5).
+    // toInputValue formatea en zona America/Lima.
     setVigenciaHasta(toInputValue(o.vigenciaHasta))
     setTab('crear')
   }
@@ -944,22 +1305,42 @@ function OverridesDialog({ open, ventana, onOpenChange, onChanged }: OverridesDi
   const vigentes = overrides.filter((o) => new Date(o.vigenciaHasta) >= ahora)
   const expiradas = overrides.filter((o) => new Date(o.vigenciaHasta) < ahora)
 
+  const VentanaIcon = TIPO_ICON[ventana.tipo] ?? FileText
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5" /> Prorrogas — {TIPO_LABEL[ventana.tipo]}
-          </DialogTitle>
-          <DialogDescription className="flex items-center gap-3 text-xs">
-            <span>Ventana original: <b>{isoDate(ventana.fechaInicio)} — {isoDate(ventana.fechaFin)}</b></span>
-            <Badge variant={ventana.habilitada ? 'default' : 'secondary'} className="text-[10px]">
-              {ventana.habilitada ? 'Habilitada' : 'Deshabilitada'}
-            </Badge>
-          </DialogDescription>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="border-b bg-gradient-to-br from-amber-50/50 to-card dark:from-amber-950/20 dark:to-card px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950/40 ring-1 ring-inset ring-amber-200 dark:ring-amber-900/60">
+              <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <DialogTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
+                Prórrogas excepcionales
+                <span className="inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                  <VentanaIcon className="w-3.5 h-3.5" /> {TIPO_LABEL[ventana.tipo]}
+                </span>
+              </DialogTitle>
+              <DialogDescription className="flex flex-wrap items-center gap-2 text-[12px] mt-1">
+                <span className="tabular-nums">
+                  Ventana original <b>{isoDate(ventana.fechaInicio)}</b> → <b>{isoDate(ventana.fechaFin)}</b>
+                </span>
+                <span className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider',
+                  ventana.habilitada
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800/40 dark:text-zinc-400'
+                )}>
+                  <span className={cn('inline-block h-1.5 w-1.5 rounded-full', ventana.habilitada ? 'bg-emerald-500' : 'bg-zinc-400')} />
+                  {ventana.habilitada ? 'Habilitada' : 'Deshabilitada'}
+                </span>
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="flex-1 flex flex-col overflow-hidden">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="flex-1 flex flex-col overflow-hidden px-6 pb-3 pt-3">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="crear">{editando ? 'Editando' : 'Crear nueva'}</TabsTrigger>
             <TabsTrigger value="vigentes">Vigentes ({vigentes.length})</TabsTrigger>
@@ -992,7 +1373,7 @@ function OverridesDialog({ open, ventana, onOpenChange, onChanged }: OverridesDi
                       setQUser(''); setResUser([])
                     }}
                     className={cn(
-                      'px-3 py-1 rounded text-xs font-medium transition-colors',
+                      'px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer',
                       scope === s ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
                       editando && 'opacity-60 cursor-not-allowed',
                     )}

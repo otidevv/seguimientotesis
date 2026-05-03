@@ -1,0 +1,199 @@
+- generic [active]:
+  - link "Saltar al contenido principal" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - button "Open Next.js Dev Tools" [ref=e101] [cursor=pointer]:
+    - img [ref=e102]
+  - alert [ref=e113]
+  - generic [ref=e119]:
+    - banner [ref=e120]:
+      - generic [ref=e121]:
+        - link "UNAMAD Sistema de Tesis UNAMAD" [ref=e123] [cursor=pointer]:
+          - /url: /dashboard
+          - img "UNAMAD" [ref=e124]
+          - generic [ref=e125]:
+            - paragraph [ref=e126]: Sistema de Tesis
+            - paragraph [ref=e127]: UNAMAD
+        - generic [ref=e128]:
+          - button "Notificaciones" [ref=e129] [cursor=pointer]:
+            - img
+            - generic [ref=e130]: Notificaciones
+          - button "Cambiar tema" [ref=e131] [cursor=pointer]:
+            - img
+            - generic [ref=e132]: Cambiar tema
+          - button "AP" [ref=e133] [cursor=pointer]:
+            - generic [ref=e135]: AP
+    - generic [ref=e136]:
+      - complementary "Menú de navegación" [ref=e137]:
+        - navigation "Navegación principal" [ref=e141]:
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - paragraph [ref=e144]: Principal
+              - button "Colapsar menú" [ref=e145] [cursor=pointer]:
+                - img [ref=e146]
+            - link "Dashboard" [ref=e149] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e150]
+              - generic [ref=e155]: Dashboard
+          - generic [ref=e156]:
+            - paragraph [ref=e158]: Estudiante
+            - link "Mis Tesis" [ref=e160] [cursor=pointer]:
+              - /url: /mis-tesis
+              - img [ref=e161]
+              - generic [ref=e164]: Mis Tesis
+          - generic [ref=e165]:
+            - paragraph [ref=e167]: Correspondencia
+            - link "Mis Invitaciones" [ref=e169] [cursor=pointer]:
+              - /url: /mis-invitaciones
+              - img [ref=e170]
+              - generic [ref=e173]: Mis Invitaciones
+          - button "Ayuda" [ref=e175] [cursor=pointer]:
+            - img [ref=e176]
+            - generic [ref=e179]: Ayuda
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - link "AP ALBERTO PEÑA Estudiante" [ref=e182] [cursor=pointer]:
+              - /url: /perfil
+              - generic [ref=e184]: AP
+              - generic [ref=e185]:
+                - paragraph [ref=e186]: ALBERTO PEÑA
+                - paragraph [ref=e187]: Estudiante
+            - button "Cerrar sesión" [ref=e188] [cursor=pointer]:
+              - img [ref=e189]
+          - paragraph [ref=e192]: v1.0.0
+      - main [ref=e193]:
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - heading "Mis Tesis" [level=1] [ref=e198]
+              - paragraph [ref=e199]: Gestiona tus proyectos de tesis
+            - link "Nuevo Proyecto" [ref=e200] [cursor=pointer]:
+              - /url: /mis-tesis/nuevo
+              - img
+              - text: Nuevo Proyecto
+          - region "Plazos abiertos" [ref=e201]:
+            - generic [ref=e202]:
+              - generic [ref=e203]:
+                - img [ref=e205]
+                - generic [ref=e207]:
+                  - heading "Plazos abiertos" [level=2] [ref=e208]
+                  - paragraph [ref=e209]: Ventanas vigentes del calendario académico
+              - generic [ref=e215]: 3 abiertos
+            - generic [ref=e217]:
+              - 'generic "Presentación de proyecto: Ventana abierta (2026-03-01 — 2026-08-01)." [ref=e218]':
+                - generic [ref=e220]:
+                  - generic [ref=e221]:
+                    - img [ref=e223]
+                    - generic [ref=e226]:
+                      - paragraph [ref=e227]: Presentación de proyecto
+                      - paragraph [ref=e228]: Registro inicial del plan
+                  - generic [ref=e229]:
+                    - img [ref=e233]
+                    - text: Abierto
+                - generic [ref=e236]:
+                  - img [ref=e237]
+                  - paragraph [ref=e239]: 01-mar — 31 jul 2026
+                - generic [ref=e241]:
+                  - generic [ref=e242]: Quedan 89 días
+                  - generic [ref=e243]: 41% transcurrido
+              - 'generic "Informe final: Ventana abierta (2026-03-01 — 2026-08-01)." [ref=e246]':
+                - generic [ref=e248]:
+                  - generic [ref=e249]:
+                    - img [ref=e251]
+                    - generic [ref=e255]:
+                      - paragraph [ref=e256]: Informe final
+                      - paragraph [ref=e257]: Entrega del documento
+                  - generic [ref=e258]:
+                    - img [ref=e262]
+                    - text: Abierto
+                - generic [ref=e265]:
+                  - img [ref=e266]
+                  - paragraph [ref=e268]: 01-mar — 31 jul 2026
+                - generic [ref=e270]:
+                  - generic [ref=e271]: Quedan 89 días
+                  - generic [ref=e272]: 41% transcurrido
+              - 'generic "Desistimiento: Ventana abierta (2026-03-01 — 2026-08-01)." [ref=e275]':
+                - generic [ref=e277]:
+                  - generic [ref=e278]:
+                    - img [ref=e280]
+                    - generic [ref=e283]:
+                      - paragraph [ref=e284]: Desistimiento
+                      - paragraph [ref=e285]: Solicitud de baja
+                  - generic [ref=e286]:
+                    - img [ref=e290]
+                    - text: Abierto
+                - generic [ref=e293]:
+                  - img [ref=e294]
+                  - paragraph [ref=e296]: 01-mar — 31 jul 2026
+                - generic [ref=e298]:
+                  - generic [ref=e299]: Quedan 89 días
+                  - generic [ref=e300]: 41% transcurrido
+          - generic [ref=e303]:
+            - generic [ref=e304]:
+              - img [ref=e306]
+              - generic [ref=e308]:
+                - paragraph [ref=e309]: "1"
+                - paragraph [ref=e310]: Total
+            - generic [ref=e311]:
+              - img [ref=e313]
+              - generic [ref=e316]:
+                - paragraph [ref=e317]: "0"
+                - paragraph [ref=e318]: En progreso
+            - generic [ref=e319]:
+              - img [ref=e321]
+              - generic [ref=e324]:
+                - paragraph [ref=e325]: "0"
+                - paragraph [ref=e326]: Aprobadas
+            - generic [ref=e327]:
+              - img [ref=e329]
+              - generic [ref=e331]:
+                - paragraph [ref=e332]: "0"
+                - paragraph [ref=e333]: Observadas
+          - generic [ref=e334]:
+            - generic [ref=e335]:
+              - img [ref=e336]
+              - textbox "Buscar por título, código o carrera..." [ref=e339]
+            - generic [ref=e340]:
+              - button "Todos 1" [ref=e341] [cursor=pointer]:
+                - text: Todos
+                - generic [ref=e342]: "1"
+              - button "En progreso 0" [ref=e343] [cursor=pointer]:
+                - text: En progreso
+                - generic [ref=e344]: "0"
+              - button "Aprobadas 0" [ref=e345] [cursor=pointer]:
+                - text: Aprobadas
+                - generic [ref=e346]: "0"
+              - button "Observadas 0" [ref=e347] [cursor=pointer]:
+                - text: Observadas
+                - generic [ref=e348]: "0"
+          - table [ref=e351]:
+            - rowgroup [ref=e352]:
+              - row "Código Título Asesor Estado Avance Fecha Acciones" [ref=e353]:
+                - columnheader "Código" [ref=e354]
+                - columnheader "Título" [ref=e355]
+                - columnheader "Asesor" [ref=e356]
+                - columnheader "Estado" [ref=e357]
+                - columnheader "Avance" [ref=e358]
+                - columnheader "Fecha" [ref=e359]
+                - columnheader "Acciones" [ref=e360]
+            - rowgroup [ref=e361]:
+              - row "E5CMQRJS realidad aumentada INGENIERÍA DE SISTEMAS E INFORMÁTICA ULLOA GALLARDO, NELLY JACQUELINE Borrador 14% 03 may. 2026" [ref=e362]:
+                - cell "E5CMQRJS" [ref=e363]
+                - cell "realidad aumentada INGENIERÍA DE SISTEMAS E INFORMÁTICA" [ref=e364]:
+                  - link "realidad aumentada" [ref=e365] [cursor=pointer]:
+                    - /url: /mis-tesis/cmoptmsgn0000qktue5cmqrjs
+                  - paragraph [ref=e366]: INGENIERÍA DE SISTEMAS E INFORMÁTICA
+                - cell "ULLOA GALLARDO, NELLY JACQUELINE" [ref=e367]:
+                  - generic [ref=e368]: ULLOA GALLARDO, NELLY JACQUELINE
+                - cell "Borrador" [ref=e369]:
+                  - generic [ref=e370]:
+                    - img
+                    - generic [ref=e371]: Borrador
+                - cell "14%" [ref=e372]:
+                  - generic [ref=e373]:
+                    - progressbar [ref=e374]
+                    - generic [ref=e376]: 14%
+                - cell "03 may. 2026" [ref=e377]
+                - cell [ref=e378]:
+                  - button [ref=e379] [cursor=pointer]:
+                    - img
+  - region "Notifications alt+T"

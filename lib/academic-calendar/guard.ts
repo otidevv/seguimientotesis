@@ -30,6 +30,12 @@ export interface GuardOptions {
   now?: Date
 }
 
+export interface ProximaApertura {
+  fecha: Date
+  periodoNombre: string
+  facultadEspecifica: boolean
+}
+
 export interface VentanaVigente {
   windowId: string
   tipo: WindowType
@@ -40,6 +46,12 @@ export interface VentanaVigente {
   dentroDeVentana: boolean
   /** Si aplica un override especifico, indica hasta cuando extiende la vigencia. */
   overrideVigenteHasta: Date | null
+  /**
+   * Cuando la ventana esta cerrada (o el periodo no esta ACTIVO), apunta al
+   * proximo periodo PLANIFICADO/ACTIVO con una ventana del mismo tipo y scope.
+   * Permite a la UI decirle al usuario "vuelve el ...", en vez de solo "cerrada".
+   */
+  proximaApertura: ProximaApertura | null
   /** Motivo informativo (por que la accion esta permitida / bloqueada). */
   motivo: string
 }
@@ -62,13 +74,67 @@ export class FueraDeVentanaError extends Error {
  * Nunca lanza: siempre devuelve un objeto descriptivo. Usa esto en UI para
  * mostrar el estado del calendario.
  */
+/**
+ * Busca la próxima ventana del mismo tipo que se abrirá en el futuro, en
+ * cualquier periodo PLANIFICADO o ACTIVO. Prioriza ventanas específicas de
+ * la facultad sobre las globales (mismo criterio que el resto del guard).
+ * Devuelve null si no hay periodo futuro configurado para ese trámite.
+ */
+async function findProximaApertura(
+  tipo: WindowType,
+  facultadId: string | null | undefined,
+  now: Date,
+): Promise<ProximaApertura | null> {
+  if (facultadId) {
+    const facWin = await prisma.academicWindow.findFirst({
+      where: {
+        tipo,
+        habilitada: true,
+        facultadId,
+        periodo: { estado: { in: ['PLANIFICADO', 'ACTIVO'] } },
+        fechaInicio: { gt: now },
+      },
+      include: { periodo: { select: { nombre: true } } },
+      orderBy: { fechaInicio: 'asc' },
+    })
+    if (facWin) {
+      return { fecha: facWin.fechaInicio, periodoNombre: facWin.periodo.nombre, facultadEspecifica: true }
+    }
+  }
+  const globalWin = await prisma.academicWindow.findFirst({
+    where: {
+      tipo,
+      habilitada: true,
+      facultadId: null,
+      periodo: { estado: { in: ['PLANIFICADO', 'ACTIVO'] } },
+      fechaInicio: { gt: now },
+    },
+    include: { periodo: { select: { nombre: true } } },
+    orderBy: { fechaInicio: 'asc' },
+  })
+  if (!globalWin) return null
+  return { fecha: globalWin.fechaInicio, periodoNombre: globalWin.periodo.nombre, facultadEspecifica: false }
+}
+
 export async function getVentanaVigente(
   tipo: WindowType,
   facultadId: string | null | undefined,
   opts: GuardOptions = {},
 ): Promise<VentanaVigente | null> {
   const now = opts.now ?? new Date()
-  const iso = (d: Date) => d.toISOString().slice(0, 10)
+  // yyyy-mm-dd en zona America/Lima, no UTC: si una ventana cierra a las 23:59
+  // hora Lima, el ISO UTC cae al día siguiente y los mensajes mostraban una
+  // fecha desfasada en 1 día respecto a lo que el usuario configuró.
+  const iso = (d: Date) =>
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Lima',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(d)
+
+  const sufijoProxima = (p: ProximaApertura | null) =>
+    p
+      ? ` Próxima apertura: ${iso(p.fecha)} (periodo "${p.periodoNombre}"${p.facultadEspecifica ? ', tu facultad' : ''}).`
+      : ' No hay periodo futuro configurado todavía.'
 
   // 0) ¿Hay algun periodo que cubra `now` en el scope (facultad o global)
   //    que NO este ACTIVO? Si si, bloquear todo el scope: cerrar o planificar
@@ -91,6 +157,11 @@ export async function getVentanaVigente(
           ? 'de tu facultad'
           : 'de facultad')
       : 'global'
+    const proximaApertura = await findProximaApertura(tipo, facultadId, now)
+    const motivoBase =
+      periodoQueCubre.estado === 'CERRADO'
+        ? `El periodo ${scopeInfo} "${periodoQueCubre.nombre}" esta CERRADO. No se permiten acciones.`
+        : `El periodo ${scopeInfo} "${periodoQueCubre.nombre}" aun esta PLANIFICADO (no ha sido activado).`
     return {
       windowId: '',
       tipo,
@@ -100,10 +171,8 @@ export async function getVentanaVigente(
       facultadId: periodoQueCubre.facultadId,
       dentroDeVentana: false,
       overrideVigenteHasta: null,
-      motivo:
-        periodoQueCubre.estado === 'CERRADO'
-          ? `El periodo ${scopeInfo} "${periodoQueCubre.nombre}" esta CERRADO. No se permiten acciones.`
-          : `El periodo ${scopeInfo} "${periodoQueCubre.nombre}" aun esta PLANIFICADO (no ha sido activado).`,
+      proximaApertura,
+      motivo: motivoBase + sufijoProxima(proximaApertura),
     }
   }
 
@@ -164,6 +233,15 @@ export async function getVentanaVigente(
 
   const cubierto = dentroDeVentana || Boolean(override)
 
+  // Solo computamos próxima apertura cuando NO estamos cubiertos. En el caso
+  // "esFutura" la ventanaQueAplica ya ES la próxima apertura, así que no hace
+  // falta consultar de nuevo. En "cerrada" sin futura en este periodo, esto es
+  // lo que le dice al usuario "vuelve el ...".
+  let proximaApertura: ProximaApertura | null = null
+  if (!cubierto && !esFutura) {
+    proximaApertura = await findProximaApertura(tipo, facultadId, now)
+  }
+
   return {
     windowId: ventanaQueAplica.id,
     tipo: ventanaQueAplica.tipo,
@@ -173,13 +251,14 @@ export async function getVentanaVigente(
     facultadId: ventanaQueAplica.facultadId,
     dentroDeVentana: cubierto,
     overrideVigenteHasta: override?.vigenciaHasta ?? null,
+    proximaApertura,
     motivo: cubierto
       ? override
         ? `Autorizado por prorroga excepcional hasta ${iso(override.vigenciaHasta)}.`
         : `Ventana abierta (${iso(ventanaQueAplica.fechaInicio)} — ${iso(ventanaQueAplica.fechaFin)}).`
       : esFutura
         ? `Ventana aun no abierta. Se abre el ${iso(ventanaQueAplica.fechaInicio)}.`
-        : `Ventana cerrada. Cerro el ${iso(ventanaQueAplica.fechaFin)}.`,
+        : `Ventana cerrada. Cerro el ${iso(ventanaQueAplica.fechaFin)}.${sufijoProxima(proximaApertura)}`,
   }
 }
 

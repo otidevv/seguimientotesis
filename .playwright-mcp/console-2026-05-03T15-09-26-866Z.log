@@ -1,0 +1,10 @@
+[     254ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     408ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     929ms] [WARNING] The width(1051) and height(280) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     930ms] [WARNING] The width(1051) and height(280) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1003ms] [WARNING] The width(1051) and height(280) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[    1003ms] [WARNING] The width(1051) and height(280) are both fixed numbers,
+       maybe you don't need to use a ResponsiveContainer. @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297

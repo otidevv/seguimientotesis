@@ -4,7 +4,11 @@ import { getCurrentUser } from '@/lib/auth'
 import path from 'path'
 import fs from 'fs'
 import { EstadoTesis } from '@prisma/client'
-import { DIAS_HABILES_CORRECCION } from '@/lib/business-days'
+import {
+  DIAS_CALENDARIO_CORRECCION_PROYECTO,
+  DIAS_HABILES_CORRECCION_INFORME,
+  agregarDiasCalendario,
+} from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 import { assertDentroDeVentana, FueraDeVentanaError, agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
@@ -313,18 +317,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         mensajeHistorial = 'Proyecto de tesis aprobado por el jurado.'
       }
     } else {
-      fechaLimiteCorreccion = await agregarDiasHabilesAcademicos(
-        new Date(),
-        DIAS_HABILES_CORRECCION,
-        primerAutorDict?.studentCareer.facultadId ?? null,
-      )
-
-      if (tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME') {
+      // Plazo según fase del trámite (Reglamento UNAMAD):
+      //  - Proyecto: 30 días CALENDARIO (ampliables a 30 más a solicitud).
+      //  - Informe final (Art. 89): 15 días HÁBILES.
+      const esFaseInforme = tesis.faseActual === 'INFORME_FINAL' || tesis.estado === 'EN_EVALUACION_INFORME'
+      if (esFaseInforme) {
+        fechaLimiteCorreccion = await agregarDiasHabilesAcademicos(
+          new Date(),
+          DIAS_HABILES_CORRECCION_INFORME,
+          primerAutorDict?.studentCareer.facultadId ?? null,
+        )
         nuevoEstado = 'OBSERVADA_INFORME'
-        mensajeHistorial = `Informe final observado por el jurado. El estudiante tiene ${DIAS_HABILES_CORRECCION} días hábiles para corregir.`
+        mensajeHistorial = `Informe final observado por el jurado. El estudiante tiene ${DIAS_HABILES_CORRECCION_INFORME} días hábiles para corregir.`
       } else {
+        fechaLimiteCorreccion = agregarDiasCalendario(new Date(), DIAS_CALENDARIO_CORRECCION_PROYECTO)
         nuevoEstado = 'OBSERVADA_JURADO'
-        mensajeHistorial = `Proyecto observado por el jurado. El estudiante tiene ${DIAS_HABILES_CORRECCION} días hábiles para corregir.`
+        mensajeHistorial = `Proyecto observado por el jurado. El estudiante tiene ${DIAS_CALENDARIO_CORRECCION_PROYECTO} días calendario para corregir (ampliables a 30 más a solicitud).`
       }
     }
 

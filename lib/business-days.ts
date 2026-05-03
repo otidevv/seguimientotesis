@@ -122,8 +122,37 @@ export function diasHabilesEntre(inicio: Date, fin: Date): number {
   return count
 }
 
-/** Días hábiles para evaluación de jurados */
+/**
+ * Agrega N días calendario a una fecha (sin saltar fines de semana ni feriados).
+ * Equivalente a "días corridos" en el reglamento UNAMAD.
+ */
+export function agregarDiasCalendario(fecha: Date, dias: number): Date {
+  const resultado = new Date(fecha)
+  resultado.setDate(resultado.getDate() + dias)
+  return resultado
+}
+
+/** Art. 88 — Jurado dictamina informe final en 15 días hábiles. */
 export const DIAS_HABILES_EVALUACION = 15
 
-/** Días hábiles para corrección del estudiante */
+/**
+ * Reglamento UNAMAD — Fase de gestión de proyecto.
+ * Tesista subsana observaciones de mesa de partes / jurado en 30 días
+ * CALENDARIO (ampliables a 30 más a solicitud). Si vence: reinicia trámite.
+ */
+export const DIAS_CALENDARIO_CORRECCION_PROYECTO = 30
+
+/**
+ * Reglamento UNAMAD Art. 89 — Fase de informe final.
+ * Tesista subsana observaciones del jurado / mesa de partes en 15 días HÁBILES.
+ * El jurado verifica la corrección en otros 15 días hábiles.
+ */
+export const DIAS_HABILES_CORRECCION_INFORME = 15
+
+/**
+ * @deprecated Usar DIAS_CALENDARIO_CORRECCION_PROYECTO (proyecto) o
+ * DIAS_HABILES_CORRECCION_INFORME (informe) según fase. Esta constante
+ * mezclaba unidades incorrectamente y se mantenía solo para evitar romper
+ * imports antiguos durante la migración.
+ */
 export const DIAS_HABILES_CORRECCION = 30

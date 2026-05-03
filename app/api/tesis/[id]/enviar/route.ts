@@ -263,7 +263,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (tesis.fechaLimiteCorreccion && new Date() > tesis.fechaLimiteCorreccion) {
         return NextResponse.json({
           success: false,
-          error: `Se vencio el plazo para enviar correcciones (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}). Contacta a mesa de partes para una prorroga.`,
+          error: `Se vencio el plazo para enviar correcciones (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).`,
           code: 'PLAZO_CORRECCION_VENCIDO',
         }, { status: 403 })
       }

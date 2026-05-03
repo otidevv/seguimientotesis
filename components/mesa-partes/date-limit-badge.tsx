@@ -16,11 +16,18 @@ export function DateLimitBadge({
 }: DateLimitBadgeProps) {
   const fecha = new Date(fechaLimite)
 
-  const ahora = new Date()
-  const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
-  const inicioFecha = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
+  // Calcular días en zona Lima (independiente del TZ del navegador) para que
+  // un docente en otra TZ vea el mismo "Faltan X días" que el alumno en Lima.
+  const ymdLima = (d: Date) => {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Lima',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(d)
+    const get = (t: string) => Number(parts.find(p => p.type === t)?.value)
+    return Date.UTC(get('year'), get('month') - 1, get('day'))
+  }
   const msPorDia = 1000 * 60 * 60 * 24
-  const diffDias = Math.round((inicioFecha.getTime() - inicioHoy.getTime()) / msPorDia)
+  const diffDias = Math.round((ymdLima(fecha) - ymdLima(new Date())) / msPorDia)
 
   const tono =
     diffDias < 5
@@ -58,6 +65,7 @@ export function DateLimitBadge({
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: 'America/Lima',
   })
 
   const subtitle =

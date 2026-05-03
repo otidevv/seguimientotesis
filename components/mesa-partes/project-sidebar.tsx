@@ -197,7 +197,7 @@ export function ProjectSidebar({
             <div className="flex justify-between">
               <span className="text-muted-foreground">Fecha de registro</span>
               <span className="font-medium">
-                {new Date(proyecto.createdAt).toLocaleDateString('es-PE')}
+                {new Date(proyecto.createdAt).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
               </span>
             </div>
             <Separator />
@@ -211,7 +211,7 @@ export function ProjectSidebar({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Limite evaluacion (d.h.)</span>
                   <span className="font-medium">
-                    {new Date(proyecto.fechaLimiteEvaluacion).toLocaleDateString('es-PE')}
+                    {new Date(proyecto.fechaLimiteEvaluacion).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
                   </span>
                 </div>
               </>
@@ -222,7 +222,7 @@ export function ProjectSidebar({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Limite correccion (d.h.)</span>
                   <span className="font-medium">
-                    {new Date(proyecto.fechaLimiteCorreccion).toLocaleDateString('es-PE')}
+                    {new Date(proyecto.fechaLimiteCorreccion).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}
                   </span>
                 </div>
               </>

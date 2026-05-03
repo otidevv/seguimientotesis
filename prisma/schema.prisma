@@ -93,6 +93,7 @@ model User {
   desistimientosAprobados      ThesisWithdrawal[]       @relation("DesistimientosAprobados")
   academicOverridesAutorizados AcademicWindowOverride[] @relation("OverridesAutorizados")
   academicOverridesRecibidos   AcademicWindowOverride[] @relation("OverridesRecibidos")
+  ampliacionesSolicitadas      ThesisDeadlineExtension[] @relation("AmpliacionesSolicitadas")
 
   @@index([email])
   @@index([numeroDocumento])
@@ -647,10 +648,38 @@ model Thesis {
   desistimientos         ThesisWithdrawal[]
   recordatoriosMesaPartes MesaPartesRecordatorio[]
   academicOverrides  AcademicWindowOverride[]
+  ampliacionesPlazo  ThesisDeadlineExtension[]
 
   @@index([estado])
   @@index([createdAt])
   @@map("thesis")
+}
+
+/// Ampliación del plazo de subsanación (`fechaLimiteCorreccion`).
+/// Aplica solo a la fase de gestión de proyecto: el reglamento UNAMAD
+/// permite ampliar 30 días una vez a solicitud del tesista, con motivo.
+/// La aprobación es automática (basta solicitar y adjuntar motivo); mesa
+/// de partes tiene visibilidad como audit trail.
+/// Unicidad por (thesisId, ronda): cada nueva observación genera una
+/// nueva ronda, y cada ronda admite a lo más una ampliación.
+model ThesisDeadlineExtension {
+  id                   String   @id @default(cuid())
+  thesisId             String   @map("thesis_id")
+  ronda                Int /// ronda de observación (Thesis.rondaActual al momento de solicitar)
+  solicitanteId        String   @map("solicitante_id")
+  motivo               String   @db.Text /// motivo del tesista (mín. 30 caracteres)
+  diasExtendidos       Int      @default(30) @map("dias_extendidos")
+  fechaLimiteAnterior  DateTime @map("fecha_limite_anterior")
+  fechaLimiteNueva     DateTime @map("fecha_limite_nueva")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  thesis      Thesis @relation(fields: [thesisId], references: [id], onDelete: Cascade)
+  solicitante User   @relation("AmpliacionesSolicitadas", fields: [solicitanteId], references: [id], onDelete: Restrict)
+
+  @@unique([thesisId, ronda])
+  @@index([thesisId])
+  @@index([createdAt])
+  @@map("thesis_deadline_extensions")
 }
 
 /// Autores de tesis (estudiantes)

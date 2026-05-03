@@ -1,0 +1,491 @@
+- generic:
+  - link:
+    - /url: "#main-content"
+    - text: Saltar al contenido principal
+  - generic:
+    - banner:
+      - generic:
+        - generic:
+          - link:
+            - /url: /dashboard
+            - img
+            - generic:
+              - paragraph: Sistema de Tesis
+              - paragraph: UNAMAD
+        - generic:
+          - button:
+            - img
+            - generic: Notificaciones
+          - button:
+            - img
+            - generic: Cambiar tema
+          - button:
+            - generic:
+              - generic: SA
+    - generic:
+      - complementary:
+        - generic:
+          - generic:
+            - generic:
+              - navigation:
+                - generic:
+                  - generic:
+                    - paragraph: Principal
+                    - button:
+                      - img
+                  - generic:
+                    - link:
+                      - /url: /dashboard
+                      - img
+                      - generic: Dashboard
+                    - link:
+                      - /url: /tesis
+                      - img
+                      - generic: Gestión de Tesis
+                    - link:
+                      - /url: /firma-peru
+                      - img
+                      - generic: Firma Digital
+                    - link:
+                      - /url: /reportes
+                      - img
+                      - generic: Reportes
+                - generic:
+                  - generic:
+                    - paragraph: Estudiante
+                  - generic:
+                    - link:
+                      - /url: /mis-tesis
+                      - img
+                      - generic: Mis Tesis
+                - generic:
+                  - generic:
+                    - paragraph: Docente
+                  - generic:
+                    - link:
+                      - /url: /mis-asesorias
+                      - img
+                      - generic: Mis Asesorías
+                    - link:
+                      - /url: /mis-evaluaciones
+                      - img
+                      - generic: Mis Evaluaciones
+                - generic:
+                  - generic:
+                    - paragraph: Correspondencia
+                  - generic:
+                    - link:
+                      - /url: /mis-invitaciones
+                      - img
+                      - generic: Mis Invitaciones
+                - generic:
+                  - generic:
+                    - paragraph: Gestión
+                  - generic:
+                    - link:
+                      - /url: /mesa-partes
+                      - img
+                      - generic: Mesa de Partes
+                    - link:
+                      - /url: /reportes-mp
+                      - img
+                      - generic: Reportes MP
+                - generic:
+                  - generic:
+                    - paragraph: Administración
+                  - generic:
+                    - link:
+                      - /url: /admin/usuarios
+                      - img
+                      - generic: Usuarios
+                    - link:
+                      - /url: /admin/roles
+                      - img
+                      - generic: Roles
+                    - link:
+                      - /url: /admin/modulos
+                      - img
+                      - generic: Módulos
+                    - link:
+                      - /url: /admin/permisos
+                      - img
+                      - generic: Permisos
+                    - link:
+                      - /url: /admin/auditoria
+                      - img
+                      - generic: Auditoría
+                    - link:
+                      - /url: /admin/calendario-academico
+                      - img
+                      - generic: Calendario Académico
+                    - link:
+                      - /url: /admin/configuracion
+                      - img
+                      - generic: Configuración
+                - generic:
+                  - button:
+                    - img
+                    - generic: Ayuda
+        - generic:
+          - generic:
+            - link:
+              - /url: /perfil
+              - generic:
+                - generic: SA
+              - generic:
+                - paragraph: Super Admin
+                - paragraph: Super Administrador
+            - button:
+              - img
+          - paragraph: v1.0.0
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - heading [level=1]: Calendario académico
+                    - paragraph: Gestiona periodos académicos y ventanas de trámite. Las ventanas cerradas bloquean envíos a revisión, asignación de jurados y demás acciones del flujo.
+                - button:
+                  - img
+                  - text: Nuevo periodo
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Periodos
+                    - paragraph: "1"
+                    - paragraph: 1 activos · 0 planif.
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Ventanas configuradas
+                    - paragraph: "7"
+                    - paragraph: Trámites con plazo definido
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Periodo actual
+                    - paragraph: 2026-I
+                    - paragraph: 01 mar 2026 — 31 jul 2026
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Hoy
+                    - paragraph: 03-may
+                    - paragraph: domingo
+            - generic:
+              - generic:
+                - generic:
+                  - heading [level=2]: Periodos académicos
+                  - paragraph: Haz clic para ver y configurar sus ventanas.
+                - generic: 1 periodo
+              - list:
+                - listitem:
+                  - button:
+                    - img
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading [level=3]: 2026-I
+                          - generic: Activo
+                          - generic:
+                            - img
+                            - text: Actual
+                          - generic: Alcance global
+                        - paragraph: 01 mar 2026 → 31 jul 2026
+                    - generic:
+                      - generic:
+                        - generic: "7"
+                        - generic: ventanas
+                      - button:
+                        - img
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - heading [level=2]: Ventanas de 2026-I
+                    - paragraph: Define cuándo cada trámite acepta acciones de tesistas y mesa de partes.
+                - button:
+                  - img
+                  - text: Nueva ventana
+              - generic:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - heading [level=3]: Presentacion de proyecto
+                        - paragraph:
+                          - text: Alcance global
+                          - generic:
+                            - img
+                            - text: 1 prórroga
+                    - generic: Abierta
+                  - generic:
+                    - img
+                    - generic: 01 mar 2026 → 03 may 2026
+                  - generic:
+                    - generic:
+                      - generic: Cierra hoy
+                      - generic: 99% transcurrido
+                  - generic:
+                    - button:
+                      - img
+                      - text: Prórrogas
+                    - button:
+                      - img
+                      - text: Editar
+                    - button:
+                      - img
+                      - text: Eliminar
+                - article:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - heading [level=3]: Revision mesa de partes
+                        - paragraph: Alcance global
+                    - generic: Abierta
+                  - generic:
+                    - img
+                    - generic: 01 mar 2026 → 31 jul 2026
+                  - generic:
+                    - generic:
+                      - generic: Quedan 89 días
+                      - generic: 41% transcurrido
+                  - generic:
+                    - button:
+                      - img
+                      - text: Prórrogas
+                    - button:
+                      - img
+                      - text: Editar
+                    - button:
+                      - img
+                      - text: Eliminar
+                - article:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - heading [level=3]: Asignacion de jurados
+                        - paragraph: Alcance global
+                    - generic: Abierta
+                  - generic:
+                    - img
+                    - generic: 01 mar 2026 → 31 jul 2026
+                  - generic:
+                    - generic:
+                      - generic: Quedan 89 días
+                      - generic: 41% transcurrido
+                  - generic:
+                    - button:
+                      - img
+                      - text: Prórrogas
+                    - button:
+                      - img
+                      - text: Editar
+                    - button:
+                      - img
+                      - text: Eliminar
+                - article:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - heading [level=3]: Evaluacion de jurados
+                        - paragraph: Alcance global
+                    - generic: Abierta
+                  - generic:
+                    - img
+                    - generic: 01 mar 2026 → 31 jul 2026
+                  - generic:
+                    - generic:
+                      - generic: Quedan 89 días
+                      - generic: 41% transcurrido
+                  - generic:
+                    - button:
+                      - img
+                      - text: Prórrogas
+                    - button:
+                      - img
+                      - text: Editar
+                    - button:
+                      - img
+                      - text: Eliminar
+                - article:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - heading [level=3]: Informe final
+                        - paragraph: Alcance global
+                    - generic: Abierta
+                  - generic:
+                    - img
+                    - generic: 01 mar 2026 → 31 jul 2026
+                  - generic:
+                    - generic:
+                      - generic: Quedan 89 días
+                      - generic: 41% transcurrido
+                  - generic:
+                    - button:
+                      - img
+                      - text: Prórrogas
+                    - button:
+                      - img
+                      - text: Editar
+                    - button:
+                      - img
+                      - text: Eliminar
+                - article:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - heading [level=3]: Sustentacion
+                        - paragraph: Alcance global
+                    - generic: Abierta
+                  - generic:
+                    - img
+                    - generic: 01 mar 2026 → 31 jul 2026
+                  - generic:
+                    - generic:
+                      - generic: Quedan 89 días
+                      - generic: 41% transcurrido
+                  - generic:
+                    - button:
+                      - img
+                      - text: Prórrogas
+                    - button:
+                      - img
+                      - text: Editar
+                    - button:
+                      - img
+                      - text: Eliminar
+                - article:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - heading [level=3]: Desistimiento
+                        - paragraph: Alcance global
+                    - generic: Abierta
+                  - generic:
+                    - img
+                    - generic: 01 mar 2026 → 31 jul 2026
+                  - generic:
+                    - generic:
+                      - generic: Quedan 89 días
+                      - generic: 41% transcurrido
+                  - generic:
+                    - button:
+                      - img
+                      - text: Prórrogas
+                    - button:
+                      - img
+                      - text: Editar
+                    - button:
+                      - img
+                      - text: Eliminar
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]
+  - alert
+  - dialog "Nuevo periodo académico" [ref=e19]:
+    - generic [ref=e21]:
+      - img [ref=e23]
+      - generic [ref=e25]:
+        - heading "Nuevo periodo académico" [level=2] [ref=e26]
+        - paragraph [ref=e27]: Las fechas se interpretan en zona América/Lima (UTC−5).
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: Identidad
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: Año
+            - spinbutton [ref=e34]: "2026"
+          - generic [ref=e35]:
+            - generic [ref=e36]: Semestre
+            - combobox [active] [ref=e37] [cursor=pointer]:
+              - generic: I
+              - img
+        - generic [ref=e38]:
+          - generic [ref=e39]: Nombre visible
+          - textbox "2026-I" [ref=e40]
+      - generic [ref=e41]:
+        - paragraph [ref=e42]: Rango de fechas
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]: Inicio
+            - textbox [ref=e46]
+          - generic [ref=e47]:
+            - generic [ref=e48]: Fin
+            - textbox [ref=e49]
+        - paragraph [ref=e50]:
+          - img [ref=e51]
+          - generic [ref=e54]: El día de inicio cuenta desde 00:00 y el día de fin hasta 23:59:59, hora Lima.
+      - generic [ref=e55]:
+        - paragraph [ref=e56]: Estado
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - generic [ref=e59]: Etapa
+            - combobox [ref=e60] [cursor=pointer]:
+              - generic: Planificado
+              - img
+          - generic [ref=e62] [cursor=pointer]:
+            - switch "Marcar como periodo actual" [ref=e63]
+            - generic [ref=e64]: Marcar como periodo actual
+        - generic [ref=e65]:
+          - img [ref=e66]
+          - generic [ref=e68]: "Planificado: ventanas no aplican aún. Activo: ventanas vigentes y comparadas con la fecha actual. Cerrado: bloquea todas las acciones del scope."
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - text: Observaciones
+          - generic [ref=e71]: (opcional)
+        - textbox "Notas internas para mesa de partes..." [ref=e72]
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - img [ref=e75]
+          - generic [ref=e78]:
+            - paragraph [ref=e79]: Ventanas iniciales
+            - paragraph [ref=e80]: Ahorra tiempo creando las 7 ventanas de trámite junto con el periodo. Podrás ajustarlas individualmente después.
+        - generic [ref=e81]:
+          - generic [ref=e82] [cursor=pointer]:
+            - radio "Crear 7 ventanas por defecto Cada ventana cubre todo el rango del periodo. Ajustas fechas después." [checked] [ref=e83]
+            - generic [ref=e84]:
+              - generic [ref=e85]: Crear 7 ventanas por defecto
+              - generic [ref=e86]: Cada ventana cubre todo el rango del periodo. Ajustas fechas después.
+          - generic [ref=e87] [cursor=pointer]:
+            - radio "Copiar de un periodo anterior Copia las ventanas del periodo elegido desplazando las fechas según el offset entre inicios." [ref=e88]
+            - generic [ref=e89]:
+              - generic [ref=e90]: Copiar de un periodo anterior
+              - generic [ref=e91]: Copia las ventanas del periodo elegido desplazando las fechas según el offset entre inicios.
+          - generic [ref=e92] [cursor=pointer]:
+            - radio "No crear ventanas Las creo manualmente después." [ref=e93]
+            - generic [ref=e94]:
+              - generic [ref=e95]: No crear ventanas
+              - generic [ref=e96]: Las creo manualmente después.
+    - generic [ref=e97]:
+      - button "Cancelar" [ref=e98] [cursor=pointer]
+      - button "Crear periodo" [ref=e99] [cursor=pointer]
+    - button "Cerrar" [ref=e100] [cursor=pointer]:
+      - img [ref=e101]
+      - generic [ref=e104]: Cerrar

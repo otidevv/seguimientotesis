@@ -59,7 +59,7 @@ import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   ESTADO_CONFIG, TIPO_JURADO_LABELS, TIPO_JURADO_COLORS,
-  ProjectSidebar, DocumentoCard, DateLimitBadge,
+  ProjectSidebar, DocumentoCard, DateLimitBadge, ReabrirRechazadaCard,
 } from '@/components/mesa-partes'
 import type { Documento, Proyecto, BusquedaJurado, Jurado } from '@/components/mesa-partes'
 import { useResolutionUploadInstance } from '@/hooks/use-resolution-upload'
@@ -572,6 +572,19 @@ export default function DetalleProyectoMesaPage({ params }: { params: Promise<{ 
             </CardContent>
           </Card>
         )}
+
+        {/* Reapertura excepcional (solo si tesis fue rechazada por vencimiento de plazo) */}
+        <ReabrirRechazadaCard
+          thesisId={proyecto.id}
+          estadoTesis={proyecto.estado}
+          historial={(proyecto.historial ?? []).map((h: { estadoAnterior: string | null; estadoNuevo: string; comentario: string | null; fecha: string }) => ({
+            estadoAnterior: h.estadoAnterior,
+            estadoNuevo: h.estadoNuevo,
+            comentario: h.comentario,
+            fecha: h.fecha,
+          }))}
+          onUpdated={() => loadProyecto()}
+        />
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Columna principal con Tabs */}

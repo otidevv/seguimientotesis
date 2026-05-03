@@ -23,6 +23,21 @@ import { Prisma } from '@prisma/client'
 
 type Fase = 'DOS_DIAS_ANTES' | 'DIA_LIMITE'
 
+/**
+ * Devuelve el instante UTC de la medianoche en zona Lima (UTC-5) para el día
+ * de la fecha dada. Necesario para no depender del TZ del servidor: en cloud
+ * (UTC) `d.setHours(0,0,0,0)` produciría medianoche UTC, desfasada 5h respecto
+ * a Lima, y los recordatorios dispararían un día antes/después.
+ */
+function limaMidnight(d: Date): Date {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Lima',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(d)
+  const get = (t: string) => parts.find((p) => p.type === t)?.value
+  return new Date(`${get('year')}-${get('month')}-${get('day')}T00:00:00-05:00`)
+}
+
 interface ResultadoEnvio {
   thesisId: string
   juryMemberId: string
@@ -100,15 +115,13 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
+    const hoy = limaMidnight(new Date())
 
     for (const tesis of tesisActivas) {
       if (!tesis.fechaLimiteEvaluacion) continue
 
       // Días hábiles desde hoy hasta la fecha límite (0 = hoy es el día límite, <0 = vencido)
-      const limite = new Date(tesis.fechaLimiteEvaluacion)
-      limite.setHours(0, 0, 0, 0)
+      const limite = limaMidnight(new Date(tesis.fechaLimiteEvaluacion))
       const diasRestantes = calcularDiasRestantes(hoy, limite)
 
       let fase: Fase | null = null
@@ -288,8 +301,7 @@ export async function POST(request: NextRequest) {
     for (const tesis of tesisObservadas) {
       if (!tesis.fechaLimiteCorreccion) continue
 
-      const limite = new Date(tesis.fechaLimiteCorreccion)
-      limite.setHours(0, 0, 0, 0)
+      const limite = limaMidnight(new Date(tesis.fechaLimiteCorreccion))
       const diasRestantes = calcularDiasRestantes(hoy, limite)
 
       let fase: Fase | null = null

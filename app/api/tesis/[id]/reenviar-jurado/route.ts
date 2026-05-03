@@ -89,11 +89,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Validar plazo de correccion. El jurado seteo fechaLimiteCorreccion al
-    // emitir dictamen de observacion. Si ya vencio, el estudiante debe solicitar
-    // prorroga antes de reenviar.
+    // emitir dictamen de observacion. Si ya vencio, el reenvio queda bloqueado.
     if (tesis.fechaLimiteCorreccion && new Date() > tesis.fechaLimiteCorreccion) {
       return NextResponse.json({
-        error: `Se vencio el plazo para enviar correcciones (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}). Contacta a mesa de partes para una prorroga.`,
+        error: `Se vencio el plazo para enviar correcciones (${tesis.fechaLimiteCorreccion.toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).`,
         code: 'PLAZO_CORRECCION_VENCIDO',
       }, { status: 403 })
     }

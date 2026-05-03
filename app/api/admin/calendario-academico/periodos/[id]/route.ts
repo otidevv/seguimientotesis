@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isoDateLima } from '@/lib/academic-calendar'
 import { z } from 'zod'
 
 function requireAdmin(request: NextRequest): { userId: string } | NextResponse {
@@ -90,7 +91,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         })
         if (solapado) {
           throw new ValidationError(
-            `El rango se solapa con el periodo "${solapado.nombre}" (${solapado.fechaInicio.toISOString().slice(0, 10)} — ${solapado.fechaFin.toISOString().slice(0, 10)}).`,
+            `El rango se solapa con el periodo "${solapado.nombre}" (${isoDateLima(solapado.fechaInicio)} — ${isoDateLima(solapado.fechaFin)}).`,
             409,
           )
         }

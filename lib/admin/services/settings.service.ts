@@ -24,12 +24,20 @@ const DEFAULT_SETTINGS: Omit<SystemConfigResponse, 'id' | 'updatedAt' | 'updated
     description: 'Cantidad de días hábiles que tienen los jurados para evaluar una tesis',
   },
   {
-    key: 'DIAS_HABILES_CORRECCION',
+    key: 'DIAS_CALENDARIO_CORRECCION_PROYECTO',
     value: '30',
     type: 'number',
     category: 'plazos',
-    label: 'Días hábiles para corrección del estudiante',
-    description: 'Cantidad de días hábiles que tiene el estudiante para corregir observaciones',
+    label: 'Días calendario para corrección de proyecto',
+    description: 'Plazo que tiene el tesista para subsanar observaciones en la fase de gestión de proyecto (ampliable a 30 más a solicitud)',
+  },
+  {
+    key: 'DIAS_HABILES_CORRECCION_INFORME',
+    value: '15',
+    type: 'number',
+    category: 'plazos',
+    label: 'Días hábiles para corrección de informe final',
+    description: 'Plazo que tiene el tesista para subsanar observaciones en la fase de informe final (Reglamento Art. 89)',
   },
   // Seguridad
   {

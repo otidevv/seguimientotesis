@@ -66,6 +66,8 @@ import {
 import type { Documento, Tesis, Participante } from '@/components/tesis'
 import { ModalSolicitarDesistimiento } from '@/components/desistimiento/modal-solicitar-desistimiento'
 import { ModalConfirmarEnvio } from '@/components/tesis/modal-confirmar-envio'
+import { AmpliacionPlazoBanner } from '@/components/tesis/ampliacion-plazo-banner'
+import { isAutoRechazo } from '@/lib/thesis/auto-rechazo'
 
 export default function DetalleTesisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -527,6 +529,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         const rechazo = (tesis as any).historial?.find(
           (h: any) => h.estadoNuevo === 'RECHAZADA'
         )
+        const esAutoRechazo = isAutoRechazo(rechazo?.comentario)
         return (
           <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
             <CardContent className="py-4">
@@ -536,9 +539,13 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div className="flex-1 space-y-3">
                   <div>
-                    <p className="font-semibold text-red-800 dark:text-red-200">Proyecto Rechazado</p>
+                    <p className="font-semibold text-red-800 dark:text-red-200">
+                      {esAutoRechazo ? 'Trámite cerrado por vencimiento de plazo' : 'Proyecto Rechazado'}
+                    </p>
                     <p className="text-sm text-red-700 dark:text-red-300">
-                      Tu proyecto de tesis ha sido rechazado por Mesa de Partes. Puedes registrar un nuevo proyecto si lo deseas.
+                      {esAutoRechazo
+                        ? 'Tu plazo de subsanación venció sin que presentaras las correcciones. Puedes registrar una nueva tesis (necesitarás un nuevo voucher) o, si el retraso fue por fuerza mayor documentada, acércate a Mesa de Partes con la sustentación para solicitar reapertura excepcional.'
+                        : 'Tu proyecto de tesis ha sido rechazado por Mesa de Partes. Puedes registrar un nuevo proyecto si lo deseas.'}
                     </p>
                   </div>
                   {rechazo?.comentario && (
@@ -684,6 +691,16 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Ampliación de plazo (solo fase de proyecto observada) */}
+      {(tesis.estado === 'OBSERVADA' || tesis.estado === 'OBSERVADA_JURADO') && (
+        <AmpliacionPlazoBanner
+          thesisId={tesis.id}
+          fechaLimiteCorreccion={(tesis as any).fechaLimiteCorreccion ?? null}
+          estadoTesis={tesis.estado}
+          onUpdated={() => loadTesis()}
+        />
       )}
 
       {tesis.estado === 'OBSERVADA_JURADO' && (
@@ -1178,7 +1195,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                     El periodo <b>{ventanaInforme.periodoNombre}</b> tiene la ventana INFORME_FINAL
                     cerrada ({new Date(ventanaInforme.fechaInicio).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })} —
                     {' '}{new Date(ventanaInforme.fechaFin).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).
-                    Solicita prorroga excepcional a mesa de partes si necesitas enviar fuera de plazo.
+                    Podrás enviar cuando se abra nuevamente.
                   </p>
                 </div>
               )}
@@ -2243,7 +2260,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                       La ventana de presentacion de proyecto para el periodo <b>{ventanaPresentacion.periodoNombre}</b> esta cerrada
                       ({new Date(ventanaPresentacion.fechaInicio).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })} —
                       {' '}{new Date(ventanaPresentacion.fechaFin).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}).
-                      Podras enviar cuando se abra nuevamente o mediante prorroga excepcional autorizada por mesa de partes.
+                      Podrás enviar cuando se abra nuevamente.
                     </p>
                   </div>
                 )}

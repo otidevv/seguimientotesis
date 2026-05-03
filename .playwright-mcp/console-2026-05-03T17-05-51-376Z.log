@@ -1,0 +1,2857 @@
+[     177ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     221ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     415ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     453ms] [LOG] [Fast Refresh] done in 211ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     584ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[     668ms] [LOG] [Fast Refresh] done in 188ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   11794ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   11920ms] [LOG] [Fast Refresh] done in 231ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   51380ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   51755ms] [LOG] [Fast Refresh] done in 274ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   75339ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   75669ms] [LOG] [Fast Refresh] done in 295ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   97493ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[   97702ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   97771ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   97847ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   97906ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   97968ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98029ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98090ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98173ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98244ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98306ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98382ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98443ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98510ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98584ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98648ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98710ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98771ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98836ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98896ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   98959ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99018ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99081ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99145ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99206ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99267ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99333ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99392ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99457ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99520ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99580ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99643ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99703ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99764ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99826ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99889ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[   99951ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100011ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100075ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100139ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100201ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100264ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100326ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100388ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100451ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100513ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100596ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100663ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100734ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100796ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100858ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100916ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  100981ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101041ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101101ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101162ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101233ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101302ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101364ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101427ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101488ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101550ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101618ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101688ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101751ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101813ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101875ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101937ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  101999ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102061ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102122ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102184ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102244ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102307ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102371ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102435ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102494ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102557ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102618ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102681ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102746ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102806ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102868ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102934ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  102993ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103056ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103139ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103196ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103256ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103322ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103381ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103443ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103509ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103570ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103633ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103699ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103771ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103832ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103896ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  103956ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104018ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104082ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104145ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104208ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104269ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104330ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104392ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104455ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104517ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104579ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104641ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104702ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104764ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104827ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104890ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  104952ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105015ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105075ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105138ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105201ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105265ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105328ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105404ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105481ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105540ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105604ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105664ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105726ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105790ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105851ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105912ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  105978ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106038ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106100ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106163ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106224ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106285ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106350ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106410ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106474ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106538ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106601ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106665ms] [ERROR] ./app/(dashboard)/admin/calendario-academico/page.tsx:1039:8
+Parsing ecmascript source code failed
+  1037 |             </Button>
+  1038 |         </DialogFooter>
+> 1039 |       </DialogContent>
+       |        ^^^^^^^^^^^^^^^
+  1040 |     </Dialog>
+  1041 |   )
+  1042 | }
+
+Unterminated regexp literal
+
+Import traces:
+  Client Component Browser:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component Browser]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Client Component SSR]
+    ./app/(dashboard)/admin/calendario-academico/page.tsx [Server Component] @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:3127
+[  106779ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[  107011ms] [LOG] [Fast Refresh] done in 230ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[  107229ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
+[  107254ms] [LOG] [Fast Refresh] done in 135ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297

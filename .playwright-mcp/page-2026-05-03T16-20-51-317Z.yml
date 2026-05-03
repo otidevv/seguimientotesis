@@ -1,0 +1,293 @@
+- generic:
+  - link:
+    - /url: "#main-content"
+    - text: Saltar al contenido principal
+  - generic:
+    - banner:
+      - generic:
+        - generic:
+          - link:
+            - /url: /dashboard
+            - img
+            - generic:
+              - paragraph: Sistema de Tesis
+              - paragraph: UNAMAD
+        - generic:
+          - button:
+            - img
+            - generic: Notificaciones
+          - button:
+            - img
+            - generic: Cambiar tema
+          - button:
+            - generic:
+              - generic: SA
+    - generic:
+      - complementary:
+        - generic:
+          - generic:
+            - generic:
+              - navigation:
+                - generic:
+                  - generic:
+                    - paragraph: Principal
+                    - button:
+                      - img
+                  - generic:
+                    - link:
+                      - /url: /dashboard
+                      - img
+                      - generic: Dashboard
+                    - link:
+                      - /url: /tesis
+                      - img
+                      - generic: Gestión de Tesis
+                    - link:
+                      - /url: /firma-peru
+                      - img
+                      - generic: Firma Digital
+                    - link:
+                      - /url: /reportes
+                      - img
+                      - generic: Reportes
+                - generic:
+                  - generic:
+                    - paragraph: Estudiante
+                  - generic:
+                    - link:
+                      - /url: /mis-tesis
+                      - img
+                      - generic: Mis Tesis
+                - generic:
+                  - generic:
+                    - paragraph: Docente
+                  - generic:
+                    - link:
+                      - /url: /mis-asesorias
+                      - img
+                      - generic: Mis Asesorías
+                    - link:
+                      - /url: /mis-evaluaciones
+                      - img
+                      - generic: Mis Evaluaciones
+                - generic:
+                  - generic:
+                    - paragraph: Correspondencia
+                  - generic:
+                    - link:
+                      - /url: /mis-invitaciones
+                      - img
+                      - generic: Mis Invitaciones
+                - generic:
+                  - generic:
+                    - paragraph: Gestión
+                  - generic:
+                    - link:
+                      - /url: /mesa-partes
+                      - img
+                      - generic: Mesa de Partes
+                    - link:
+                      - /url: /reportes-mp
+                      - img
+                      - generic: Reportes MP
+                - generic:
+                  - generic:
+                    - paragraph: Administración
+                  - generic:
+                    - link:
+                      - /url: /admin/usuarios
+                      - img
+                      - generic: Usuarios
+                    - link:
+                      - /url: /admin/roles
+                      - img
+                      - generic: Roles
+                    - link:
+                      - /url: /admin/modulos
+                      - img
+                      - generic: Módulos
+                    - link:
+                      - /url: /admin/permisos
+                      - img
+                      - generic: Permisos
+                    - link:
+                      - /url: /admin/auditoria
+                      - img
+                      - generic: Auditoría
+                    - link:
+                      - /url: /admin/calendario-academico
+                      - img
+                      - generic: Calendario Académico
+                    - link:
+                      - /url: /admin/configuracion
+                      - img
+                      - generic: Configuración
+                - generic:
+                  - button:
+                    - img
+                    - generic: Ayuda
+        - generic:
+          - generic:
+            - link:
+              - /url: /perfil
+              - generic:
+                - generic: SA
+              - generic:
+                - paragraph: Super Admin
+                - paragraph: Super Administrador
+            - button:
+              - img
+          - paragraph: v1.0.0
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - heading [level=1]: Calendario académico
+                    - paragraph: Gestiona periodos académicos y ventanas de trámite. Las ventanas cerradas bloquean envíos a revisión, asignación de jurados y demás acciones del flujo.
+                - button:
+                  - img
+                  - text: Nuevo periodo
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Periodos
+                    - paragraph: "1"
+                    - paragraph: 1 activos · 0 planif.
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Ventanas configuradas
+                    - paragraph: "7"
+                    - paragraph: Trámites con plazo definido
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Periodo actual
+                    - paragraph: 2026-I
+                    - paragraph: 01 mar 2026 — 31 jul 2026
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Hoy
+                    - paragraph: 03-may
+                    - paragraph: domingo
+            - generic:
+              - generic:
+                - generic:
+                  - heading [level=2]: Periodos académicos
+                  - paragraph: Haz clic para ver y configurar sus ventanas.
+                - generic: 1 periodo
+              - list:
+                - listitem:
+                  - button:
+                    - img
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading [level=3]: 2026-I
+                          - generic: Activo
+                          - generic:
+                            - img
+                            - text: Actual
+                          - generic: Alcance global
+                        - paragraph: 01 mar 2026 → 31 jul 2026
+                    - generic:
+                      - generic:
+                        - generic: "7"
+                        - generic: ventanas
+                      - button:
+                        - img
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]
+  - alert
+  - dialog "Nuevo periodo académico" [ref=e271]:
+    - generic [ref=e273]:
+      - img [ref=e275]
+      - generic [ref=e277]:
+        - heading "Nuevo periodo académico" [level=2] [ref=e278]
+        - paragraph [ref=e279]: Las fechas se interpretan en zona América/Lima (UTC−5).
+    - generic [ref=e280]:
+      - generic [ref=e281]:
+        - paragraph [ref=e282]: Identidad
+        - generic [ref=e283]:
+          - generic [ref=e284]:
+            - generic [ref=e285]: Año
+            - spinbutton [active] [ref=e286]: "2026"
+          - generic [ref=e287]:
+            - generic [ref=e288]: Semestre
+            - combobox [ref=e289] [cursor=pointer]:
+              - generic: I
+              - img
+        - generic [ref=e290]:
+          - generic [ref=e291]: Nombre visible
+          - textbox "2026-I" [ref=e292]
+      - generic [ref=e293]:
+        - paragraph [ref=e294]: Rango de fechas
+        - generic [ref=e295]:
+          - generic [ref=e296]:
+            - generic [ref=e297]: Inicio
+            - textbox [ref=e298]
+          - generic [ref=e299]:
+            - generic [ref=e300]: Fin
+            - textbox [ref=e301]
+        - paragraph [ref=e302]:
+          - img [ref=e303]
+          - generic [ref=e306]: El día de inicio cuenta desde 00:00 y el día de fin hasta 23:59:59, hora Lima.
+      - generic [ref=e307]:
+        - paragraph [ref=e308]: Estado
+        - generic [ref=e309]:
+          - generic [ref=e310]:
+            - generic [ref=e311]: Etapa
+            - combobox [ref=e312] [cursor=pointer]:
+              - generic: Planificado
+              - img
+          - generic [ref=e314] [cursor=pointer]:
+            - switch "Marcar como periodo actual" [ref=e315]
+            - generic [ref=e316]: Marcar como periodo actual
+        - generic [ref=e317]:
+          - img [ref=e318]
+          - generic [ref=e320]: "Planificado: ventanas no aplican aún. Activo: ventanas vigentes y comparadas con la fecha actual. Cerrado: bloquea todas las acciones del scope."
+      - generic [ref=e321]:
+        - generic [ref=e322]:
+          - text: Observaciones
+          - generic [ref=e323]: (opcional)
+        - textbox "Notas internas para mesa de partes..." [ref=e324]
+      - generic [ref=e325]:
+        - generic [ref=e326]:
+          - img [ref=e327]
+          - generic [ref=e330]:
+            - paragraph [ref=e331]: Ventanas iniciales
+            - paragraph [ref=e332]: Ahorra tiempo creando las 7 ventanas de trámite junto con el periodo. Podrás ajustarlas individualmente después.
+        - generic [ref=e333]:
+          - generic [ref=e334] [cursor=pointer]:
+            - radio "Crear 7 ventanas por defecto Cada ventana cubre todo el rango del periodo. Ajustas fechas después." [checked] [ref=e335]
+            - generic [ref=e336]:
+              - generic [ref=e337]: Crear 7 ventanas por defecto
+              - generic [ref=e338]: Cada ventana cubre todo el rango del periodo. Ajustas fechas después.
+          - generic [ref=e339] [cursor=pointer]:
+            - radio "Copiar de un periodo anterior Copia las ventanas del periodo elegido desplazando las fechas según el offset entre inicios." [ref=e340]
+            - generic [ref=e341]:
+              - generic [ref=e342]: Copiar de un periodo anterior
+              - generic [ref=e343]: Copia las ventanas del periodo elegido desplazando las fechas según el offset entre inicios.
+          - generic [ref=e344] [cursor=pointer]:
+            - radio "No crear ventanas Las creo manualmente después." [ref=e345]
+            - generic [ref=e346]:
+              - generic [ref=e347]: No crear ventanas
+              - generic [ref=e348]: Las creo manualmente después.
+    - generic [ref=e349]:
+      - button "Cancelar" [ref=e350] [cursor=pointer]
+      - button "Crear periodo" [ref=e351] [cursor=pointer]
+    - button "Cerrar" [ref=e352] [cursor=pointer]:
+      - img [ref=e353]
+      - generic [ref=e356]: Cerrar

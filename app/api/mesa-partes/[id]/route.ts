@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
 import { EstadoTesis } from '@prisma/client'
-import { DIAS_HABILES_EVALUACION, DIAS_HABILES_CORRECCION } from '@/lib/business-days'
+import {
+  DIAS_HABILES_EVALUACION,
+  DIAS_CALENDARIO_CORRECCION_PROYECTO,
+  DIAS_HABILES_CORRECCION_INFORME,
+  agregarDiasCalendario,
+} from '@/lib/business-days'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 import { assertDentroDeVentana, FueraDeVentanaError, agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
@@ -967,12 +972,11 @@ export async function PUT(
         })
       } else {
         // OBSERVAR informe → INFORME_FINAL (tesista corrige)
-        // Seteamos fechaLimiteCorreccion para dar un plazo estructurado y
-        // permitir distinguir reenvio de primera presentacion en enviar-informe.
+        // Reglamento UNAMAD Art. 89: 15 días hábiles para subsanar en fase de informe.
         const autorActivoObsInf = tesis.autores.find((a) => a.estado === 'ACEPTADO')
         const fechaLimiteObsInf = await agregarDiasHabilesAcademicos(
           new Date(),
-          DIAS_HABILES_CORRECCION,
+          DIAS_HABILES_CORRECCION_INFORME,
           autorActivoObsInf?.studentCareer?.facultadId ?? null,
         )
         await prisma.$transaction([
@@ -988,7 +992,7 @@ export async function PUT(
               thesisId: id,
               estadoAnterior: 'EN_REVISION_INFORME',
               estadoNuevo: 'INFORME_FINAL',
-              comentario: comentario?.trim() || `Informe final observado por Mesa de Partes. Plazo para correccion: ${DIAS_HABILES_CORRECCION} dias habiles academicos.`,
+              comentario: comentario?.trim() || `Informe final observado por Mesa de Partes. Plazo para correccion: ${DIAS_HABILES_CORRECCION_INFORME} dias habiles academicos.`,
               changedById: user.id,
             },
           }),
@@ -1122,16 +1126,11 @@ export async function PUT(
         return NextResponse.json({ error: 'Acción no válida' }, { status: 400 })
     }
 
-    // Si OBSERVAR: calcular fechaLimiteCorreccion (30 dias habiles academicos).
-    // Permite distinguir reenvio de primera presentacion y da plazo claro al tesista.
+    // Si OBSERVAR: calcular fechaLimiteCorreccion.
+    // Reglamento UNAMAD — fase de proyecto: 30 días CALENDARIO (ampliables a 30 más).
     let fechaLimiteCorrObs: Date | null = null
     if (accion === 'OBSERVAR') {
-      const autorActivoObsProy = tesis.autores.find((a) => a.estado === 'ACEPTADO')
-      fechaLimiteCorrObs = await agregarDiasHabilesAcademicos(
-        new Date(),
-        DIAS_HABILES_CORRECCION,
-        autorActivoObsProy?.studentCareer?.facultadId ?? null,
-      )
+      fechaLimiteCorrObs = agregarDiasCalendario(new Date(), DIAS_CALENDARIO_CORRECCION_PROYECTO)
     }
 
     // Actualizar estado

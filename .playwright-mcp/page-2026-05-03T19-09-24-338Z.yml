@@ -1,0 +1,304 @@
+- generic [active]:
+  - link "Saltar al contenido principal" [ref=e1] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e2]:
+    - banner [ref=e74]:
+      - generic [ref=e75]:
+        - link "UNAMAD Sistema de Tesis UNAMAD" [ref=e77] [cursor=pointer]:
+          - /url: /dashboard
+          - img "UNAMAD" [ref=e78]
+          - generic [ref=e79]:
+            - paragraph [ref=e80]: Sistema de Tesis
+            - paragraph [ref=e81]: UNAMAD
+        - generic [ref=e82]:
+          - button "Notificaciones 3 notificaciones no leídas" [ref=e83] [cursor=pointer]:
+            - img
+            - generic [ref=e84]: Notificaciones
+            - generic "3 notificaciones no leídas" [ref=e85]: "3"
+          - button "Cambiar tema" [ref=e86] [cursor=pointer]:
+            - img
+            - generic [ref=e87]: Cambiar tema
+          - button "AP" [ref=e88] [cursor=pointer]:
+            - generic [ref=e90]: AP
+    - generic [ref=e91]:
+      - complementary "Menú de navegación" [ref=e92]:
+        - navigation "Navegación principal" [ref=e96]:
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - paragraph [ref=e99]: Principal
+              - button "Colapsar menú" [ref=e100] [cursor=pointer]:
+                - img [ref=e101]
+            - generic [ref=e103]:
+              - link "Dashboard" [ref=e104] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e105]
+                - generic [ref=e110]: Dashboard
+              - link "Gestión de Tesis" [ref=e111] [cursor=pointer]:
+                - /url: /tesis
+                - img [ref=e112]
+                - generic [ref=e114]: Gestión de Tesis
+              - link "Reportes" [ref=e115] [cursor=pointer]:
+                - /url: /reportes
+                - img [ref=e116]
+                - generic [ref=e118]: Reportes
+          - generic [ref=e119]:
+            - paragraph [ref=e121]: Gestión
+            - generic [ref=e122]:
+              - link "Mesa de Partes" [ref=e123] [cursor=pointer]:
+                - /url: /mesa-partes
+                - img [ref=e124]
+                - generic [ref=e127]: Mesa de Partes
+              - link "Reportes MP" [ref=e128] [cursor=pointer]:
+                - /url: /reportes-mp
+                - img [ref=e129]
+                - generic [ref=e132]: Reportes MP
+          - button "Ayuda" [ref=e134] [cursor=pointer]:
+            - img [ref=e135]
+            - generic [ref=e138]: Ayuda
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - link "AP ALBERTO PEÑA Externo" [ref=e141] [cursor=pointer]:
+              - /url: /perfil
+              - generic [ref=e143]: AP
+              - generic [ref=e144]:
+                - paragraph [ref=e145]: ALBERTO PEÑA
+                - paragraph [ref=e146]: Externo
+            - button "Cerrar sesión" [ref=e147] [cursor=pointer]:
+              - img [ref=e148]
+          - paragraph [ref=e151]: v1.0.0
+      - main [ref=e152]:
+        - generic [ref=e155]:
+          - generic [ref=e156]:
+            - link "Mesa de Partes" [ref=e157] [cursor=pointer]:
+              - /url: /mesa-partes
+            - img [ref=e158]
+            - generic [ref=e160]: E5CMQRJS
+          - generic [ref=e161]:
+            - link [ref=e162] [cursor=pointer]:
+              - /url: /mesa-partes
+              - img
+            - generic [ref=e163]:
+              - generic [ref=e164]:
+                - generic [ref=e165]: E5CMQRJS
+                - generic [ref=e166]:
+                  - img
+                  - text: Observada
+                - generic [ref=e167]: Ronda 1
+                - generic [ref=e168]: Facultad de Ingeniería
+              - heading "realidad aumentada" [level=1] [ref=e169]
+              - paragraph [ref=e170]: INGENIERÍA DE SISTEMAS E INFORMÁTICA
+          - region "Ventanas aplicables a esta tesis" [ref=e171]:
+            - generic [ref=e172]:
+              - generic [ref=e173]:
+                - img [ref=e175]
+                - generic [ref=e177]:
+                  - heading "Ventanas aplicables a esta tesis" [level=2] [ref=e178]
+                  - paragraph [ref=e179]: Ventanas vigentes del calendario académico
+              - generic [ref=e185]: 6 abiertos
+            - generic [ref=e187]:
+              - 'generic "Revisión Mesa de Partes: Ventana abierta (2026-03-01 — 2026-07-31)." [ref=e188]':
+                - generic [ref=e190]:
+                  - generic [ref=e191]:
+                    - img [ref=e193]
+                    - generic [ref=e196]:
+                      - paragraph [ref=e197]: Revisión Mesa de Partes
+                      - paragraph [ref=e198]: Revisión administrativa
+                  - generic [ref=e199]:
+                    - img [ref=e203]
+                    - text: Abierto
+                - generic [ref=e206]:
+                  - img [ref=e207]
+                  - paragraph [ref=e209]: 01-mar — 31 jul 2026
+                - generic [ref=e211]:
+                  - generic [ref=e212]: Quedan 89 días
+                  - generic [ref=e213]: 41% transcurrido
+              - 'generic "Asignación de jurados: Ventana abierta (2026-03-01 — 2026-07-31)." [ref=e216]':
+                - generic [ref=e218]:
+                  - generic [ref=e219]:
+                    - img [ref=e221]
+                    - generic [ref=e226]:
+                      - paragraph [ref=e227]: Asignación de jurados
+                      - paragraph [ref=e228]: Designación del comité
+                  - generic [ref=e229]:
+                    - img [ref=e233]
+                    - text: Abierto
+                - generic [ref=e236]:
+                  - img [ref=e237]
+                  - paragraph [ref=e239]: 01-mar — 31 jul 2026
+                - generic [ref=e241]:
+                  - generic [ref=e242]: Quedan 89 días
+                  - generic [ref=e243]: 41% transcurrido
+              - 'generic "Evaluación del jurado: Ventana abierta (2026-03-01 — 2026-07-31)." [ref=e246]':
+                - generic [ref=e248]:
+                  - generic [ref=e249]:
+                    - img [ref=e251]
+                    - generic [ref=e255]:
+                      - paragraph [ref=e256]: Evaluación del jurado
+                      - paragraph [ref=e257]: Lectura y observaciones
+                  - generic [ref=e258]:
+                    - img [ref=e262]
+                    - text: Abierto
+                - generic [ref=e265]:
+                  - img [ref=e266]
+                  - paragraph [ref=e268]: 01-mar — 31 jul 2026
+                - generic [ref=e270]:
+                  - generic [ref=e271]: Quedan 89 días
+                  - generic [ref=e272]: 41% transcurrido
+              - 'generic "Sustentación: Ventana abierta (2026-03-01 — 2026-07-31)." [ref=e275]':
+                - generic [ref=e277]:
+                  - generic [ref=e278]:
+                    - img [ref=e280]
+                    - generic [ref=e283]:
+                      - paragraph [ref=e284]: Sustentación
+                      - paragraph [ref=e285]: Defensa pública
+                  - generic [ref=e286]:
+                    - img [ref=e290]
+                    - text: Abierto
+                - generic [ref=e293]:
+                  - img [ref=e294]
+                  - paragraph [ref=e296]: 01-mar — 31 jul 2026
+                - generic [ref=e298]:
+                  - generic [ref=e299]: Quedan 89 días
+                  - generic [ref=e300]: 41% transcurrido
+              - 'generic "Informe final: Ventana abierta (2026-03-01 — 2026-07-31)." [ref=e303]':
+                - generic [ref=e305]:
+                  - generic [ref=e306]:
+                    - img [ref=e308]
+                    - generic [ref=e312]:
+                      - paragraph [ref=e313]: Informe final
+                      - paragraph [ref=e314]: Entrega del documento
+                  - generic [ref=e315]:
+                    - img [ref=e319]
+                    - text: Abierto
+                - generic [ref=e322]:
+                  - img [ref=e323]
+                  - paragraph [ref=e325]: 01-mar — 31 jul 2026
+                - generic [ref=e327]:
+                  - generic [ref=e328]: Quedan 89 días
+                  - generic [ref=e329]: 41% transcurrido
+              - 'generic "Desistimiento: Ventana abierta (2026-03-01 — 2026-07-31)." [ref=e332]':
+                - generic [ref=e334]:
+                  - generic [ref=e335]:
+                    - img [ref=e337]
+                    - generic [ref=e340]:
+                      - paragraph [ref=e341]: Desistimiento
+                      - paragraph [ref=e342]: Solicitud de baja
+                  - generic [ref=e343]:
+                    - img [ref=e347]
+                    - text: Abierto
+                - generic [ref=e350]:
+                  - img [ref=e351]
+                  - paragraph [ref=e353]: 01-mar — 31 jul 2026
+                - generic [ref=e355]:
+                  - generic [ref=e356]: Quedan 89 días
+                  - generic [ref=e357]: 41% transcurrido
+          - generic [ref=e362]:
+            - img [ref=e363]
+            - generic [ref=e366]:
+              - paragraph [ref=e367]: Esperando correcciones del tesista
+              - paragraph [ref=e368]: El proyecto fue observado. Los botones de accion se habilitaran cuando el tesista reenvie el proyecto a revision.
+          - generic [ref=e369]:
+            - generic [ref=e371]:
+              - tablist [ref=e373]:
+                - tab "Gestión" [selected] [ref=e374] [cursor=pointer]:
+                  - img
+                  - generic [ref=e375]: Gestión
+                - tab "Docs" [ref=e376] [cursor=pointer]:
+                  - img
+                  - generic [ref=e377]: Docs
+                - tab "Historial" [ref=e378] [cursor=pointer]:
+                  - img
+                  - generic [ref=e379]: Historial
+              - tabpanel "Gestión" [ref=e380]:
+                - generic [ref=e381]:
+                  - generic [ref=e382]:
+                    - generic [ref=e383]:
+                      - img [ref=e384]
+                      - text: Documentos Presentados
+                    - generic [ref=e387]: El tesista está corrigiendo las observaciones. Estos son los documentos que presentó.
+                  - generic [ref=e388]:
+                    - generic [ref=e389]:
+                      - paragraph [ref=e390]: "Observaciones enviadas:"
+                      - paragraph [ref=e391]: "Reapertura excepcional autorizada por mesa de partes. Motivo: Tesista presentó constancia médica de hospitalización del 25 abril al 02 mayo. Documentación verificada por mesa de partes y archivada en expediente. | Plazo nuevo: 15 días calendario, hasta 18/5/2026."
+                      - paragraph [ref=e392]: "Por: ALBERTO PEÑA GARCIA — 3/5/2026, 2:09:16 p. m."
+                    - generic [ref=e393]:
+                      - img [ref=e395]
+                      - generic [ref=e398]: Proyecto de Tesis
+                      - link "Ver" [ref=e399] [cursor=pointer]:
+                        - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/proyecto_1777817204273_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                        - img [ref=e400]
+                        - text: Ver
+                    - generic [ref=e403]:
+                      - img [ref=e405]
+                      - generic [ref=e408]: Carta de Aceptación del Asesor
+                      - link "Ver" [ref=e409] [cursor=pointer]:
+                        - /url: /documentos/cartas-aceptacion/carta_asesor_cmoptmsgn0000qktue5cmqrjs_1777817299988.pdf
+                        - img [ref=e410]
+                        - text: Ver
+                    - generic [ref=e413]:
+                      - img [ref=e415]
+                      - generic [ref=e418]: Voucher de Pago
+                      - link "Ver" [ref=e419] [cursor=pointer]:
+                        - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/voucher_pago_1777817206529_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                        - img [ref=e420]
+                        - text: Ver
+                    - generic [ref=e423]:
+                      - img [ref=e425]
+                      - generic [ref=e428]: Sustentatorio — ALBERTO PEÑA MONDRAGON
+                      - link "Ver" [ref=e429] [cursor=pointer]:
+                        - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/documento_sustentatorio_1777817210861_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                        - img [ref=e430]
+                        - text: Ver
+                    - generic [ref=e433]:
+                      - img [ref=e435]
+                      - generic [ref=e438]: Sustentatorio — JEFFERSON MORALES ZAVALETA
+                      - link "Ver" [ref=e439] [cursor=pointer]:
+                        - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/documento_sustentatorio_1777817255394_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                        - img [ref=e440]
+                        - text: Ver
+            - generic [ref=e443]:
+              - generic [ref=e444]:
+                - generic [ref=e446]:
+                  - img [ref=e447]
+                  - text: Tesistas
+                - generic [ref=e452]:
+                  - generic [ref=e453]:
+                    - img [ref=e455]
+                    - generic [ref=e458]:
+                      - paragraph [ref=e459]: ALBERTO PEÑA MONDRAGON
+                      - paragraph [ref=e461]: Tesista 1
+                      - paragraph [ref=e462]: "13121005"
+                      - paragraph [ref=e463]: apenam@unamad.edu.pe
+                  - generic [ref=e464]:
+                    - img [ref=e466]
+                    - generic [ref=e469]:
+                      - paragraph [ref=e470]: JEFFERSON MORALES ZAVALETA
+                      - paragraph [ref=e472]: Tesista 2
+                      - paragraph [ref=e473]: "13121013"
+                      - paragraph [ref=e474]: bytevoxtec@gmail.com
+              - generic [ref=e475]:
+                - generic [ref=e477]:
+                  - img [ref=e478]
+                  - text: Asesores
+                - generic [ref=e482]:
+                  - img [ref=e484]
+                  - generic [ref=e487]:
+                    - paragraph [ref=e488]: NELLY JACQUELINE ULLOA GALLARDO
+                    - generic [ref=e489]:
+                      - paragraph [ref=e490]: ASESOR
+                      - generic [ref=e491]: Aceptado
+                    - paragraph [ref=e492]: verseker2@gmail.com
+              - generic [ref=e495]:
+                - generic [ref=e496]:
+                  - generic [ref=e497]: Fecha de registro
+                  - generic [ref=e498]: 3/5/2026
+                - generic [ref=e499]:
+                  - generic [ref=e500]: Documentos
+                  - generic [ref=e501]: "5"
+                - generic [ref=e502]:
+                  - generic [ref=e503]: Limite correccion (d.h.)
+                  - generic [ref=e504]: 18/5/2026
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]
+  - alert [ref=e17]

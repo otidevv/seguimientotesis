@@ -1,0 +1,225 @@
+- generic [active]:
+  - link "Saltar al contenido principal" [ref=e1] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e2]:
+    - banner [ref=e18]:
+      - generic [ref=e19]:
+        - link "UNAMAD Sistema de Tesis UNAMAD" [ref=e21] [cursor=pointer]:
+          - /url: /dashboard
+          - img "UNAMAD" [ref=e22]
+          - generic [ref=e23]:
+            - paragraph [ref=e24]: Sistema de Tesis
+            - paragraph [ref=e25]: UNAMAD
+        - generic [ref=e26]:
+          - button "Notificaciones 3 notificaciones no leídas" [ref=e27] [cursor=pointer]:
+            - img
+            - generic [ref=e28]: Notificaciones
+            - generic "3 notificaciones no leídas" [ref=e29]: "3"
+          - button "Cambiar tema" [ref=e30] [cursor=pointer]:
+            - img
+            - generic [ref=e31]: Cambiar tema
+          - button "AP" [ref=e32] [cursor=pointer]:
+            - generic [ref=e34]: AP
+    - generic [ref=e35]:
+      - complementary "Menú de navegación" [ref=e36]:
+        - navigation "Navegación principal" [ref=e40]:
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - paragraph [ref=e43]: Principal
+              - button "Colapsar menú" [ref=e44] [cursor=pointer]:
+                - img [ref=e45]
+            - link "Dashboard" [ref=e48] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e49]
+              - generic [ref=e54]: Dashboard
+          - generic [ref=e55]:
+            - paragraph [ref=e57]: Estudiante
+            - link "Mis Tesis" [ref=e59] [cursor=pointer]:
+              - /url: /mis-tesis
+              - img [ref=e60]
+              - generic [ref=e63]: Mis Tesis
+          - generic [ref=e64]:
+            - paragraph [ref=e66]: Correspondencia
+            - link "Mis Invitaciones" [ref=e68] [cursor=pointer]:
+              - /url: /mis-invitaciones
+              - img [ref=e69]
+              - generic [ref=e72]: Mis Invitaciones
+          - button "Ayuda" [ref=e74] [cursor=pointer]:
+            - img [ref=e75]
+            - generic [ref=e78]: Ayuda
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - link "AP ALBERTO PEÑA Estudiante" [ref=e81] [cursor=pointer]:
+              - /url: /perfil
+              - generic [ref=e83]: AP
+              - generic [ref=e84]:
+                - paragraph [ref=e85]: ALBERTO PEÑA
+                - paragraph [ref=e86]: Estudiante
+            - button "Cerrar sesión" [ref=e87] [cursor=pointer]:
+              - img [ref=e88]
+          - paragraph [ref=e91]: v1.0.0
+      - main [ref=e92]:
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - link "Mis Tesis" [ref=e96] [cursor=pointer]:
+              - /url: /mis-tesis
+            - img [ref=e97]
+            - generic [ref=e99]: E5CMQRJS
+          - generic [ref=e100]:
+            - link [ref=e101] [cursor=pointer]:
+              - /url: /mis-tesis
+              - img
+            - generic [ref=e102]:
+              - generic [ref=e103]:
+                - generic [ref=e104]: E5CMQRJS
+                - generic [ref=e105]:
+                  - img
+                  - text: Observada
+              - heading "realidad aumentada" [level=1] [ref=e106]
+              - paragraph [ref=e107]: INGENIERÍA DE SISTEMAS E INFORMÁTICA • Facultad de Ingeniería
+          - generic [ref=e109]:
+            - img [ref=e354]
+            - generic [ref=e357]:
+              - paragraph [ref=e358]: Plazo ampliado a 09 de junio de 2026
+              - paragraph [ref=e359]:
+                - text: Solicitaste 30 días más el 03 de mayo de 2026. Te quedan
+                - generic [ref=e360]: 37 días
+                - text: para presentar correcciones.
+              - paragraph [ref=e361]: "\"Las observaciones requieren cambios estructurales en el marco teórico que necesitan investigación bibliográfica adicional. Solicito 30 días más para hacer una corrección de calidad.\""
+          - generic [ref=e120]:
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]:
+                  - img [ref=e126]
+                  - generic [ref=e130]:
+                    - generic [ref=e131]: Documentos Requeridos
+                    - generic [ref=e132]: Sube los documentos para completar tu registro
+                - generic [ref=e133]:
+                  - generic [ref=e134]:
+                    - generic [ref=e135]: Progreso de requisitos
+                    - generic [ref=e136]: 7 de 7 completados
+                  - progressbar [ref=e137]
+                  - paragraph [ref=e139]:
+                    - img [ref=e140]
+                    - text: Todos los requisitos están listos
+              - generic [ref=e143]:
+                - generic [ref=e146]:
+                  - img [ref=e148]
+                  - generic [ref=e152]:
+                    - generic [ref=e153]:
+                      - paragraph [ref=e154]: Proyecto de Tesis
+                      - generic [ref=e155]: Subido
+                    - paragraph [ref=e156]: Documento del proyecto en formato PDF (máx. 25MB)
+                    - link "Proyecto de Tesis 3.3 MB" [ref=e157] [cursor=pointer]:
+                      - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/proyecto_1777817204273_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                      - img [ref=e158]
+                      - generic [ref=e161]: Proyecto de Tesis
+                      - generic [ref=e162]: 3.3 MB
+                      - img [ref=e163]
+                  - button "Cambiar" [ref=e167] [cursor=pointer]:
+                    - img
+                    - generic [ref=e168]: Cambiar
+                - generic [ref=e171]:
+                  - img [ref=e173]
+                  - generic [ref=e177]:
+                    - generic [ref=e178]:
+                      - paragraph [ref=e179]: Carta de Aceptación del Asesor
+                      - generic [ref=e180]: Carta registrada
+                    - paragraph [ref=e181]: "Asesor: NELLY JACQUELINE ULLOA GALLARDO"
+                    - link "Carta de Aceptación del Asesor 3.3 MB" [ref=e183] [cursor=pointer]:
+                      - /url: /documentos/cartas-aceptacion/carta_asesor_cmoptmsgn0000qktue5cmqrjs_1777817299988.pdf
+                      - img [ref=e184]
+                      - generic [ref=e187]: Carta de Aceptación del Asesor
+                      - generic [ref=e188]: 3.3 MB
+                      - img [ref=e189]
+                - generic [ref=e194]:
+                  - img [ref=e196]
+                  - generic [ref=e200]:
+                    - generic [ref=e201]:
+                      - paragraph [ref=e202]: Voucher de Pago
+                      - generic [ref=e203]: Subido
+                    - paragraph [ref=e204]: Voucher de pago de S/. 30.00 al código 277 en formato PDF (máx. 25MB)
+                    - link "Voucher de Pago 3.3 MB" [ref=e205] [cursor=pointer]:
+                      - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/voucher_pago_1777817206529_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                      - img [ref=e206]
+                      - generic [ref=e209]: Voucher de Pago
+                      - generic [ref=e210]: 3.3 MB
+                      - img [ref=e211]
+                  - button "Cambiar" [ref=e215] [cursor=pointer]:
+                    - img
+                    - generic [ref=e216]: Cambiar
+                - generic [ref=e219]:
+                  - img [ref=e221]
+                  - generic [ref=e225]:
+                    - generic [ref=e226]:
+                      - paragraph [ref=e227]: Tu Documento Sustentatorio
+                      - generic [ref=e228]: Subido
+                    - paragraph [ref=e229]: Documento que acredite que se encuentra como mínimo en el VIII semestre o superior (PDF, máx. 25MB)
+                    - link "Documento Sustentatorio 3.3 MB" [ref=e230] [cursor=pointer]:
+                      - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/documento_sustentatorio_1777817210861_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                      - img [ref=e231]
+                      - generic [ref=e234]: Documento Sustentatorio
+                      - generic [ref=e235]: 3.3 MB
+                      - img [ref=e236]
+                  - button "Cambiar" [ref=e240] [cursor=pointer]:
+                    - img
+                    - generic [ref=e241]: Cambiar
+                - generic [ref=e243]:
+                  - img [ref=e245]
+                  - generic [ref=e249]:
+                    - generic [ref=e250]:
+                      - paragraph [ref=e251]: Sustentatorio de JEFFERSON MORALES
+                      - generic [ref=e252]: Subido
+                    - paragraph [ref=e253]: JEFFERSON ya subió su documento sustentatorio
+                - generic [ref=e254]:
+                  - generic [ref=e255]:
+                    - paragraph [ref=e256]: ¿Listo para enviar?
+                    - paragraph [ref=e257]: Todos los requisitos están completos
+                  - button "Enviar a Revisión" [ref=e258] [cursor=pointer]:
+                    - img
+                    - text: Enviar a Revisión
+            - generic [ref=e259]:
+              - generic [ref=e260]:
+                - generic [ref=e262]:
+                  - img [ref=e263]
+                  - text: Tesistas
+                - generic [ref=e268]:
+                  - generic [ref=e270]:
+                    - img [ref=e272]
+                    - generic [ref=e275]:
+                      - paragraph [ref=e276]: PEÑA MONDRAGON, ALBERTO
+                      - generic [ref=e278]: Tesista 1 • 13121005
+                  - generic [ref=e280]:
+                    - img [ref=e282]
+                    - generic [ref=e285]:
+                      - paragraph [ref=e286]: MORALES ZAVALETA, JEFFERSON
+                      - generic [ref=e287]:
+                        - generic [ref=e288]: Tesista 2 • 13121013
+                        - generic [ref=e289]: Aceptado
+              - generic [ref=e290]:
+                - generic [ref=e292]:
+                  - img [ref=e293]
+                  - text: Asesores
+                - generic [ref=e296]:
+                  - generic [ref=e298]:
+                    - img [ref=e300]
+                    - generic [ref=e303]:
+                      - paragraph [ref=e304]: ULLOA GALLARDO, NELLY JACQUELINE
+                      - generic [ref=e305]:
+                        - generic [ref=e306]: Asesor
+                        - generic [ref=e307]: Aceptado
+                  - button "Agregar Coasesor" [ref=e308] [cursor=pointer]:
+                    - img
+                    - text: Agregar Coasesor
+              - generic [ref=e311]:
+                - img [ref=e313]
+                - generic [ref=e315]:
+                  - paragraph [ref=e316]: Importante
+                  - paragraph [ref=e317]: Una vez enviado a revisión, no podrás modificar los documentos hasta recibir observaciones o aprobación.
+          - button "Solicitar desistimiento" [ref=e319] [cursor=pointer]:
+            - img
+            - text: Solicitar desistimiento
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]
+  - alert [ref=e17]
