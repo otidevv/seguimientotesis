@@ -279,7 +279,9 @@ export async function POST(request: NextRequest) {
     const tesisObservadas = await prisma.thesis.findMany({
       where: {
         deletedAt: null,
-        estado: { in: ['OBSERVADA_JURADO', 'OBSERVADA_INFORME'] },
+        // OBSERVADA: mesa-partes observó proyecto. Si el plazo vence, plazo-correccion-vencido
+        // auto-rechaza la tesis — por simetría debe recibir los mismos reminders.
+        estado: { in: ['OBSERVADA', 'OBSERVADA_JURADO', 'OBSERVADA_INFORME'] },
         fechaLimiteCorreccion: { not: null },
       },
       select: {
@@ -324,6 +326,8 @@ export async function POST(request: NextRequest) {
         }
 
         const nombreEstudiante = `${autor.user.nombres} ${autor.user.apellidoPaterno}`
+        const observadoPor: 'mesa-partes' | 'jurado' =
+          tesis.estado === 'OBSERVADA' ? 'mesa-partes' : 'jurado'
         const tpl = buildTemplateEstudiante({
           nombreEstudiante,
           tituloTesis: tesis.titulo,
@@ -331,6 +335,7 @@ export async function POST(request: NextRequest) {
           diasRestantes,
           fase,
           esInformeFinal: tesis.estado === 'OBSERVADA_INFORME',
+          observadoPor,
           enlace: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'}/mis-tesis/${tesis.id}`,
         })
         const ok = await sendEmail({ to: autor.user.email, subject: tpl.subject, html: tpl.html, text: tpl.text })
@@ -589,6 +594,7 @@ interface TplEstudianteArgs {
   diasRestantes: number
   fase: Fase
   esInformeFinal: boolean
+  observadoPor: 'mesa-partes' | 'jurado'
   enlace: string
 }
 
@@ -599,6 +605,7 @@ function buildTemplateEstudiante(args: TplEstudianteArgs): { subject: string; ht
   const esLimite = args.fase === 'DIA_LIMITE'
   const tono = esLimite ? '#dc2626' : '#d97706'
   const documentoLabel = args.esInformeFinal ? 'informe final' : 'proyecto'
+  const observadoPorLabel = args.observadoPor === 'mesa-partes' ? 'mesa de partes' : 'el jurado'
   const titulo = esLimite
     ? args.diasRestantes < 0
       ? 'Plazo de corrección VENCIDO'
@@ -618,7 +625,7 @@ function buildTemplateEstudiante(args: TplEstudianteArgs): { subject: string; ht
         <h2 style="color: ${tono}; margin: 0 0 8px 0;">${titulo}</h2>
         <p style="margin: 0; color: #555;">Estimado/a ${nombreSafe},</p>
       </div>
-      <p>Tu ${documentoLabel} fue <strong>observado por el jurado</strong> y debes subir las correcciones dentro del plazo establecido:</p>
+      <p>Tu ${documentoLabel} fue <strong>observado por ${observadoPorLabel}</strong> y debes subir las correcciones dentro del plazo establecido:</p>
       <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0;">
         <div style="font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Tesis</div>
         <div style="font-size: 16px; font-weight: 600; margin-top: 4px;">${tituloTesisSafe}</div>
@@ -646,7 +653,7 @@ function buildTemplateEstudiante(args: TplEstudianteArgs): { subject: string; ht
 
 Estimado/a ${args.nombreEstudiante},
 
-Tu ${documentoLabel} fue observado por el jurado y debes subir las correcciones dentro del plazo:
+Tu ${documentoLabel} fue observado por ${observadoPorLabel} y debes subir las correcciones dentro del plazo:
 
 Tesis: "${args.tituloTesis}"
 Fecha límite de corrección: ${fechaStr}
