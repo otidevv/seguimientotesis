@@ -1,0 +1,392 @@
+- generic [active]:
+  - link "Saltar al contenido principal" [ref=e1] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e2]:
+    - banner [ref=e18]:
+      - generic [ref=e19]:
+        - link "UNAMAD Sistema de Tesis UNAMAD" [ref=e21] [cursor=pointer]:
+          - /url: /dashboard
+          - img "UNAMAD" [ref=e22]
+          - generic [ref=e23]:
+            - paragraph [ref=e24]: Sistema de Tesis
+            - paragraph [ref=e25]: UNAMAD
+        - generic [ref=e26]:
+          - button "Notificaciones" [ref=e27] [cursor=pointer]:
+            - img
+            - generic [ref=e28]: Notificaciones
+          - button "Cambiar tema" [ref=e29] [cursor=pointer]:
+            - img
+            - generic [ref=e30]: Cambiar tema
+          - button "SA" [ref=e31] [cursor=pointer]:
+            - generic [ref=e33]: SA
+    - generic [ref=e34]:
+      - complementary "Menú de navegación" [ref=e35]:
+        - navigation "Navegación principal" [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - paragraph [ref=e42]: Principal
+              - button "Colapsar menú" [ref=e43] [cursor=pointer]:
+                - img [ref=e44]
+            - generic [ref=e46]:
+              - link "Dashboard" [ref=e47] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e48]
+                - generic [ref=e53]: Dashboard
+              - link "Gestión de Tesis" [ref=e54] [cursor=pointer]:
+                - /url: /tesis
+                - img [ref=e55]
+                - generic [ref=e57]: Gestión de Tesis
+              - link "Firma Digital" [ref=e58] [cursor=pointer]:
+                - /url: /firma-peru
+                - img [ref=e59]
+                - generic [ref=e64]: Firma Digital
+              - link "Reportes" [ref=e65] [cursor=pointer]:
+                - /url: /reportes
+                - img [ref=e66]
+                - generic [ref=e68]: Reportes
+          - generic [ref=e69]:
+            - paragraph [ref=e71]: Estudiante
+            - link "Mis Tesis" [ref=e73] [cursor=pointer]:
+              - /url: /mis-tesis
+              - img [ref=e74]
+              - generic [ref=e77]: Mis Tesis
+          - generic [ref=e78]:
+            - paragraph [ref=e80]: Docente
+            - generic [ref=e81]:
+              - link "Mis Asesorías" [ref=e82] [cursor=pointer]:
+                - /url: /mis-asesorias
+                - img [ref=e83]
+                - generic [ref=e86]: Mis Asesorías
+              - link "Mis Evaluaciones" [ref=e87] [cursor=pointer]:
+                - /url: /mis-evaluaciones
+                - img [ref=e88]
+                - generic [ref=e92]: Mis Evaluaciones
+          - generic [ref=e93]:
+            - paragraph [ref=e95]: Correspondencia
+            - link "Mis Invitaciones" [ref=e97] [cursor=pointer]:
+              - /url: /mis-invitaciones
+              - img [ref=e98]
+              - generic [ref=e101]: Mis Invitaciones
+          - generic [ref=e102]:
+            - paragraph [ref=e104]: Gestión
+            - generic [ref=e105]:
+              - link "Mesa de Partes" [ref=e106] [cursor=pointer]:
+                - /url: /mesa-partes
+                - img [ref=e107]
+                - generic [ref=e110]: Mesa de Partes
+              - link "Reportes MP" [ref=e111] [cursor=pointer]:
+                - /url: /reportes-mp
+                - img [ref=e112]
+                - generic [ref=e115]: Reportes MP
+          - generic [ref=e116]:
+            - paragraph [ref=e118]: Administración
+            - generic [ref=e119]:
+              - link "Usuarios" [ref=e120] [cursor=pointer]:
+                - /url: /admin/usuarios
+                - img [ref=e121]
+                - generic [ref=e126]: Usuarios
+              - link "Roles" [ref=e127] [cursor=pointer]:
+                - /url: /admin/roles
+                - img [ref=e128]
+                - generic [ref=e130]: Roles
+              - link "Módulos" [ref=e131] [cursor=pointer]:
+                - /url: /admin/modulos
+                - img [ref=e132]
+                - generic [ref=e142]: Módulos
+              - link "Permisos" [ref=e143] [cursor=pointer]:
+                - /url: /admin/permisos
+                - img [ref=e144]
+                - generic [ref=e148]: Permisos
+              - link "Auditoría" [ref=e149] [cursor=pointer]:
+                - /url: /admin/auditoria
+                - img [ref=e150]
+                - generic [ref=e155]: Auditoría
+              - link "Calendario Académico" [ref=e156] [cursor=pointer]:
+                - /url: /admin/calendario-academico
+                - img [ref=e157]
+                - generic [ref=e159]: Calendario Académico
+              - link "Configuración" [ref=e160] [cursor=pointer]:
+                - /url: /admin/configuracion
+                - img [ref=e161]
+                - generic [ref=e164]: Configuración
+          - button "Ayuda" [ref=e166] [cursor=pointer]:
+            - img [ref=e167]
+            - generic [ref=e170]: Ayuda
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - link "SA Super Admin Super Administrador" [ref=e173] [cursor=pointer]:
+              - /url: /perfil
+              - generic [ref=e175]: SA
+              - generic [ref=e176]:
+                - paragraph [ref=e177]: Super Admin
+                - paragraph [ref=e178]: Super Administrador
+            - button "Cerrar sesión" [ref=e179] [cursor=pointer]:
+              - img [ref=e180]
+          - paragraph [ref=e183]: v1.0.0
+      - main [ref=e184]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - generic [ref=e189]:
+              - generic [ref=e190]:
+                - img [ref=e192]
+                - generic [ref=e194]:
+                  - heading "Calendario académico" [level=1] [ref=e195]
+                  - paragraph [ref=e196]: Gestiona periodos académicos y ventanas de trámite. Las ventanas cerradas bloquean envíos a revisión, asignación de jurados y demás acciones del flujo.
+              - button "Nuevo periodo" [ref=e197] [cursor=pointer]:
+                - img
+                - text: Nuevo periodo
+            - generic [ref=e198]:
+              - generic [ref=e199]:
+                - img [ref=e201]
+                - generic [ref=e205]:
+                  - paragraph [ref=e206]: Periodos
+                  - paragraph [ref=e207]: "1"
+                  - paragraph [ref=e208]: 1 activos · 0 planif.
+              - generic [ref=e209]:
+                - img [ref=e211]
+                - generic [ref=e214]:
+                  - paragraph [ref=e215]: Ventanas configuradas
+                  - paragraph [ref=e216]: "7"
+                  - paragraph [ref=e217]: Trámites con plazo definido
+              - generic [ref=e218]:
+                - img [ref=e220]
+                - generic [ref=e223]:
+                  - paragraph [ref=e224]: Periodo actual
+                  - paragraph [ref=e225]: 2026-I
+                  - paragraph [ref=e226]: 01 mar 2026 — 31 jul 2026
+              - generic [ref=e227]:
+                - img [ref=e229]
+                - generic [ref=e231]:
+                  - paragraph [ref=e232]: Hoy
+                  - paragraph [ref=e233]: 03-may
+                  - paragraph [ref=e234]: domingo
+          - generic [ref=e235]:
+            - generic [ref=e236]:
+              - generic [ref=e237]:
+                - heading "Periodos académicos" [level=2] [ref=e238]
+                - paragraph [ref=e239]: Haz clic para ver y configurar sus ventanas.
+              - generic [ref=e240]: 1 periodo
+            - list [ref=e241]:
+              - listitem [ref=e242]:
+                - generic [ref=e243]:
+                  - button "Ocultar ventanas" [ref=e244] [cursor=pointer]:
+                    - img [ref=e245]
+                  - button "2026-I Activo Actual Alcance global 01 mar 2026 → 31 jul 2026 hoy" [ref=e247] [cursor=pointer]:
+                    - generic [ref=e248]:
+                      - generic [ref=e249]:
+                        - heading "2026-I" [level=3] [ref=e250]
+                        - generic [ref=e251]: Activo
+                        - generic [ref=e255]:
+                          - img [ref=e256]
+                          - text: Actual
+                        - generic [ref=e258]: Alcance global
+                      - paragraph [ref=e259]: 01 mar 2026 → 31 jul 2026
+                      - generic "hoy" [ref=e262]
+                  - generic [ref=e263]:
+                    - button "7 ventanas abiertas" [ref=e264] [cursor=pointer]:
+                      - img [ref=e265]
+                      - generic [ref=e269]: "7"
+                      - generic [ref=e270]: ventanas abiertas
+                    - button "Editar" [ref=e271] [cursor=pointer]:
+                      - img [ref=e272]
+                      - generic [ref=e275]: Editar
+                - generic [ref=e276]:
+                  - generic [ref=e277]:
+                    - generic [ref=e278]:
+                      - img [ref=e279]
+                      - heading "Ventanas de trámite" [level=3] [ref=e283]
+                      - generic [ref=e284]: · ordenadas según el flujo del proyecto
+                    - button "Nueva ventana" [disabled]:
+                      - img
+                      - text: Nueva ventana
+                  - generic [ref=e285]:
+                    - article [ref=e286]:
+                      - generic [ref=e287]:
+                        - generic [ref=e288]:
+                          - generic [ref=e289]:
+                            - img [ref=e291]
+                            - generic [ref=e294]: "1"
+                          - generic [ref=e295]:
+                            - heading "Presentacion de proyecto" [level=4] [ref=e296]
+                            - paragraph [ref=e297]:
+                              - text: Alcance global
+                              - generic [ref=e298]:
+                                - img [ref=e299]
+                                - text: 1 prórroga
+                        - generic [ref=e301]: Abierta
+                      - generic [ref=e303]:
+                        - img [ref=e304]
+                        - generic [ref=e306]: 01 mar 2026 → 03 may 2026
+                      - generic [ref=e308]:
+                        - generic [ref=e309]: Cierra hoy
+                        - generic [ref=e310]: 100% transcurrido
+                      - generic [ref=e313]:
+                        - button "Prórrogas" [ref=e314] [cursor=pointer]:
+                          - img
+                          - text: Prórrogas
+                        - button "Editar" [ref=e315] [cursor=pointer]:
+                          - img
+                          - text: Editar
+                        - button "Eliminar" [ref=e316] [cursor=pointer]:
+                          - img
+                          - text: Eliminar
+                    - article [ref=e317]:
+                      - generic [ref=e318]:
+                        - generic [ref=e319]:
+                          - generic [ref=e320]:
+                            - img [ref=e322]
+                            - generic [ref=e325]: "2"
+                          - generic [ref=e326]:
+                            - heading "Revision mesa de partes" [level=4] [ref=e327]
+                            - paragraph [ref=e328]: Alcance global
+                        - generic [ref=e329]: Abierta
+                      - generic [ref=e331]:
+                        - img [ref=e332]
+                        - generic [ref=e334]: 01 mar 2026 → 31 jul 2026
+                      - generic [ref=e336]:
+                        - generic [ref=e337]: Quedan 89 días
+                        - generic [ref=e338]: 42% transcurrido
+                      - generic [ref=e341]:
+                        - button "Prórrogas" [ref=e342] [cursor=pointer]:
+                          - img
+                          - text: Prórrogas
+                        - button "Editar" [ref=e343] [cursor=pointer]:
+                          - img
+                          - text: Editar
+                        - button "Eliminar" [ref=e344] [cursor=pointer]:
+                          - img
+                          - text: Eliminar
+                    - article [ref=e345]:
+                      - generic [ref=e346]:
+                        - generic [ref=e347]:
+                          - generic [ref=e348]:
+                            - img [ref=e350]
+                            - generic [ref=e355]: "3"
+                          - generic [ref=e356]:
+                            - heading "Asignacion de jurados" [level=4] [ref=e357]
+                            - paragraph [ref=e358]: Alcance global
+                        - generic [ref=e359]: Abierta
+                      - generic [ref=e361]:
+                        - img [ref=e362]
+                        - generic [ref=e364]: 01 mar 2026 → 31 jul 2026
+                      - generic [ref=e366]:
+                        - generic [ref=e367]: Quedan 89 días
+                        - generic [ref=e368]: 42% transcurrido
+                      - generic [ref=e371]:
+                        - button "Prórrogas" [ref=e372] [cursor=pointer]:
+                          - img
+                          - text: Prórrogas
+                        - button "Editar" [ref=e373] [cursor=pointer]:
+                          - img
+                          - text: Editar
+                        - button "Eliminar" [ref=e374] [cursor=pointer]:
+                          - img
+                          - text: Eliminar
+                    - article [ref=e375]:
+                      - generic [ref=e376]:
+                        - generic [ref=e377]:
+                          - generic [ref=e378]:
+                            - img [ref=e380]
+                            - generic [ref=e384]: "4"
+                          - generic [ref=e385]:
+                            - heading "Evaluacion de jurados" [level=4] [ref=e386]
+                            - paragraph [ref=e387]: Alcance global
+                        - generic [ref=e388]: Abierta
+                      - generic [ref=e390]:
+                        - img [ref=e391]
+                        - generic [ref=e393]: 01 mar 2026 → 31 jul 2026
+                      - generic [ref=e395]:
+                        - generic [ref=e396]: Quedan 89 días
+                        - generic [ref=e397]: 42% transcurrido
+                      - generic [ref=e400]:
+                        - button "Prórrogas" [ref=e401] [cursor=pointer]:
+                          - img
+                          - text: Prórrogas
+                        - button "Editar" [ref=e402] [cursor=pointer]:
+                          - img
+                          - text: Editar
+                        - button "Eliminar" [ref=e403] [cursor=pointer]:
+                          - img
+                          - text: Eliminar
+                    - article [ref=e404]:
+                      - generic [ref=e405]:
+                        - generic [ref=e406]:
+                          - generic [ref=e407]:
+                            - img [ref=e409]
+                            - generic [ref=e413]: "5"
+                          - generic [ref=e414]:
+                            - heading "Informe final" [level=4] [ref=e415]
+                            - paragraph [ref=e416]: Alcance global
+                        - generic [ref=e417]: Abierta
+                      - generic [ref=e419]:
+                        - img [ref=e420]
+                        - generic [ref=e422]: 01 mar 2026 → 31 jul 2026
+                      - generic [ref=e424]:
+                        - generic [ref=e425]: Quedan 89 días
+                        - generic [ref=e426]: 42% transcurrido
+                      - generic [ref=e429]:
+                        - button "Prórrogas" [ref=e430] [cursor=pointer]:
+                          - img
+                          - text: Prórrogas
+                        - button "Editar" [ref=e431] [cursor=pointer]:
+                          - img
+                          - text: Editar
+                        - button "Eliminar" [ref=e432] [cursor=pointer]:
+                          - img
+                          - text: Eliminar
+                    - article [ref=e433]:
+                      - generic [ref=e434]:
+                        - generic [ref=e435]:
+                          - generic [ref=e436]:
+                            - img [ref=e438]
+                            - generic [ref=e441]: "6"
+                          - generic [ref=e442]:
+                            - heading "Sustentacion" [level=4] [ref=e443]
+                            - paragraph [ref=e444]: Alcance global
+                        - generic [ref=e445]: Abierta
+                      - generic [ref=e447]:
+                        - img [ref=e448]
+                        - generic [ref=e450]: 01 mar 2026 → 31 jul 2026
+                      - generic [ref=e452]:
+                        - generic [ref=e453]: Quedan 89 días
+                        - generic [ref=e454]: 42% transcurrido
+                      - generic [ref=e457]:
+                        - button "Prórrogas" [ref=e458] [cursor=pointer]:
+                          - img
+                          - text: Prórrogas
+                        - button "Editar" [ref=e459] [cursor=pointer]:
+                          - img
+                          - text: Editar
+                        - button "Eliminar" [ref=e460] [cursor=pointer]:
+                          - img
+                          - text: Eliminar
+                    - article [ref=e461]:
+                      - generic [ref=e462]:
+                        - generic [ref=e463]:
+                          - generic [ref=e464]:
+                            - img [ref=e466]
+                            - generic [ref=e469]: "7"
+                          - generic [ref=e470]:
+                            - heading "Desistimiento" [level=4] [ref=e471]
+                            - paragraph [ref=e472]: Alcance global
+                        - generic [ref=e473]: Abierta
+                      - generic [ref=e475]:
+                        - img [ref=e476]
+                        - generic [ref=e478]: 01 mar 2026 → 31 jul 2026
+                      - generic [ref=e480]:
+                        - generic [ref=e481]: Quedan 89 días
+                        - generic [ref=e482]: 42% transcurrido
+                      - generic [ref=e485]:
+                        - button "Prórrogas" [ref=e486] [cursor=pointer]:
+                          - img
+                          - text: Prórrogas
+                        - button "Editar" [ref=e487] [cursor=pointer]:
+                          - img
+                          - text: Editar
+                        - button "Eliminar" [ref=e488] [cursor=pointer]:
+                          - img
+                          - text: Eliminar
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]
+  - alert [ref=e17]

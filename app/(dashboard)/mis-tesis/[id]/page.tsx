@@ -30,6 +30,7 @@ import {
   History,
   Info,
   Loader2,
+  MoreHorizontal,
   Receipt,
   RefreshCw,
   Send,
@@ -52,6 +53,12 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   ESTADO_CONFIG,
   ESTADO_ASESOR_CONFIG,
@@ -420,26 +427,53 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-        <Button variant="outline" size="icon" asChild className="flex-shrink-0">
-          <Link href="/mis-tesis">
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-        </Button>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-2">
-            <Badge variant="outline" className="font-mono">{tesis.codigo}</Badge>
-            <Badge className={cn(estadoConfig.bgColor, estadoConfig.color, 'gap-1')}>
-              {estadoConfig.icon}
-              {estadoConfig.label}
-            </Badge>
+      {(() => {
+        // Misma regla que el botón huérfano que reemplaza este dropdown.
+        const puedeDesistirHeader = esAutorPrincipal && !yoDesisti && !['DESISTIDA', 'RECHAZADA', 'SUSTENTADA', 'SOLICITUD_DESISTIMIENTO'].includes(tesis.estado)
+        const hayAccionesEnMenu = puedeDesistirHeader
+        return (
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <Button variant="outline" size="icon" asChild className="flex-shrink-0">
+              <Link href="/mis-tesis">
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+            </Button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <Badge variant="outline" className="font-mono">{tesis.codigo}</Badge>
+                <Badge className={cn(estadoConfig.bgColor, estadoConfig.color, 'gap-1')}>
+                  {estadoConfig.icon}
+                  {estadoConfig.label}
+                </Badge>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight">{tesis.titulo}</h1>
+              <p className="text-muted-foreground mt-1">
+                {tesis.carreraNombre} • {tesis.facultad.nombre}
+              </p>
+            </div>
+            {hayAccionesEnMenu && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="flex-shrink-0 self-end sm:self-auto" aria-label="Acciones">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {puedeDesistirHeader && (
+                    <DropdownMenuItem
+                      className="text-red-600 focus:text-red-600 cursor-pointer"
+                      onClick={() => setModalDesistirOpen(true)}
+                    >
+                      <Ban className="w-4 h-4 mr-2" />
+                      Solicitar desistimiento
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold leading-tight">{tesis.titulo}</h1>
-          <p className="text-muted-foreground mt-1">
-            {tesis.carreraNombre} • {tesis.facultad.nombre}
-          </p>
-        </div>
-      </div>
+        )
+      })()}
 
       {/* Banner de desistimiento del usuario actual */}
       {yoDesisti && (
@@ -2673,21 +2707,6 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
         reemplazando={participants.reemplazando}
         onConfirmar={participants.ejecutar}
       />
-
-      {/* Botón para solicitar desistimiento (solo para el autor principal, en estados activos) */}
-      {esAutorPrincipal && !yoDesisti && !['DESISTIDA', 'RECHAZADA', 'SUSTENTADA', 'SOLICITUD_DESISTIMIENTO'].includes(tesis.estado) && (
-        <div className="pt-4 flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
-            onClick={() => setModalDesistirOpen(true)}
-          >
-            <Ban className="w-4 h-4 mr-2" />
-            Solicitar desistimiento
-          </Button>
-        </div>
-      )}
 
       <ModalSolicitarDesistimiento
         open={modalDesistirOpen}

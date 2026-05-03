@@ -1,0 +1,259 @@
+- generic:
+  - link:
+    - /url: "#main-content"
+    - text: Saltar al contenido principal
+  - generic:
+    - banner:
+      - generic:
+        - generic:
+          - link:
+            - /url: /dashboard
+            - img
+            - generic:
+              - paragraph: Sistema de Tesis
+              - paragraph: UNAMAD
+        - generic:
+          - button:
+            - img
+            - generic: Notificaciones
+            - generic: "4"
+          - button:
+            - img
+            - generic: Cambiar tema
+          - button:
+            - generic:
+              - generic: AP
+    - generic:
+      - complementary:
+        - generic:
+          - generic:
+            - generic:
+              - navigation:
+                - generic:
+                  - generic:
+                    - paragraph: Principal
+                    - button:
+                      - img
+                  - generic:
+                    - link:
+                      - /url: /dashboard
+                      - img
+                      - generic: Dashboard
+                - generic:
+                  - generic:
+                    - paragraph: Estudiante
+                  - generic:
+                    - link:
+                      - /url: /mis-tesis
+                      - img
+                      - generic: Mis Tesis
+                - generic:
+                  - generic:
+                    - paragraph: Correspondencia
+                  - generic:
+                    - link:
+                      - /url: /mis-invitaciones
+                      - img
+                      - generic: Mis Invitaciones
+                - generic:
+                  - button:
+                    - img
+                    - generic: Ayuda
+        - generic:
+          - generic:
+            - link:
+              - /url: /perfil
+              - generic:
+                - generic: AP
+              - generic:
+                - paragraph: ALBERTO PEÑA
+                - paragraph: Estudiante
+            - button:
+              - img
+          - paragraph: v1.0.0
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /mis-tesis
+                - text: Mis Tesis
+              - img
+              - generic: E5CMQRJS
+            - generic:
+              - link:
+                - /url: /mis-tesis
+                - img
+              - generic:
+                - generic:
+                  - generic: E5CMQRJS
+                  - generic:
+                    - img
+                    - text: En Revisión
+                - heading [level=1]: realidad aumentada
+                - paragraph: INGENIERÍA DE SISTEMAS E INFORMÁTICA • Facultad de Ingeniería
+              - button [expanded]:
+                - img
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - paragraph: Proyecto en revisión
+                    - paragraph: Tu proyecto está siendo revisado por la Facultad de Ingeniería. Te notificaremos cuando haya novedades.
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - generic: Documentos - Aprobación de Proyecto
+                        - generic: Documentos presentados para la aprobación del proyecto de tesis
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - generic:
+                            - paragraph: Proyecto de Tesis
+                            - generic: Subido
+                          - generic:
+                            - img
+                            - generic: Proyecto de Tesis
+                            - generic: 3.3 MB
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/proyecto_1777817204273_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/proyecto_1777817204273_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - generic:
+                            - paragraph: Asesor
+                            - generic: Aceptado
+                          - paragraph: NELLY JACQUELINE ULLOA GALLARDO
+                          - paragraph: verseker2@gmail.com
+                          - generic:
+                            - link:
+                              - /url: /documentos/cartas-aceptacion/carta_asesor_cmoptmsgn0000qktue5cmqrjs_1777817299988.pdf
+                              - img
+                              - generic: Carta de Aceptación
+                              - generic: 3.3 MB
+                              - img
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - generic:
+                            - paragraph: Voucher de Pago
+                            - generic: Subido
+                          - generic:
+                            - img
+                            - generic: Voucher de Pago
+                            - generic: 3.3 MB
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/voucher_pago_1777817206529_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/voucher_pago_1777817206529_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - generic:
+                            - paragraph: Tu Documento Sustentatorio
+                            - generic: Subido
+                          - generic:
+                            - img
+                            - generic: Documento Sustentatorio
+                            - generic: 3.3 MB
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/documento_sustentatorio_1777817210861_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/documento_sustentatorio_1777817210861_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - generic:
+                            - paragraph: Sustentatorio de JEFFERSON MORALES
+                            - generic: Subido
+                          - generic:
+                            - img
+                            - generic: Documento Sustentatorio
+                            - generic: 3.3 MB
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/documento_sustentatorio_1777817255394_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+                            - link:
+                              - /url: /documentos/tesis/cmoptmsgn0000qktue5cmqrjs/documento_sustentatorio_1777817255394_REGLAMENTO_GENERAL_DE_GRADOS_Y_T_TULOS_DE_LA_UNAMAD.pdf
+                              - img
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                      - text: Tesistas
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - paragraph: PEÑA MONDRAGON, ALBERTO
+                          - generic:
+                            - generic: Tesista 1 • 13121005
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - paragraph: MORALES ZAVALETA, JEFFERSON
+                          - generic:
+                            - generic: Tesista 2 • 13121013
+                            - generic: Aceptado
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                      - text: Asesores
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                        - generic:
+                          - paragraph: ULLOA GALLARDO, NELLY JACQUELINE
+                          - generic:
+                            - generic: Asesor
+                            - generic: Aceptado
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - paragraph: Importante
+                        - paragraph: Una vez enviado a revisión, no podrás modificar los documentos hasta recibir observaciones o aprobación.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]
+  - alert
+  - menu "Acciones" [active] [ref=e313]:
+    - menuitem "Solicitar desistimiento" [ref=e314] [cursor=pointer]:
+      - img
+      - text: Solicitar desistimiento

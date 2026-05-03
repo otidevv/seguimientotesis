@@ -1,0 +1,11 @@
+- generic [active]:
+  - link "Saltar al contenido principal" [ref=e1] [cursor=pointer]:
+    - /url: "#main-content"
+  - status "Cargando dashboard" [ref=e3]:
+    - generic [ref=e4]:
+      - img [ref=e5]
+      - paragraph [ref=e7]: Cargando...
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e13] [cursor=pointer]:
+    - img [ref=e14]
+  - alert [ref=e17]

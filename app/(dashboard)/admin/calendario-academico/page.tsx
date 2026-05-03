@@ -118,10 +118,10 @@ function progresoPeriodo(inicio: string, fin: string, ahora: Date) {
   return Math.round(((n - i) / (f - i)) * 100)
 }
 
-const ESTADO_STYLE: Record<Estado, { dot: string; bg: string; ink: string; ring: string; pulse: boolean; label: string }> = {
-  ACTIVO:      { dot: 'bg-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', ink: 'text-emerald-700 dark:text-emerald-300', ring: 'ring-emerald-500/30 border-emerald-200 dark:border-emerald-900/60', pulse: true,  label: 'Activo' },
-  PLANIFICADO: { dot: 'bg-sky-500',     bg: 'bg-sky-50 dark:bg-sky-950/30',         ink: 'text-sky-700 dark:text-sky-300',         ring: 'ring-sky-500/30 border-sky-200 dark:border-sky-900/60',           pulse: false, label: 'Planificado' },
-  CERRADO:     { dot: 'bg-slate-400',   bg: 'bg-slate-100 dark:bg-slate-800/40',    ink: 'text-slate-700 dark:text-slate-300',     ring: 'ring-slate-300/30 border-slate-200 dark:border-slate-800/60',     pulse: false, label: 'Cerrado' },
+const ESTADO_STYLE: Record<Estado, { dot: string; bg: string; ink: string; pulse: boolean; label: string }> = {
+  ACTIVO:      { dot: 'bg-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-950', ink: 'text-emerald-800 dark:text-emerald-200', pulse: true,  label: 'Activo' },
+  PLANIFICADO: { dot: 'bg-sky-600',     bg: 'bg-sky-100 dark:bg-sky-950',         ink: 'text-sky-800 dark:text-sky-200',         pulse: false, label: 'Planificado' },
+  CERRADO:     { dot: 'bg-zinc-500',    bg: 'bg-zinc-200 dark:bg-zinc-800',       ink: 'text-zinc-800 dark:text-zinc-200',       pulse: false, label: 'Cerrado' },
 }
 
 interface StatCellProps {
@@ -133,27 +133,22 @@ interface StatCellProps {
   isText?: boolean
 }
 function StatCell({ icon: Icon, label, value, sub, tone = 'default', isText }: StatCellProps) {
-  const toneClass = {
-    default: 'bg-card',
-    emerald: 'bg-emerald-50/40 dark:bg-emerald-950/15',
-    sky: 'bg-sky-50/40 dark:bg-sky-950/15',
-    primary: 'bg-primary/[0.04]',
-  }[tone]
+  // Surface uniformly white/dark; only the icon container carries solid color.
   const iconClass = {
-    default: 'text-muted-foreground bg-muted',
-    emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/40',
-    sky: 'text-sky-600 dark:text-sky-400 bg-sky-100/70 dark:bg-sky-950/40',
-    primary: 'text-primary bg-primary/10',
+    default: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
+    emerald: 'bg-emerald-600 text-white',
+    sky: 'bg-sky-600 text-white',
+    primary: 'bg-primary text-primary-foreground',
   }[tone]
   return (
-    <div className={cn('flex items-center gap-3 px-5 py-4', toneClass)}>
-      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ring-black/5 dark:ring-white/5', iconClass)}>
+    <div className="flex items-center gap-3 bg-card px-5 py-4">
+      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-md', iconClass)}>
         <Icon className="w-5 h-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className={cn('font-bold tracking-tight leading-tight truncate', isText ? 'text-base capitalize' : 'text-2xl tabular-nums')}>{value}</p>
-        {sub && <p className="text-[11px] text-muted-foreground truncate mt-0.5">{sub}</p>}
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{label}</p>
+        <p className={cn('font-bold tracking-tight leading-tight truncate text-foreground', isText ? 'text-base capitalize' : 'text-2xl tabular-nums')}>{value}</p>
+        {sub && <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{sub}</p>}
       </div>
     </div>
   )
@@ -164,7 +159,7 @@ function EstadoPill({ estado }: { estado: Estado }) {
   return (
     <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', s.bg, s.ink)}>
       <span className="relative flex h-1.5 w-1.5">
-        {s.pulse && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />}
+        {s.pulse && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70" />}
         <span className={cn('relative inline-flex h-1.5 w-1.5 rounded-full', s.dot)} />
       </span>
       {s.label}
@@ -267,16 +262,17 @@ export default function CalendarioAcademicoPage() {
   return (
     <div className="container mx-auto py-6 px-4 space-y-6">
       {/* Hero header */}
-      <section className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-card via-card to-muted/40">
-        <div className="absolute inset-0 -z-10 opacity-[0.04] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:24px_24px]" aria-hidden />
+      <section className="overflow-hidden rounded-lg border bg-card">
+        {/* franja sólida primaria como anclaje visual */}
+        <div className="h-1 bg-primary" aria-hidden />
         <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/15">
-              <CalendarDays className="h-6 w-6 text-primary" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <CalendarDays className="h-6 w-6" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight leading-tight">Calendario académico</h1>
-              <p className="mt-1 max-w-xl text-sm text-muted-foreground leading-relaxed">
+              <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 Gestiona periodos académicos y ventanas de trámite. Las ventanas cerradas
                 bloquean envíos a revisión, asignación de jurados y demás acciones del flujo.
               </p>
@@ -287,8 +283,10 @@ export default function CalendarioAcademicoPage() {
           </Button>
         </div>
 
-        {/* Stats strip */}
-        <div className="grid grid-cols-2 gap-px border-t bg-border lg:grid-cols-4">
+        {/* Stats strip — gap-px sobre fondo zinc para líneas 1px independientes del orden DOM.
+            (Antes con divide-x/divide-y se generaban bordes fantasma en grid 2x2 al cambiar de
+            row, porque divide-* opera sobre orden DOM y no sobre posición visual del grid.) */}
+        <div className="grid grid-cols-2 gap-px border-t border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800 lg:grid-cols-4">
           <StatCell icon={Layers} label="Periodos" value={stats.total} sub={`${stats.activos} activos · ${stats.planificados} planif.`} />
           <StatCell icon={CheckCircle2} label="Ventanas configuradas" value={stats.totalVentanas} sub="Trámites con plazo definido" tone="emerald" />
           <StatCell icon={Sparkles} label="Periodo actual" value={stats.activoActual?.nombre ?? '—'} sub={stats.activoActual ? `${fmtFechaCorta(stats.activoActual.fechaInicio)} — ${fmtFechaCorta(stats.activoActual.fechaFin)}` : 'Sin periodo activo'} tone="sky" isText />
@@ -298,34 +296,34 @@ export default function CalendarioAcademicoPage() {
 
       {/* Warning banner */}
       {warning && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-300/70 bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-950/30 dark:to-amber-950/10 p-4 dark:border-amber-900/60">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-950/40">
-            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+        <div className="flex items-start gap-3 rounded-lg border-l-4 border-l-amber-500 border-y border-r border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950 p-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-amber-500 text-white">
+            <AlertTriangle className="w-5 h-5" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-amber-900 dark:text-amber-100 leading-tight">
               El periodo global <b>{warning.activoGlobal.nombre}</b> termina en {warning.diasParaFin} día{warning.diasParaFin === 1 ? '' : 's'} y no hay un periodo siguiente configurado.
             </p>
-            <p className="mt-1 text-xs text-amber-800/90 dark:text-amber-200/80 leading-relaxed">
+            <p className="mt-1 text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
               Los plazos de jurados y correcciones que se calculen ahora podrían no saltar correctamente las vacaciones.
               Crea el siguiente periodo (estado PLANIFICADO) antes de que termine este.
             </p>
           </div>
-          <Button size="sm" variant="outline" className="border-amber-400 hover:bg-amber-100/50" onClick={() => setCrearPeriodoOpen(true)}>
+          <Button size="sm" variant="outline" className="border-amber-500 bg-card hover:bg-amber-100 dark:hover:bg-amber-900" onClick={() => setCrearPeriodoOpen(true)}>
             <Plus className="w-3.5 h-3.5 mr-1.5" /> Crear siguiente
           </Button>
         </div>
       )}
 
       {/* Periodos */}
-      <section className="rounded-2xl border bg-card overflow-hidden">
-        <header className="flex items-center justify-between border-b px-5 py-4">
+      <section className="rounded-lg border bg-card overflow-hidden">
+        <header className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-5 py-4">
           <div>
             <h2 className="text-[15px] font-semibold tracking-tight leading-tight">Periodos académicos</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Haz clic para ver y configurar sus ventanas.</p>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">Haz clic para ver y configurar sus ventanas.</p>
           </div>
           {!loading && periodos.length > 0 && (
-            <span className="text-[11px] tabular-nums text-muted-foreground">{periodos.length} {periodos.length === 1 ? 'periodo' : 'periodos'}</span>
+            <span className="text-[11px] tabular-nums text-zinc-500 dark:text-zinc-400">{periodos.length} {periodos.length === 1 ? 'periodo' : 'periodos'}</span>
           )}
         </header>
         {loading ? (
@@ -348,12 +346,12 @@ export default function CalendarioAcademicoPage() {
               const progreso = progresoPeriodo(p.fechaInicio, p.fechaFin, ahora)
               const cubreAhora = new Date(p.fechaInicio) <= ahora && new Date(p.fechaFin) >= ahora
               return (
-                <li key={p.id} className={cn(expandido && 'bg-muted/15')}>
+                <li key={p.id} className={cn(expandido && 'bg-zinc-50 dark:bg-zinc-900/40')}>
                   {/* Fila clickeable del periodo */}
                   <div
                     className={cn(
                       'flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-5 transition-colors',
-                      expandido ? 'bg-muted/40' : 'hover:bg-muted/20',
+                      expandido ? 'bg-zinc-50 dark:bg-zinc-900/40' : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/30',
                     )}
                   >
                     <button
@@ -361,10 +359,10 @@ export default function CalendarioAcademicoPage() {
                       onClick={() => setExpandedId(expandido ? null : p.id)}
                       aria-label={expandido ? 'Ocultar ventanas' : 'Ver ventanas'}
                       className={cn(
-                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer',
+                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors cursor-pointer',
                         expandido
-                          ? 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/20'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700',
                       )}
                     >
                       <ChevronRight className={cn('w-4 h-4 transition-transform', expandido && 'rotate-90')} />
@@ -389,13 +387,13 @@ export default function CalendarioAcademicoPage() {
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground tabular-nums">
-                          {fmtFechaCorta(p.fechaInicio)} <span className="text-muted-foreground/50">→</span> {fmtFechaCorta(p.fechaFin)}
+                          {fmtFechaCorta(p.fechaInicio)} <span className="text-zinc-400 dark:text-zinc-600">→</span> {fmtFechaCorta(p.fechaFin)}
                         </p>
                         {/* timeline */}
-                        <div className="mt-2 relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                          <div className={cn('h-full rounded-full transition-all', cubreAhora ? 'bg-emerald-500' : p.estado === 'CERRADO' ? 'bg-slate-400' : 'bg-sky-400')} style={{ width: `${progreso}%` }} />
+                        <div className="mt-2 relative h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                          <div className={cn('h-full transition-all', cubreAhora ? 'bg-emerald-600' : p.estado === 'CERRADO' ? 'bg-zinc-400' : 'bg-sky-600')} style={{ width: `${progreso}%` }} />
                           {cubreAhora && (
-                            <div className="absolute top-1/2 -translate-y-1/2 h-3 w-px bg-foreground" style={{ left: `calc(${progreso}% - 0.5px)` }} aria-label="hoy" />
+                            <div className="absolute top-1/2 -translate-y-1/2 h-3 w-px bg-zinc-900 dark:bg-zinc-100" style={{ left: `calc(${progreso}% - 0.5px)` }} aria-label="hoy" />
                           )}
                         </div>
                       </div>
@@ -407,10 +405,10 @@ export default function CalendarioAcademicoPage() {
                         type="button"
                         onClick={() => setExpandedId(expandido ? null : p.id)}
                         className={cn(
-                          'inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer',
+                          'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer',
                           expandido
                             ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
-                            : 'bg-card hover:bg-muted/50 border-border',
+                            : 'bg-card hover:bg-zinc-50 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800',
                         )}
                       >
                         <Layers className="w-3.5 h-3.5" />
@@ -422,7 +420,7 @@ export default function CalendarioAcademicoPage() {
                         type="button"
                         onClick={() => setEditPeriodo(p)}
                         title="Editar periodo"
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-border transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-transparent px-2.5 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-foreground hover:border-zinc-200 dark:hover:border-zinc-800 transition-colors cursor-pointer"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         <span className="hidden md:inline">Editar</span>
@@ -432,7 +430,7 @@ export default function CalendarioAcademicoPage() {
 
                   {/* Ventanas anidadas dentro del periodo expandido */}
                   {expandido && detalle && detalle.id === p.id && (
-                    <div className="border-t bg-gradient-to-b from-muted/20 to-transparent">
+                    <div className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40">
                       {(() => {
                         const tiposGlobalesUsados = new Set(detalle.ventanas.filter(v => v.facultadId === null).map(v => v.tipo))
                         const todosConfigurados = tiposGlobalesUsados.size >= TIPOS.length
@@ -441,13 +439,13 @@ export default function CalendarioAcademicoPage() {
 
                         return (
                           <>
-                            <div className="flex items-center justify-between border-b bg-card/40 px-5 py-3">
+                            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-card px-5 py-3">
                               <div className="flex items-center gap-2">
-                                <Layers className="w-3.5 h-3.5 text-muted-foreground" />
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                <Layers className="w-3.5 h-3.5 text-zinc-500" />
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                                   Ventanas de trámite
                                 </h3>
-                                <span className="text-[10px] text-muted-foreground/70">
+                                <span className="text-[10px] text-zinc-500">
                                   · ordenadas según el flujo del proyecto
                                 </span>
                               </div>
@@ -464,14 +462,14 @@ export default function CalendarioAcademicoPage() {
                             </div>
 
                             {detalleLoading ? (
-                              <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+                              <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-zinc-400" /></div>
                             ) : detalle.ventanas.length === 0 ? (
                               <div className="py-12 text-center px-4">
-                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
-                                  <Inbox className="w-6 h-6 text-muted-foreground" />
+                                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-800">
+                                  <Inbox className="w-6 h-6 text-zinc-500" />
                                 </div>
                                 <p className="mt-3 text-sm font-medium">Este periodo aún no tiene ventanas</p>
-                                <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
+                                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
                                   Cada trámite (presentación, jurados, sustentación, etc.) necesita su propia ventana de plazo.
                                 </p>
                                 <Button className="mt-3" size="sm" onClick={() => setCrearVentanaOpen(true)}>
@@ -479,7 +477,7 @@ export default function CalendarioAcademicoPage() {
                                 </Button>
                               </div>
                             ) : (
-                              <div className="grid grid-cols-1 gap-px bg-border md:grid-cols-2 xl:grid-cols-3">
+                              <div className="grid grid-cols-1 gap-px bg-zinc-200 dark:bg-zinc-800 md:grid-cols-2 xl:grid-cols-3">
                                 {ventanasOrdenadas.map((v, idx) => {
                                   const Icon = TIPO_ICON[v.tipo] ?? FileText
                                   const ahora2 = new Date()
@@ -489,9 +487,38 @@ export default function CalendarioAcademicoPage() {
                                   const proxima = ahora2 < inicio
                                   const cerrada = fin < ahora2
                                   const stateLabel = !v.habilitada ? 'Deshabilitada' : cubre ? 'Abierta' : proxima ? 'Próxima' : 'Cerrada'
-                                  const stateInk = !v.habilitada ? 'text-zinc-500' : cubre ? 'text-emerald-600 dark:text-emerald-400' : proxima ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500'
-                                  const stateBg = !v.habilitada ? 'bg-zinc-100 dark:bg-zinc-800/40' : cubre ? 'bg-emerald-50 dark:bg-emerald-950/30' : proxima ? 'bg-sky-50 dark:bg-sky-950/30' : 'bg-slate-100 dark:bg-slate-800/40'
-                                  const stateDot = !v.habilitada ? 'bg-zinc-400' : cubre ? 'bg-emerald-500' : proxima ? 'bg-sky-500' : 'bg-slate-400'
+                                  // Iconos: fondo sólido a tono con el estado
+                                  const iconBg = !v.habilitada
+                                    ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
+                                    : cubre
+                                      ? 'bg-emerald-600 text-white'
+                                      : proxima
+                                        ? 'bg-sky-600 text-white'
+                                        : 'bg-zinc-500 text-white'
+                                  // Pills de estado: tinte sólido pleno (no semi-transparente)
+                                  const pillCls = !v.habilitada
+                                    ? 'bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200'
+                                    : cubre
+                                      ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200'
+                                      : proxima
+                                        ? 'bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200'
+                                        : 'bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200'
+                                  const stateDot = !v.habilitada ? 'bg-zinc-500' : cubre ? 'bg-emerald-600' : proxima ? 'bg-sky-600' : 'bg-zinc-500'
+                                  const stateInkText = !v.habilitada
+                                    ? 'text-zinc-700 dark:text-zinc-300'
+                                    : cubre
+                                      ? 'text-emerald-700 dark:text-emerald-400'
+                                      : proxima
+                                        ? 'text-sky-700 dark:text-sky-400'
+                                        : 'text-zinc-700 dark:text-zinc-400'
+                                  // Borde izquierdo sólido por estado: el "anclaje visual"
+                                  const accentBorder = !v.habilitada
+                                    ? 'border-l-zinc-300 dark:border-l-zinc-700'
+                                    : cubre
+                                      ? 'border-l-emerald-600'
+                                      : proxima
+                                        ? 'border-l-sky-600'
+                                        : 'border-l-zinc-400'
                                   const progreso = progresoPeriodo(v.fechaInicio, v.fechaFin, ahora2)
                                   const diasRel = cubre ? diasEntre(fin, ahora2) : proxima ? diasEntre(inicio, ahora2) : diasEntre(fin, ahora2)
                                   const relTxt = cubre
@@ -503,53 +530,53 @@ export default function CalendarioAcademicoPage() {
                                         : ''
 
                                   return (
-                                    <article key={v.id} className="bg-card p-4 transition-colors hover:bg-muted/30 group">
+                                    <article key={v.id} className={cn('bg-card p-4 border-l-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/60 group', accentBorder)}>
                                       <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-start gap-3 min-w-0">
                                           <div className="relative">
-                                            <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', stateBg)}>
-                                              <Icon className={cn('w-4 h-4', stateInk)} />
+                                            <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-md', iconBg)}>
+                                              <Icon className="w-4 h-4" />
                                             </div>
-                                            <span className="absolute -top-1 -left-1 inline-flex items-center justify-center h-4 min-w-4 rounded-full bg-foreground text-background text-[9px] font-bold tabular-nums px-1">
+                                            <span className="absolute -top-1 -left-1 inline-flex items-center justify-center h-4 min-w-4 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[9px] font-bold tabular-nums px-1">
                                               {idx + 1}
                                             </span>
                                           </div>
                                           <div className="min-w-0">
                                             <h4 className="text-sm font-semibold tracking-tight leading-tight truncate">{TIPO_LABEL[v.tipo]}</h4>
-                                            <p className="mt-0.5 text-[11px] text-muted-foreground truncate">
+                                            <p className="mt-0.5 text-[11px] text-zinc-600 dark:text-zinc-400 truncate">
                                               {v.facultad?.codigo ? <>Facultad <b>{v.facultad.codigo}</b></> : 'Alcance global'}
                                               {v._count.overrides > 0 && (
-                                                <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-amber-100/70 dark:bg-amber-950/30 px-1.5 py-0.5 text-amber-700 dark:text-amber-300 text-[10px]">
+                                                <span className="ml-2 inline-flex items-center gap-1 rounded-md bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100 px-1.5 py-0.5 text-[10px]">
                                                   <ShieldAlert className="w-2.5 h-2.5" /> {v._count.overrides} prórroga{v._count.overrides === 1 ? '' : 's'}
                                                 </span>
                                               )}
                                             </p>
                                           </div>
                                         </div>
-                                        <span className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', stateBg, stateInk)}>
+                                        <span className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', pillCls)}>
                                           <span className={cn('inline-block h-1.5 w-1.5 rounded-full', stateDot)} />
                                           {stateLabel}
                                         </span>
                                       </div>
 
                                       <div className="mt-3 flex items-baseline gap-2 text-xs tabular-nums">
-                                        <CalendarDays className="w-3.5 h-3.5 text-muted-foreground/60 self-center" />
-                                        <span className="font-medium">{fmtFechaCorta(v.fechaInicio)} <span className="text-muted-foreground/50">→</span> {fmtFechaCorta(v.fechaFin)}</span>
+                                        <CalendarDays className="w-3.5 h-3.5 text-zinc-400 self-center" />
+                                        <span className="font-medium">{fmtFechaCorta(v.fechaInicio)} <span className="text-zinc-400">→</span> {fmtFechaCorta(v.fechaFin)}</span>
                                       </div>
 
                                       <div className="mt-2.5 space-y-1.5">
                                         <div className="flex items-center justify-between text-[11px]">
-                                          <span className={cn('font-semibold', stateInk)}>{relTxt}</span>
+                                          <span className={cn('font-semibold', stateInkText)}>{relTxt}</span>
                                           {(cubre || cerrada) && (
-                                            <span className="text-[10px] text-muted-foreground tabular-nums">{progreso}% transcurrido</span>
+                                            <span className="text-[10px] text-zinc-500 tabular-nums">{progreso}% transcurrido</span>
                                           )}
                                         </div>
-                                        <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted">
-                                          <div className={cn('h-full rounded-full', stateDot)} style={{ width: `${progreso}%` }} />
+                                        <div className="relative h-1 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                          <div className={cn('h-full', stateDot)} style={{ width: `${progreso}%` }} />
                                         </div>
                                       </div>
 
-                                      <div className="mt-3 flex items-center justify-end gap-1 border-t pt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                      <div className="mt-3 flex items-center justify-end gap-1 border-t border-zinc-200 dark:border-zinc-800 pt-2 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
                                         <Button
                                           size="sm" variant="ghost" className="h-7 text-[11px] gap-1"
                                           title="Gestionar prórrogas / overrides"
