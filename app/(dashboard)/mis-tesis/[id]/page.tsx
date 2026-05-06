@@ -662,7 +662,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
             </div>
             {/* Observaciones de rondas anteriores */}
             {(tesis as any).rondaActual > 1 && (tesis as any).jurados?.some((j: any) => j.evaluaciones?.length > 0) && (
-              <div className="ml-14">
+              <div className="sm:ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
                   className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors cursor-pointer"
@@ -686,7 +686,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                             if (!eval_) return null
                             return (
                               <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
                                   <span className="font-medium text-sm">{jurado.nombre}</span>
                                   <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
                                   <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
@@ -760,7 +760,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               const dictamenActual = dictamenesData.find((d: any) => d.esVersionActual) || dictamenesData[0]
               if (!dictamenActual) return null
               return (
-                <div className="ml-14 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                <div className="sm:ml-14 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
                   <div className="flex items-center gap-2 mb-2">
                     <FileCheck className="w-5 h-5 text-indigo-600" />
                     <span className="font-semibold text-sm text-indigo-800 dark:text-indigo-200">Dictamen del Jurado</span>
@@ -769,7 +769,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   {dictamenActual.descripcion && (
                     <p className="text-sm text-muted-foreground mb-2">{dictamenActual.descripcion}</p>
                   )}
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <a href={dictamenActual.rutaArchivo} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" variant="outline" className="text-indigo-600 border-indigo-300">
                         <Eye className="w-3 h-3 mr-1" /> Ver Dictamen
@@ -799,8 +799,8 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === (tesis as any).rondaActual)
               if (!eval_) return null
               return (
-                <div key={jurado.id} className="p-3 rounded-lg bg-white dark:bg-background border ml-14">
-                  <div className="flex items-center gap-2 mb-1">
+                <div key={jurado.id} className="p-3 rounded-lg bg-white dark:bg-background border sm:ml-14">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span className="font-medium text-sm">{jurado.nombre}</span>
                     <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
                     <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
@@ -820,7 +820,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
             })}
             {/* Observaciones de rondas anteriores */}
             {(tesis as any).rondaActual > 1 && (
-              <div className="ml-14">
+              <div className="sm:ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
                   className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors cursor-pointer"
@@ -844,7 +844,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                             if (!eval_) return null
                             return (
                               <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
                                   <span className="font-medium text-sm">{jurado.nombre}</span>
                                   <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
                                   <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
@@ -885,7 +885,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               const historial = ((tesis as any).historialDocumentos || []).filter((d: any) => d.tipo === 'PROYECTO')
               if (historial.length <= 1) return null
               return (
-                <div className="ml-14 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border">
+                <div className="sm:ml-14 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border">
                   <div className="flex items-center gap-2 mb-2">
                     <History className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Historial de Versiones - Proyecto</span>
@@ -920,7 +920,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               )
             })()}
             {/* Upload del proyecto corregido + botón reenviar */}
-            <div className="ml-14 space-y-3">
+            <div className="sm:ml-14 space-y-3">
               <p className="text-sm font-medium">Sube el proyecto corregido y reenvia:</p>
 
               {/* Componente de upload inline */}
@@ -1320,7 +1320,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
             </div>
             {/* Observaciones de rondas anteriores (solo jurados de fase INFORME_FINAL) */}
             {(tesis as any).rondaActual > 1 && (tesis as any).jurados?.some((j: any) => j.fase === 'INFORME_FINAL' && j.evaluaciones?.length > 0) && (
-              <div className="ml-14">
+              <div className="sm:ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
                   className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 transition-colors cursor-pointer"
@@ -1344,7 +1344,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                             if (!eval_) return null
                             return (
                               <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
                                   <span className="font-medium text-sm">{jurado.nombre}</span>
                                   <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
                                   <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
@@ -1407,7 +1407,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               const dictamenActual = dictamenesData.find((d: any) => d.esVersionActual) || dictamenesData[0]
               if (!dictamenActual) return null
               return (
-                <div className="ml-14 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                <div className="sm:ml-14 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
                   <div className="flex items-center gap-2 mb-2">
                     <FileCheck className="w-5 h-5 text-indigo-600" />
                     <span className="font-semibold text-sm text-indigo-800 dark:text-indigo-200">Dictamen del Jurado</span>
@@ -1416,7 +1416,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   {dictamenActual.descripcion && (
                     <p className="text-sm text-muted-foreground mb-2">{dictamenActual.descripcion}</p>
                   )}
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <a href={dictamenActual.rutaArchivo} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" variant="outline" className="text-indigo-600 border-indigo-300">
                         <Eye className="w-3 h-3 mr-1" /> Ver Dictamen
@@ -1446,8 +1446,8 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               const eval_ = jurado.evaluaciones?.find((e: any) => e.ronda === (tesis as any).rondaActual)
               if (!eval_) return null
               return (
-                <div key={jurado.id} className="p-3 rounded-lg bg-white dark:bg-background border ml-14">
-                  <div className="flex items-center gap-2 mb-1">
+                <div key={jurado.id} className="p-3 rounded-lg bg-white dark:bg-background border sm:ml-14">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span className="font-medium text-sm">{jurado.nombre}</span>
                     <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
                   </div>
@@ -1459,7 +1459,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
             })}
             {/* Observaciones de rondas anteriores (solo jurados de fase INFORME_FINAL) */}
             {(tesis as any).rondaActual > 1 && (
-              <div className="ml-14">
+              <div className="sm:ml-14">
                 <button
                   onClick={() => setMostrarObsAnteriores(!mostrarObsAnteriores)}
                   className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 transition-colors cursor-pointer"
@@ -1483,7 +1483,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                             if (!eval_) return null
                             return (
                               <div key={jurado.id} className="p-3 rounded-lg bg-white/70 dark:bg-background/50 border">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
                                   <span className="font-medium text-sm">{jurado.nombre}</span>
                                   <Badge variant="outline" className="text-[10px]">{jurado.tipo}</Badge>
                                   <Badge className={cn('text-[10px]', eval_.resultado === 'APROBADO' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700')}>
@@ -1524,7 +1524,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               const historial = ((tesis as any).historialDocumentos || []).filter((d: any) => d.tipo === 'INFORME_FINAL_DOC')
               if (historial.length <= 1) return null
               return (
-                <div className="ml-14 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border">
+                <div className="sm:ml-14 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/30 border">
                   <div className="flex items-center gap-2 mb-2">
                     <History className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Historial de Versiones - Informe Final</span>
@@ -1559,7 +1559,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               )
             })()}
             {/* Upload del informe corregido + botón reenviar */}
-            <div className="ml-14 space-y-3">
+            <div className="sm:ml-14 space-y-3">
               <p className="text-sm font-medium">Sube el informe final corregido y reenvia:</p>
 
               <DocumentUploadCard
@@ -1636,7 +1636,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
               const dictamenFinal = dictamenesData.find((d: any) => d.esVersionActual) || dictamenesData[0]
               if (!dictamenFinal) return null
               return (
-                <div className="mt-4 ml-16 p-4 rounded-lg bg-green-100/50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                <div className="mt-4 sm:ml-16 p-4 rounded-lg bg-green-100/50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
                   <div className="flex items-center gap-2 mb-2">
                     <FileCheck className="w-5 h-5 text-green-600" />
                     <span className="font-semibold text-sm text-green-800 dark:text-green-200">Dictamen de Aprobacion</span>
@@ -1644,7 +1644,7 @@ export default function DetalleTesisPage({ params }: { params: Promise<{ id: str
                   {dictamenFinal.descripcion && (
                     <p className="text-sm text-muted-foreground mb-2">{dictamenFinal.descripcion}</p>
                   )}
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <a href={dictamenFinal.rutaArchivo} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" variant="outline" className="text-green-600 border-green-300">
                         <Eye className="w-3 h-3 mr-1" /> Ver Dictamen

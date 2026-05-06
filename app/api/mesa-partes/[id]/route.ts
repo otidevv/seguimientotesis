@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope, tesisFueraDeScope } from '@/lib/auth/scope'
 import { EstadoTesis } from '@prisma/client'
 import {
   DIAS_HABILES_EVALUACION,
@@ -159,18 +160,16 @@ export async function GET(
       )
     }
 
-    // Enforce facultad scope: mesa-partes con contextId solo ve tesis de su facultad
-    const esAdminGet = user.roles?.some(
-      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolScopeGet = !esAdminGet ? user.roles?.find(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-    ) : null
-    if (rolScopeGet) {
-      const facultadTesisId = tesis.autores[0]?.studentCareer?.facultad?.id
-      if (facultadTesisId && facultadTesisId !== rolScopeGet.contextId) {
-        return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
-      }
+    // Enforce facultad scope: fail-closed si el rol mesa-partes no tiene contextId.
+    const scopeGet = getMesaPartesScope(user)
+    if (!scopeGet) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
+    if (tesisFueraDeScope(scopeGet, tesis.autores[0]?.studentCareer?.facultad?.id)) {
+      return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
     }
 
     // Deduplicar dictamenes: el query OR puede traer versiones viejas,
@@ -385,19 +384,19 @@ export async function PUT(
       )
     }
 
-    // Enforce facultad scope para acciones de mesa-partes
-    const esAdminPut = user.roles?.some(
-      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolScopePut = !esAdminPut ? user.roles?.find(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-    ) : null
-    if (rolScopePut) {
-      const facultadTesisId = tesis.autores[0]?.studentCareer?.facultadId
-      if (facultadTesisId && facultadTesisId !== rolScopePut.contextId) {
-        return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
-      }
+    // Enforce facultad scope para acciones de mesa-partes (fail-closed).
+    const scopePut = getMesaPartesScope(user)
+    if (!scopePut) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
     }
+    if (tesisFueraDeScope(scopePut, tesis.autores[0]?.studentCareer?.facultadId)) {
+      return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 })
+    }
+    // Variable local que el resto del handler PUT consume para checks adicionales.
+    const esAdminPut = scopePut.esAdmin
 
     // Acción: CONFIRMAR_JURADOS (solo en ASIGNANDO_JURADOS)
     if (accion === 'CONFIRMAR_JURADOS') {

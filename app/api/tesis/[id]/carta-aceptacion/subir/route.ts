@@ -17,6 +17,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import path from 'path'
 import fs from 'fs'
+import { validarPDFContenido } from '@/lib/file-validation'
 
 interface RouteParams {
   params: Promise<{
@@ -106,6 +107,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { error: 'El archivo no debe superar los 10MB' },
         { status: 400 }
       )
+    }
+
+    // Validar magic bytes — `file.type` es falsificable por el cliente.
+    const errorContenido = await validarPDFContenido(file)
+    if (errorContenido) {
+      return NextResponse.json({ error: errorContenido }, { status: 400 })
     }
 
     const tipoDoc = asesorRegistro.tipo === 'PRINCIPAL'

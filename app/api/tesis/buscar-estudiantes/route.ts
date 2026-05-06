@@ -81,6 +81,10 @@ export async function GET(request: NextRequest) {
     // Detectar cuáles de estos estudiantes ya tienen una tesis activa
     // (como autor principal o coautor) — PENDIENTE o ACEPTADO, y la tesis
     // no está rechazada/archivada. Se usa para marcarlos como ya asignados.
+    // Si se pasa tesisId, excluimos esa misma tesis del cálculo: si el
+    // estudiante ya es coautor PENDIENTE en ESTA tesis no es "tesis activa
+    // en otro proyecto" — el autor principal podría querer reinvitarlo
+    // (rama soportada por el endpoint de participantes).
     const userIds = estudiantes.map((e) => e.user.id).filter(Boolean)
     const participacionesActivas = userIds.length > 0
       ? await prisma.thesisAuthor.findMany({
@@ -90,6 +94,7 @@ export async function GET(request: NextRequest) {
             thesis: {
               deletedAt: null,
               estado: { notIn: ['RECHAZADA', 'ARCHIVADA'] },
+              ...(tesisId ? { id: { not: tesisId } } : {}),
             },
           },
           select: {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope, tesisFueraDeScope } from '@/lib/auth/scope'
+import { validarPDFContenido } from '@/lib/file-validation'
+import { cachearActaDesistimiento } from '@/lib/pdf/acta-cache'
 import { crearNotificacion } from '@/lib/notificaciones'
 import { estadoDestinoConCoautor, requiereResolucionDesistimiento } from '@/lib/desistimiento/transiciones'
 import { invalidarCartasAsesores } from '@/lib/cartas-aceptacion/invalidar'
@@ -25,13 +28,14 @@ export async function POST(
     const puede = await checkPermission(user.id, 'mesa-partes', 'edit')
     if (!puede) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
-    // Scope de facultad
-    const esAdmin = user.roles?.some(
-      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolMesaPartes = !esAdmin ? user.roles?.find(
-      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-    ) : null
+    // Scope de facultad (fail-closed: rol mal configurado → 403)
+    const scope = getMesaPartesScope(user)
+    if (!scope) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
 
     const form = await request.formData()
     const archivoDesistimiento = form.get('resolucionDesistimiento') as File | null
@@ -52,7 +56,7 @@ export async function POST(
       },
     })
     if (!w) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
-    if (rolMesaPartes && w.facultadIdSnapshot !== rolMesaPartes.contextId) {
+    if (tesisFueraDeScope(scope, w.facultadIdSnapshot)) {
       return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
     }
     if (w.estadoSolicitud !== 'PENDIENTE') {
@@ -88,6 +92,14 @@ export async function POST(
       if (archivoDesistimiento.size > MAX_SIZE_BYTES) {
         return NextResponse.json(
           { error: 'Resolución de desistimiento: el archivo excede 25 MB.' },
+          { status: 400 }
+        )
+      }
+      // Validar magic bytes — `file.type` es falsificable por el cliente.
+      const errorContenidoRes = await validarPDFContenido(archivoDesistimiento)
+      if (errorContenidoRes) {
+        return NextResponse.json(
+          { error: `Resolución de desistimiento: ${errorContenidoRes}` },
           { status: 400 }
         )
       }
@@ -239,6 +251,12 @@ export async function POST(
 
       return resolucionRegistradaId
     })
+
+    // Snapshot inmutable del acta: la generamos con los datos VIVOS al momento
+    // de aprobar y la guardamos en disco. El endpoint de descarga la sirve
+    // desde ahí, evitando que cambios posteriores en autores/título alteren el
+    // contenido del documento legal.
+    await cachearActaDesistimiento(w.id)
 
     await crearNotificacion({
       userId: w.userId,

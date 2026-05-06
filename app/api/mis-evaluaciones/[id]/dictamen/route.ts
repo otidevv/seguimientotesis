@@ -12,6 +12,7 @@ import {
 import { crearNotificacion } from '@/lib/notificaciones'
 import { sendEmailByFaculty, emailTemplates } from '@/lib/email'
 import { assertDentroDeVentana, FueraDeVentanaError, agregarDiasHabilesAcademicos } from '@/lib/academic-calendar'
+import { validarPDFContenido } from '@/lib/file-validation'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -241,6 +242,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { error: 'Solo se permiten archivos PDF' },
         { status: 400 }
       )
+    }
+
+    // Validar magic bytes — `file.type` es falsificable por el cliente.
+    const errorContenidoDict = await validarPDFContenido(archivoDictamen)
+    if (errorContenidoDict) {
+      return NextResponse.json({ error: errorContenidoDict }, { status: 400 })
     }
 
     const maxSize = 25 * 1024 * 1024

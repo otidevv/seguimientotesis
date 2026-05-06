@@ -78,12 +78,21 @@ export function ParticipantDialog({
               </div>
             ) : resultados.length > 0 ? (
               resultados.map((p) => {
-                const bloqueado = p.desistioDeEstaTesis === true
+                // Razones de bloqueo (orden de precedencia: desistimiento > tesis activa).
+                // Un estudiante con tesis activa en otro proyecto no puede aceptar dos
+                // tesis a la vez — el backend lo permitiría hoy, así que la UI lo bloquea.
+                const motivoBloqueo: string | null = p.desistioDeEstaTesis
+                  ? 'Ya desistió de esta tesis, no puede ser reincorporado.'
+                  : p.tieneTesisActiva
+                    ? `Ya participa en una tesis activa${p.tesisActivaTitulo ? `: "${p.tesisActivaTitulo}"` : ''}.`
+                    : null
+                const bloqueado = motivoBloqueo !== null
                 return (
                   <div
                     key={p.id}
                     onClick={() => { if (!bloqueado) onSeleccionar(p) }}
                     aria-disabled={bloqueado}
+                    title={motivoBloqueo ?? undefined}
                     className={cn(
                       'p-3 rounded-lg border transition-all',
                       bloqueado
@@ -111,10 +120,10 @@ export function ParticipantDialog({
                             ? `${p.codigoEstudiante || 'Sin código'} • ${p.carrera || 'Sin carrera'}`
                             : `${p.codigoDocente || ''} • ${p.departamento || 'Sin departamento'}`}
                         </p>
-                        {bloqueado && (
-                          <p className="mt-1 flex items-center gap-1 text-[11px] text-red-600 dark:text-red-400">
-                            <Ban className="w-3 h-3" />
-                            Ya desistió de esta tesis, no puede ser reincorporado.
+                        {motivoBloqueo && (
+                          <p className="mt-1 flex items-start gap-1 text-[11px] text-red-600 dark:text-red-400">
+                            <Ban className="w-3 h-3 shrink-0 mt-0.5" />
+                            <span className="break-words">{motivoBloqueo}</span>
                           </p>
                         )}
                       </div>

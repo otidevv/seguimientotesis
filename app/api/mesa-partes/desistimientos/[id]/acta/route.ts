@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope, tesisFueraDeScope } from '@/lib/auth/scope'
 import { MOTIVO_LABEL } from '@/lib/constants/motivos-desistimiento'
 import { generarActaDesistimiento } from '@/lib/pdf/acta-desistimiento'
+import { existeActaCache, leerActaCache } from '@/lib/pdf/acta-cache'
 
 const ESTADO_TESIS_LABEL: Record<string, string> = {
   BORRADOR: 'Borrador',
@@ -51,13 +53,14 @@ export async function GET(
     }
     // Si es mesa-partes (no tesista propio) y tiene scope de facultad, enforce
     if (esMesaPartes && !esPropioTesista) {
-      const esAdmin = user.roles?.some(
-        r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-      )
-      const rolMesaPartes = !esAdmin ? user.roles?.find(
-        r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-      ) : null
-      if (rolMesaPartes && w.facultadIdSnapshot !== rolMesaPartes.contextId) {
+      const scope = getMesaPartesScope(user)
+      if (!scope) {
+        return NextResponse.json(
+          { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+          { status: 403 }
+        )
+      }
+      if (tesisFueraDeScope(scope, w.facultadIdSnapshot)) {
         return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
       }
     }
@@ -67,6 +70,20 @@ export async function GET(
         { error: 'Solo se puede descargar el acta de desistimientos APROBADOS.' },
         { status: 400 }
       )
+    }
+
+    // Servir el snapshot cacheado al momento de aprobar. Si no existe (registros
+    // anteriores al fix), generar on-demand como fallback.
+    if (existeActaCache(w.id)) {
+      const cached = leerActaCache(w.id)
+      return new NextResponse(new Uint8Array(cached), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="acta-desistimiento-${w.thesisId.slice(-8).toUpperCase()}.pdf"`,
+          'Cache-Control': 'private, no-cache',
+        },
+      })
     }
 
     const coautorActivo = w.thesis.autores.find(

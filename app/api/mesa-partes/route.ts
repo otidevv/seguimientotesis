@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope } from '@/lib/auth/scope'
 
 // GET /api/mesa-partes - Listar proyectos de tesis para mesa de partes
 export async function GET(request: NextRequest) {
@@ -23,33 +24,31 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verificar si es admin (puede ver todas las facultades)
-    const esAdmin = user.roles?.some(
-      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-
-    // Obtener el contexto de facultad del rol MESA_PARTES (si existe y no es admin).
-    // Solo consideramos contextType='FACULTAD' con contextId — una mesa-partes sin
-    // contexto es global (puede ver todas).
-    const rolMesaPartes = !esAdmin ? user.roles?.find(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive &&
-             r.contextType === 'FACULTAD' && r.contextId
-    ) : null
+    // Resolver scope con fail-closed: rol mesa-partes mal configurado → 403.
+    // Antes (bug #6) un MESA_PARTES sin contextId quedaba como "global" y
+    // veía listados de todas las facultades — escalada horizontal.
+    const scope = getMesaPartesScope(user)
+    if (!scope) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
 
     // Obtener parámetros de búsqueda
     const { searchParams } = new URL(request.url)
     const estado = searchParams.get('estado')
     // Si el rol tiene scope de facultad, se enforza (ignora el query param).
-    // Esto previene escalada horizontal: operador scoped a FAC_A no puede
-    // ver FAC_B manipulando ?facultadId=.
-    const facultadId = rolMesaPartes?.contextId ?? searchParams.get('facultadId')
+    // Solo admin puede usar ?facultadId= libremente.
+    const facultadId = scope.esAdmin
+      ? searchParams.get('facultadId')
+      : scope.facultadId
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
 
     // DEBUG logs
     console.log('[MESA-PARTES] Usuario:', user.email)
-    console.log('[MESA-PARTES] Es Admin:', esAdmin)
-    console.log('[MESA-PARTES] Rol Mesa Partes:', rolMesaPartes ? { contextType: rolMesaPartes.contextType, contextId: rolMesaPartes.contextId } : null)
+    console.log('[MESA-PARTES] Scope:', scope)
     console.log('[MESA-PARTES] FacultadId filtro:', facultadId)
     console.log('[MESA-PARTES] Estado filtro:', estado || 'EN_REVISION')
 

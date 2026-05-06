@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope, tesisFueraDeScope } from '@/lib/auth/scope'
 import { requiereResolucionDesistimiento } from '@/lib/desistimiento/transiciones'
 
 export async function GET(
@@ -15,14 +16,15 @@ export async function GET(
     const puede = await checkPermission(user.id, 'mesa-partes', 'view')
     if (!puede) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
-    // Scope de facultad: si el user es MESA_PARTES con contextId, solo
-    // accede a desistimientos de su facultad asignada.
-    const esAdmin = user.roles?.some(
-      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolMesaPartes = !esAdmin ? user.roles?.find(
-      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-    ) : null
+    // Scope de facultad: si el user es MESA_PARTES con contextId, solo accede a
+    // desistimientos de su facultad. Fail-closed para roles mal configurados.
+    const scope = getMesaPartesScope(user)
+    if (!scope) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
 
     const w = await prisma.thesisWithdrawal.findUnique({
       where: { id },
@@ -53,7 +55,7 @@ export async function GET(
     if (!w) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
 
     // Enforce facultad scope
-    if (rolMesaPartes && w.facultadIdSnapshot !== rolMesaPartes.contextId) {
+    if (tesisFueraDeScope(scope, w.facultadIdSnapshot)) {
       return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
     }
 

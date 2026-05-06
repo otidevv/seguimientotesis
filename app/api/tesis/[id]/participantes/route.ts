@@ -122,26 +122,28 @@ export async function PUT(
       }
 
       if (accion === 'ELIMINAR') {
-        // Limpiar solicitudes de desistimiento fantasma (rechazadas/canceladas)
-        // que bloquearían la eliminación por FK Restrict
-        await prisma.thesisWithdrawal.deleteMany({
-          where: {
-            thesisAuthorId: coautorActual.id,
-            estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
-          },
-        })
-        await prisma.thesisAuthor.delete({
-          where: { id: coautorActual.id },
-        })
-
-        // Registrar en historial
-        await prisma.thesisStatusHistory.create({
-          data: {
-            thesisId: tesis.id,
-            estadoNuevo: tesis.estado,
-            comentario: 'Coautor eliminado del proyecto',
-            changedById: user.id,
-          },
+        // Atómico: sin tx, un crash entre el delete del autor y la entrada de
+        // historial dejaría el cambio sin trazabilidad.
+        await prisma.$transaction(async (tx) => {
+          // Limpiar solicitudes de desistimiento fantasma (rechazadas/canceladas)
+          // que bloquearían la eliminación por FK Restrict
+          await tx.thesisWithdrawal.deleteMany({
+            where: {
+              thesisAuthorId: coautorActual.id,
+              estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
+            },
+          })
+          await tx.thesisAuthor.delete({
+            where: { id: coautorActual.id },
+          })
+          await tx.thesisStatusHistory.create({
+            data: {
+              thesisId: tesis.id,
+              estadoNuevo: tesis.estado,
+              comentario: 'Coautor eliminado del proyecto',
+              changedById: user.id,
+            },
+          })
         })
 
         return NextResponse.json({
@@ -222,40 +224,20 @@ export async function PUT(
           )
         }
 
-        // Caso borde: "reemplazar" al coautor actual consigo mismo (misma persona).
-        // Sin esta rama borraríamos su fila y luego el update fallaría con P2025.
-        // Lo tratamos como una reinvitación: resetear estado a PENDIENTE en la fila existente.
-        if (taPrevio && taPrevio.id === coautorActual.id) {
-          await prisma.thesisWithdrawal.deleteMany({
-            where: {
-              thesisAuthorId: coautorActual.id,
-              estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
-            },
-          })
-          await prisma.thesisAuthor.update({
-            where: { id: taPrevio.id },
-            data: {
-              estado: 'PENDIENTE',
-              orden: 2,
-              studentCareerId: nuevoCoautorCareer.id,
-              fechaRespuesta: null,
-              motivoRechazo: null,
-            },
-          })
-        } else {
-          // Reemplazo real con otra persona.
-          await prisma.thesisWithdrawal.deleteMany({
-            where: {
-              thesisAuthorId: coautorActual.id,
-              estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
-            },
-          })
-          await prisma.thesisAuthor.delete({
-            where: { id: coautorActual.id },
-          })
-
-          if (taPrevio) {
-            await prisma.thesisAuthor.update({
+        // CRÍTICO: tx para evitar el caso "delete coautor → server muere antes
+        // del create" que dejaría la tesis sin coautor.
+        await prisma.$transaction(async (tx) => {
+          // Caso borde: "reemplazar" al coautor actual consigo mismo (misma persona).
+          // Sin esta rama borraríamos su fila y luego el update fallaría con P2025.
+          // Lo tratamos como una reinvitación: resetear estado a PENDIENTE en la fila existente.
+          if (taPrevio && taPrevio.id === coautorActual.id) {
+            await tx.thesisWithdrawal.deleteMany({
+              where: {
+                thesisAuthorId: coautorActual.id,
+                estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
+              },
+            })
+            await tx.thesisAuthor.update({
               where: { id: taPrevio.id },
               data: {
                 estado: 'PENDIENTE',
@@ -266,29 +248,53 @@ export async function PUT(
               },
             })
           } else {
-            await prisma.thesisAuthor.create({
-              data: {
-                thesisId: tesis.id,
-                userId: nuevoParticipanteId,
-                studentCareerId: nuevoCoautorCareer.id,
-                orden: 2,
-                estado: 'PENDIENTE',
+            // Reemplazo real con otra persona.
+            await tx.thesisWithdrawal.deleteMany({
+              where: {
+                thesisAuthorId: coautorActual.id,
+                estadoSolicitud: { in: ['RECHAZADO', 'CANCELADO'] },
               },
             })
-          }
-        }
+            await tx.thesisAuthor.delete({
+              where: { id: coautorActual.id },
+            })
 
-        // Registrar en historial
-        await prisma.thesisStatusHistory.create({
-          data: {
-            thesisId: tesis.id,
-            estadoNuevo: tesis.estado,
-            comentario: 'Coautor reemplazado - nueva invitación enviada',
-            changedById: user.id,
-          },
+            if (taPrevio) {
+              await tx.thesisAuthor.update({
+                where: { id: taPrevio.id },
+                data: {
+                  estado: 'PENDIENTE',
+                  orden: 2,
+                  studentCareerId: nuevoCoautorCareer.id,
+                  fechaRespuesta: null,
+                  motivoRechazo: null,
+                },
+              })
+            } else {
+              await tx.thesisAuthor.create({
+                data: {
+                  thesisId: tesis.id,
+                  userId: nuevoParticipanteId,
+                  studentCareerId: nuevoCoautorCareer.id,
+                  orden: 2,
+                  estado: 'PENDIENTE',
+                },
+              })
+            }
+          }
+
+          await tx.thesisStatusHistory.create({
+            data: {
+              thesisId: tesis.id,
+              estadoNuevo: tesis.estado,
+              comentario: 'Coautor reemplazado - nueva invitación enviada',
+              changedById: user.id,
+            },
+          })
         })
 
-        // Notificar al nuevo coautor invitado
+        // Notificar al nuevo coautor invitado (fuera de tx — ya es best-effort
+        // con try/catch interno; no debe rollbackear el cambio si falla)
         await crearNotificacion({
           userId: nuevoParticipanteId,
           tipo: 'INVITACION_COAUTOR',
@@ -336,19 +342,19 @@ export async function PUT(
           )
         }
 
-        // Eliminar el coasesor
-        await prisma.thesisAdvisor.delete({
-          where: { id: asesorActual.id },
-        })
-
-        // Registrar en historial
-        await prisma.thesisStatusHistory.create({
-          data: {
-            thesisId: tesis.id,
-            estadoNuevo: tesis.estado,
-            comentario: 'Coasesor eliminado del proyecto',
-            changedById: user.id,
-          },
+        // Eliminar el coasesor + historial atómicamente
+        await prisma.$transaction(async (tx) => {
+          await tx.thesisAdvisor.delete({
+            where: { id: asesorActual.id },
+          })
+          await tx.thesisStatusHistory.create({
+            data: {
+              thesisId: tesis.id,
+              estadoNuevo: tesis.estado,
+              comentario: 'Coasesor eliminado del proyecto',
+              changedById: user.id,
+            },
+          })
         })
 
         return NextResponse.json({
@@ -392,32 +398,31 @@ export async function PUT(
           )
         }
 
-        // Eliminar el asesor anterior
-        await prisma.thesisAdvisor.delete({
-          where: { id: asesorActual.id },
+        // CRÍTICO: tx para evitar el caso "delete asesor → server muere antes
+        // del create" que dejaría la tesis sin asesor del tipo correspondiente.
+        await prisma.$transaction(async (tx) => {
+          await tx.thesisAdvisor.delete({
+            where: { id: asesorActual.id },
+          })
+          await tx.thesisAdvisor.create({
+            data: {
+              thesisId: tesis.id,
+              userId: nuevoParticipanteId,
+              tipo: tipoAsesorDB,
+              estado: 'PENDIENTE',
+            },
+          })
+          await tx.thesisStatusHistory.create({
+            data: {
+              thesisId: tesis.id,
+              estadoNuevo: tesis.estado,
+              comentario: `${tipo === 'ASESOR' ? 'Asesor' : 'Coasesor'} reemplazado - nueva invitación enviada`,
+              changedById: user.id,
+            },
+          })
         })
 
-        // Crear el nuevo asesor con estado PENDIENTE
-        await prisma.thesisAdvisor.create({
-          data: {
-            thesisId: tesis.id,
-            userId: nuevoParticipanteId,
-            tipo: tipoAsesorDB,
-            estado: 'PENDIENTE',
-          },
-        })
-
-        // Registrar en historial
-        await prisma.thesisStatusHistory.create({
-          data: {
-            thesisId: tesis.id,
-            estadoNuevo: tesis.estado,
-            comentario: `${tipo === 'ASESOR' ? 'Asesor' : 'Coasesor'} reemplazado - nueva invitación enviada`,
-            changedById: user.id,
-          },
-        })
-
-        // Notificar al nuevo asesor/coasesor
+        // Notificar al nuevo asesor/coasesor (fuera de tx, best-effort)
         const tipoLabel = tipo === 'ASESOR' ? 'asesor' : 'coasesor'
         await crearNotificacion({
           userId: nuevoParticipanteId,
@@ -609,42 +614,47 @@ export async function POST(
         )
       }
 
-      let comentarioHist = 'Coautor agregado - invitación enviada'
-      if (taPrevio) {
-        // Reactivar registro previo (RECHAZADO / CANCELADO de invitación anterior).
-        await prisma.thesisAuthor.update({
-          where: { id: taPrevio.id },
-          data: {
-            estado: 'PENDIENTE',
-            orden: 2,
-            studentCareerId: studentCareer.id,
-            fechaRespuesta: null,
-            motivoRechazo: null,
-          },
-        })
-        comentarioHist = 'Coautor reinvitado - invitación enviada'
-      } else {
-        await prisma.thesisAuthor.create({
+      const comentarioHist = taPrevio
+        ? 'Coautor reinvitado - invitación enviada'
+        : 'Coautor agregado - invitación enviada'
+
+      // Atómico: el create/update del autor y la entrada de historial deben
+      // commitear juntos para no dejar registros sin trazabilidad.
+      await prisma.$transaction(async (tx) => {
+        if (taPrevio) {
+          // Reactivar registro previo (RECHAZADO / CANCELADO de invitación anterior).
+          await tx.thesisAuthor.update({
+            where: { id: taPrevio.id },
+            data: {
+              estado: 'PENDIENTE',
+              orden: 2,
+              studentCareerId: studentCareer.id,
+              fechaRespuesta: null,
+              motivoRechazo: null,
+            },
+          })
+        } else {
+          await tx.thesisAuthor.create({
+            data: {
+              thesisId: tesis.id,
+              userId: participanteId,
+              studentCareerId: studentCareer.id,
+              orden: 2,
+              estado: 'PENDIENTE',
+            },
+          })
+        }
+        await tx.thesisStatusHistory.create({
           data: {
             thesisId: tesis.id,
-            userId: participanteId,
-            studentCareerId: studentCareer.id,
-            orden: 2,
-            estado: 'PENDIENTE',
+            estadoNuevo: tesis.estado,
+            comentario: comentarioHist,
+            changedById: user.id,
           },
         })
-      }
-
-      await prisma.thesisStatusHistory.create({
-        data: {
-          thesisId: tesis.id,
-          estadoNuevo: tesis.estado,
-          comentario: comentarioHist,
-          changedById: user.id,
-        },
       })
 
-      // Notificar al coautor invitado
+      // Notificar al coautor invitado (fuera de tx, best-effort)
       await crearNotificacion({
         userId: participanteId,
         tipo: 'INVITACION_COAUTOR',
@@ -701,25 +711,27 @@ export async function POST(
         )
       }
 
-      await prisma.thesisAdvisor.create({
-        data: {
-          thesisId: tesis.id,
-          userId: participanteId,
-          tipo: 'CO_ASESOR',
-          estado: 'PENDIENTE',
-        },
+      // Atómico: create del coasesor + entrada de historial commitean juntos
+      await prisma.$transaction(async (tx) => {
+        await tx.thesisAdvisor.create({
+          data: {
+            thesisId: tesis.id,
+            userId: participanteId,
+            tipo: 'CO_ASESOR',
+            estado: 'PENDIENTE',
+          },
+        })
+        await tx.thesisStatusHistory.create({
+          data: {
+            thesisId: tesis.id,
+            estadoNuevo: tesis.estado,
+            comentario: 'Coasesor agregado - invitación enviada',
+            changedById: user.id,
+          },
+        })
       })
 
-      await prisma.thesisStatusHistory.create({
-        data: {
-          thesisId: tesis.id,
-          estadoNuevo: tesis.estado,
-          comentario: 'Coasesor agregado - invitación enviada',
-          changedById: user.id,
-        },
-      })
-
-      // Notificar al coasesor invitado
+      // Notificar al coasesor invitado (fuera de tx, best-effort)
       await crearNotificacion({
         userId: participanteId,
         tipo: 'INVITACION_COASESOR',

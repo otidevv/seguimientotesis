@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma, MotivoDesistimiento, EstadoTesis } from '@prisma/client'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope } from '@/lib/auth/scope'
 import { generarExcelDesistimientos, type DesistimientoRow } from '@/lib/excel/reporte-desistimientos'
 
 export async function GET(request: NextRequest) {
@@ -16,20 +17,21 @@ export async function GET(request: NextRequest) {
     ])
     if (!tieneReportes && !tieneMesa) return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
 
-    // Scope de facultad: si tiene MESA_PARTES con contextId, se enforza.
-    const esAdmin = user.roles?.some(
-      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolMesaPartes = !esAdmin ? user.roles?.find(
-      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-    ) : null
+    // Scope de facultad (fail-closed: rol mal configurado → 403)
+    const scope = getMesaPartesScope(user)
+    if (!scope) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
 
     const { searchParams } = new URL(request.url)
     const formato = searchParams.get('formato') ?? 'json'
     const desde = searchParams.get('desde')
     const hasta = searchParams.get('hasta')
     const facultadIdParam = searchParams.get('facultadId')
-    const facultadId = rolMesaPartes?.contextId ?? facultadIdParam
+    const facultadId = scope.esAdmin ? facultadIdParam : scope.facultadId
     const carrera = searchParams.get('carrera')
     const motivos = searchParams.getAll('motivo')
     const estadosTesis = searchParams.getAll('estadoTesis')

@@ -68,7 +68,15 @@
       "Bash(npx sonner:*)",
       "mcp__plugin_playwright_playwright__browser_network_requests",
       "mcp__plugin_playwright_playwright__browser_console_messages",
-      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"si puedes hacer estos en desarrollo aun no paso a produccion puedes modifacar la db el shcema.prisma no hay problema\" npx prisma migrate reset --force)"
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"si puedes hacer estos en desarrollo aun no paso a produccion puedes modifacar la db el shcema.prisma no hay problema\" npx prisma migrate reset --force)",
+      "Bash(npx --no-install eslint \"app/\\(dashboard\\)/mis-tesis/[id]/page.tsx\")",
+      "Bash(npm run *)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(npx --no-install eslint hooks/use-participant-manager.ts components/tesis/participant-dialog.tsx)",
+      "Bash(npx --no-install eslint app/api/tesis/[id]/participantes/route.ts)",
+      "Bash(cp /tmp/inspect_thesis.mjs \"c:/sistemas unamad/seguimientotesis/_inspect_thesis.mjs\")",
+      "Bash(node _inspect_thesis.mjs)",
+      "Bash(rm -f _inspect_thesis.mjs)"
     ]
   }
 }

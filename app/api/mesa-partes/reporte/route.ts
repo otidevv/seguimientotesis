@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope } from '@/lib/auth/scope'
 import { generarReporteExcel, TesisReporteData } from '@/lib/excel/reporte-mesa-partes'
 
 // Mapeo de estados legibles
@@ -226,17 +227,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Scope de facultad: enforce el contextId del rol si no es admin.
-    const esAdmin = user.roles?.some(
-      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolScope = !esAdmin ? user.roles?.find(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive &&
-             r.contextType === 'FACULTAD' && r.contextId
-    ) : null
+    // Scope de facultad (fail-closed: rol mal configurado → 403)
+    const scope = getMesaPartesScope(user)
+    if (!scope) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
 
     const { searchParams } = new URL(request.url)
-    const facultadId = rolScope?.contextId ?? searchParams.get('facultadId')
+    const facultadId = scope.esAdmin ? searchParams.get('facultadId') : scope.facultadId
     const anio = searchParams.get('anio')
     const formato = (searchParams.get('formato') ?? 'xlsx').toLowerCase()
     const busqueda = searchParams.get('busqueda')?.trim() || null

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 
@@ -38,7 +38,14 @@ export function useParticipantManager(
   const [resultados, setResultados] = useState<Participante[]>([])
   const [buscando, setBuscando] = useState(false)
   const [reemplazando, setReemplazando] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
   const [participanteSeleccionado, setParticipanteSeleccionado] = useState<Participante | null>(null)
+  // Aborta peticiones obsoletas: en redes lentas la respuesta de "ab" puede llegar
+  // después de la de "abc" y sobrescribir resultados correctos.
+  const abortRef = useRef<AbortController | null>(null)
+  // Lock síncrono: setEliminando(true) recién aplica en el siguiente render,
+  // así que un doble-click rápido pasaría el guard de useState.
+  const eliminandoRef = useRef(false)
 
   const abrirReemplazo = useCallback((tipo: TipoParticipante, participanteId: string) => {
     setTipoReemplazo(tipo)
@@ -70,6 +77,10 @@ export function useParticipantManager(
       return
     }
 
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setBuscando(true)
     try {
       let endpoint: string
@@ -82,23 +93,41 @@ export function useParticipantManager(
         endpoint = `/api/tesis/buscar-docentes?q=${encodeURIComponent(query)}${facultadParam}`
       }
 
-      const data = await api.get<{ data: Participante[] }>(endpoint)
-      setResultados(data.data)
+      const data = await api.get<{ data: Participante[] }>(endpoint, { signal: controller.signal })
+      if (controller.signal.aborted) return
+      setResultados(data.data ?? [])
     } catch (error) {
+      if (controller.signal.aborted) return
+      if (error instanceof DOMException && error.name === 'AbortError') return
       toast.error(error instanceof Error ? error.message : 'Error al buscar')
     } finally {
-      setBuscando(false)
+      // Solo apaga el spinner si esta petición sigue siendo la activa;
+      // si otra más reciente la reemplazó, dejamos que ella controle el estado.
+      if (abortRef.current === controller) {
+        setBuscando(false)
+      }
     }
   }, [tesis, tipoReemplazo])
 
   useEffect(() => {
+    // Limpia resultados al borrar la query: sin esto, escribir "abc" → ver
+    // resultados → borrar a "a" deja los resultados antiguos visibles.
+    if (busqueda.length < 2) {
+      abortRef.current?.abort()
+      setResultados([])
+      setBuscando(false)
+      return
+    }
     const timer = setTimeout(() => {
-      if (busqueda.length >= 2) {
-        buscarParticipantes(busqueda)
-      }
+      buscarParticipantes(busqueda)
     }, 300)
     return () => clearTimeout(timer)
   }, [busqueda, buscarParticipantes])
+
+  // Aborta cualquier petición pendiente al desmontar para evitar setState tras unmount.
+  useEffect(() => {
+    return () => { abortRef.current?.abort() }
+  }, [])
 
   const ejecutar = useCallback(async () => {
     if (!tesis || !tipoReemplazo || !participanteSeleccionado) return
@@ -135,11 +164,15 @@ export function useParticipantManager(
 
   const eliminar = useCallback(async (tipo: 'COAUTOR' | 'COASESOR', participanteId: string) => {
     if (!tesis) return
+    // Lock síncrono contra doble-click — useState no se actualiza a tiempo
+    if (eliminandoRef.current) return
 
     if (!confirm(`¿Estás seguro de eliminar este ${tipo === 'COAUTOR' ? 'coautor' : 'coasesor'}?`)) {
       return
     }
 
+    eliminandoRef.current = true
+    setEliminando(true)
     try {
       const data = await api.put<{ message: string }>(`/api/tesis/${tesis.id}/participantes`, {
         tipo,
@@ -150,13 +183,16 @@ export function useParticipantManager(
       onSuccess()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error de conexión')
+    } finally {
+      eliminandoRef.current = false
+      setEliminando(false)
     }
   }, [tesis, onSuccess])
 
   return {
     dialogOpen, tipoReemplazo, modoDialogo,
     busqueda, setBusqueda,
-    resultados, buscando, reemplazando,
+    resultados, buscando, reemplazando, eliminando,
     participanteSeleccionado, setParticipanteSeleccionado,
     abrirReemplazo, abrirAgregar, cerrar,
     ejecutar, eliminar,

@@ -21,6 +21,9 @@ class ApiError extends Error {
 type RequestOptions = {
   showErrorToast?: boolean
   params?: Record<string, string | number | boolean | undefined | null> | object
+  /** Para cancelar peticiones en flujos con debounce — el wrapper aún hace
+   * auto-refresh en 401, sólo se pierde el reintento si el signal abortó. */
+  signal?: AbortSignal
 }
 
 // Deduplica refreshes concurrentes: si varios requests reciben 401 al mismo tiempo,
@@ -58,7 +61,7 @@ async function request<T = Record<string, unknown>>(
   init?: RequestInit,
   options?: RequestOptions,
 ): Promise<ApiResponse<T>> {
-  const { showErrorToast = false, params } = options ?? {}
+  const { showErrorToast = false, params, signal } = options ?? {}
 
   if (params) {
     const searchParams = new URLSearchParams()
@@ -74,6 +77,7 @@ async function request<T = Record<string, unknown>>(
   const doFetch = () => fetch(url, {
     credentials: 'include',
     ...init,
+    signal,
   })
 
   try {
@@ -109,6 +113,11 @@ async function request<T = Record<string, unknown>>(
     return data as ApiResponse<T>
   } catch (error) {
     if (error instanceof ApiError) throw error
+    // Si la petición fue cancelada por el caller (AbortController), propaga
+    // el AbortError sin mostrar toast. El caller sabe que canceló.
+    if (signal?.aborted || (error instanceof DOMException && error.name === 'AbortError')) {
+      throw error instanceof DOMException ? error : new DOMException('Aborted', 'AbortError')
+    }
     const message = 'Error de conexión'
     if (showErrorToast) toast.error(message)
     throw new ApiError(message, 0)

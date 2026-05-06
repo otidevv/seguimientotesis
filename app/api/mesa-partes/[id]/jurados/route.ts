@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope, tesisFueraDeScope } from '@/lib/auth/scope'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -101,18 +102,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
-    // Enforce facultad scope
-    const esAdminJ = user.roles?.some(
-      (r) => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolScopeJ = !esAdminJ ? user.roles?.find(
-      (r) => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-    ) : null
-    if (rolScopeJ) {
-      const fId = tesis.autores[0]?.studentCareer?.facultadId
-      if (fId && fId !== rolScopeJ.contextId) {
-        return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
-      }
+    // Enforce facultad scope (fail-closed: rol mal configurado → 403)
+    const scope = getMesaPartesScope(user)
+    if (!scope) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
+    if (tesisFueraDeScope(scope, tesis.autores[0]?.studentCareer?.facultadId)) {
+      return NextResponse.json({ error: 'Tesis no encontrada' }, { status: 404 })
     }
 
     if (tesis.estado === 'SOLICITUD_DESISTIMIENTO') {

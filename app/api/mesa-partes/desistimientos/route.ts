@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma, EstadoSolicitudDesistimiento } from '@prisma/client'
 import { getCurrentUser, checkPermission } from '@/lib/auth'
+import { getMesaPartesScope } from '@/lib/auth/scope'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,18 +15,19 @@ export async function GET(request: NextRequest) {
     // Determinar scope de facultad: si el usuario tiene rol MESA_PARTES con
     // contextId (facultad asignada) y no es ADMIN, su facultad se enforza;
     // no puede manipular el query param para ver otras facultades.
-    const esAdmin = user.roles?.some(
-      r => ['ADMIN', 'SUPER_ADMIN'].includes(r.role.codigo) && r.isActive
-    )
-    const rolMesaPartes = !esAdmin ? user.roles?.find(
-      r => r.role.codigo === 'MESA_PARTES' && r.isActive && r.contextType === 'FACULTAD' && r.contextId
-    ) : null
+    const scope = getMesaPartesScope(user)
+    if (!scope) {
+      return NextResponse.json(
+        { error: 'Tu rol de mesa-partes no tiene una facultad asignada. Contacta al administrador.' },
+        { status: 403 }
+      )
+    }
 
     const { searchParams } = new URL(request.url)
     const estado = searchParams.get('estado') ?? 'PENDIENTE'
     const facultadIdParam = searchParams.get('facultadId') ?? undefined
     // Si el usuario tiene scope de facultad, se aplica siempre (ignora el param).
-    const facultadId = rolMesaPartes?.contextId ?? facultadIdParam
+    const facultadId = scope.esAdmin ? facultadIdParam : scope.facultadId
     const page = parseInt(searchParams.get('page') ?? '1', 10)
     const pageSize = Math.min(parseInt(searchParams.get('pageSize') ?? '20', 10), 100)
 

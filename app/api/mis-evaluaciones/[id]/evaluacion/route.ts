@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import path from 'path'
 import fs from 'fs'
 import { assertDentroDeVentana, FueraDeVentanaError } from '@/lib/academic-calendar'
+import { validarPDFContenido } from '@/lib/file-validation'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -131,6 +132,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         )
       }
 
+      // Validación de magic bytes — `file.type` es falsificable por el cliente.
+      const errorContenido = await validarPDFContenido(archivo)
+      if (errorContenido) {
+        return NextResponse.json({ error: errorContenido }, { status: 400 })
+      }
+
       const docDir = path.join(
         process.cwd(),
         'public',
@@ -156,17 +163,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       archivoUrl = `/documentos/tesis/${thesisId}/observaciones/${fileName}`
     }
 
-    // Crear la evaluacion
-    await prisma.juryEvaluation.create({
-      data: {
-        thesisId,
-        juryMemberId: miJurado.id,
-        ronda: tesis.rondaActual,
-        resultado: resultado as any,
-        observaciones: observaciones?.trim() || null,
-        archivoUrl,
-      },
-    })
+    // Crear la evaluacion. El schema tiene @@unique([juryMemberId, ronda]),
+    // así que dos POST simultáneos del mismo jurado no producirán doble voto:
+    // el segundo lanza P2002 y lo traducimos a 409 con mensaje claro (sin
+    // tx, el catch antes solo daba "Error al enviar evaluacion" 500).
+    try {
+      await prisma.juryEvaluation.create({
+        data: {
+          thesisId,
+          juryMemberId: miJurado.id,
+          ronda: tesis.rondaActual,
+          resultado: resultado as 'APROBADO' | 'OBSERVADO',
+          observaciones: observaciones?.trim() || null,
+          archivoUrl,
+        },
+      })
+    } catch (error) {
+      const code = (error as { code?: string })?.code
+      if (code === 'P2002') {
+        return NextResponse.json(
+          { error: 'Ya enviaste tu evaluación para esta ronda' },
+          { status: 409 }
+        )
+      }
+      throw error
+    }
 
     // Verificar si todos los jurados requeridos ya evaluaron (solo de la fase actual)
     const juradosActivos = await prisma.thesisJury.findMany({
